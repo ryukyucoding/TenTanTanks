@@ -73,6 +73,9 @@ public class Bullet : MonoBehaviour
 
         // 處理擊中
         HandleHit(other);
+
+        // 先忽略其他子彈 簡單一點
+        if (other.gameObject.name.Contains("Bullet")) return;
     }
 
     private void HandleHit(Collider hitTarget)
