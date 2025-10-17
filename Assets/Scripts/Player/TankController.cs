@@ -129,6 +129,11 @@ public class TankController : MonoBehaviour
                 turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
+        // 讓FirePoint也跟著砲塔旋轉
+        if (firePoint != null && turret != null)
+        {
+            firePoint.rotation = turret.rotation;
+        }
     }
 
     // 提供給射擊腳本使用的方法
