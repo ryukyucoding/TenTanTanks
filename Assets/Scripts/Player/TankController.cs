@@ -105,35 +105,9 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretRotation()
     {
-        if (turret == null || playerCamera == null) return;
-
-        // 將滑鼠螢幕座標轉換為世界座標
-        Ray ray = playerCamera.ScreenPointToRay(mousePosition);
-
-        // 創建一個在坦克高度的平面
-        Plane groundPlane = new Plane(Vector3.up, transform.position);
-
-        // 檢查射線與平面的交點
-        if (groundPlane.Raycast(ray, out float distance))
-        {
-            Vector3 worldMousePos = ray.GetPoint(distance);
-
-            // 計算從砲塔到滑鼠位置的方向
-            Vector3 direction = (worldMousePos - turret.position).normalized;
-            direction.y = 0; // 保持在水平面上
-
-            // 旋轉砲塔朝向滑鼠位置
-            if (direction.magnitude > 0.1f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
-        }
-        // 讓FirePoint也跟著砲塔旋轉
-        if (firePoint != null && turret != null)
-        {
-            firePoint.rotation = turret.rotation;
-        }
+        // 簡化測試：讓砲塔左右搖擺
+        float angle = Mathf.Sin(Time.time) * 45; // 左右45度搖擺
+        turret.rotation = Quaternion.Euler(0, angle, 0);
     }
 
     // 提供給射擊腳本使用的方法
