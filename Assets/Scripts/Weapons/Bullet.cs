@@ -3,24 +3,24 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [Header("Bullet Settings")]
-    [SerializeField] private float damage = 1f;           // �T�w�ˮ`�ȡ]1�I��^
-    [SerializeField] private float lifetime = 5f;         // �s���ɶ�
-    [SerializeField] private LayerMask hitLayers = -1;    // �i�H�������h��
+    [SerializeField] private float damage = 1f;           // 固定傷害值（1點血）
+    [SerializeField] private float lifetime = 5f;         // 存活時間
+    [SerializeField] private LayerMask hitLayers = -1;    // 可以擊中的層級
 
     [Header("Effects")]
-    [SerializeField] private GameObject hitEffect;        // �����S��
-    [SerializeField] private AudioClip hitSound;          // ��������
-    [SerializeField] private float hitEffectLifetime = 2f; // �S�Ħs���ɶ�
+    [SerializeField] private GameObject hitEffect;        // 擊中特效
+    [SerializeField] private AudioClip hitSound;          // 擊中音效
+    [SerializeField] private float hitEffectLifetime = 2f; // 特效存活時間
 
-    // �ե�ޥ�
+    // 組件引用
     private Rigidbody rb;
     private Collider bulletCollider;
 
-    // �l�u���A
+    // 子彈狀態
     private bool hasHit = false;
     private float spawnTime;
 
-    // �l�u�o�g�̡]�קK�۶ˡ^
+    // 子彈發射者（避免自傷）
     private GameObject shooter;
 
     void Awake()
@@ -29,14 +29,14 @@ public class Bullet : MonoBehaviour
         bulletCollider = GetComponent<Collider>();
         spawnTime = Time.time;
 
-        // �p�G�S��Rigidbody�A�K�[�@��
+        // 如果沒有Rigidbody，添加一個
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody>();
-            rb.useGravity = false; // �l�u�������O�v�T
+            rb.useGravity = false; // 子彈不受重力影響
         }
 
-        // �p�G�S��Collider�A�K�[�@�Ӳy�θI����
+        // 如果沒有Collider，添加一個球形碰撞器
         if (bulletCollider == null)
         {
             SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
@@ -47,13 +47,13 @@ public class Bullet : MonoBehaviour
 
     void Start()
     {
-        // �]�m�P���ɶ�
+        // 設置銷毀時間
         Destroy(gameObject, lifetime);
     }
 
     void Update()
     {
-        // �ˬd�O�_�W�L�s���ɶ�
+        // 檢查是否超過存活時間
         if (Time.time - spawnTime >= lifetime)
         {
             DestroyBullet();
@@ -62,16 +62,16 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // �קK����Ĳ�o
+        // 避免重複觸發
         if (hasHit) return;
 
-        // �����o�g��
+        // 忽略發射者
         if (other.gameObject == shooter) return;
 
-        // �ˬd�O�_�b�i�������h�Ť�
+        // 檢查是否在可擊中的層級中
         if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
-        // �B�z����
+        // 處理擊中
         HandleHit(other);
     }
 
@@ -79,11 +79,11 @@ public class Bullet : MonoBehaviour
     {
         hasHit = true;
 
-        // ���������m
+        // 獲取擊中位置
         Vector3 hitPoint = transform.position;
-        Vector3 hitNormal = -transform.forward; // ���]�l�u�«e����
+        Vector3 hitNormal = -transform.forward; // 假設子彈朝前飛行
 
-        // ���չ�ؼгy���ˮ`
+        // 嘗試對目標造成傷害
         IDamageable damageable = hitTarget.GetComponent<IDamageable>();
         if (damageable != null)
         {
@@ -95,13 +95,13 @@ public class Bullet : MonoBehaviour
             Debug.Log($"Bullet hit {hitTarget.name} (no damage component)");
         }
 
-        // �Ы������S��
+        // 創建擊中特效
         CreateHitEffect(hitPoint, hitNormal);
 
-        // ������������
+        // 播放擊中音效
         PlayHitSound(hitPoint);
 
-        // �P���l�u
+        // 銷毀子彈
         DestroyBullet();
     }
 
@@ -118,7 +118,7 @@ public class Bullet : MonoBehaviour
     {
         if (hitSound != null)
         {
-            // �b������m����3D����
+            // 在擊中位置播放3D音效
             AudioSource.PlayClipAtPoint(hitSound, position);
         }
     }
@@ -128,7 +128,7 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // ���@��k�G�]�m�l�u�Ѽ�
+    // 公共方法：設置子彈參數
     public void SetDamage(float newDamage)
     {
         damage = newDamage;
@@ -149,7 +149,7 @@ public class Bullet : MonoBehaviour
         hitLayers = layers;
     }
 
-    // �����Ϊ�Gizmos
+    // 除錯用的Gizmos
     void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -163,7 +163,7 @@ public class Bullet : MonoBehaviour
     }
 }
 
-// �ˮ`�����]��L�}���i�H��{�o�Ӥ����ӱ����ˮ`�^
+// 傷害介面（其他腳本可以實現這個介面來接收傷害）
 public interface IDamageable
 {
     void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker);
