@@ -3,20 +3,20 @@ using UnityEngine;
 public class TankShooting : MonoBehaviour
 {
     [Header("Shooting Settings")]
-    [SerializeField] private GameObject bulletPrefab;     // ¤l¼u¹w»s¥ó
-    [SerializeField] private float bulletSpeed = 20f;     // ¤l¼u³t«×
-    [SerializeField] private float fireRate = 1f;         // ®gÀ»ÀW²v¡]¨C¬í´Xµo¡^
-    [SerializeField] private float bulletLifetime = 5f;   // ¤l¼u¦s¬¡®É¶¡
+    [SerializeField] private GameObject bulletPrefab;     // ï¿½lï¿½uï¿½wï¿½sï¿½ï¿½
+    [SerializeField] private float bulletSpeed = 20f;     // ï¿½lï¿½uï¿½tï¿½ï¿½
+    [SerializeField] private float fireRate = 1f;         // ï¿½gï¿½ï¿½ï¿½Wï¿½vï¿½]ï¿½Cï¿½ï¿½ï¿½Xï¿½oï¿½^
+    [SerializeField] private float bulletLifetime = 5f;   // ï¿½lï¿½uï¿½sï¿½ï¿½ï¿½É¶ï¿½
 
     [Header("Audio & Effects")]
-    [SerializeField] private AudioClip shootSound;        // ®gÀ»­µ®Ä
-    [SerializeField] private ParticleSystem muzzleFlash;  // ºj¤f¤õµK¯S®Ä
+    [SerializeField] private AudioClip shootSound;        // ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [SerializeField] private ParticleSystem muzzleFlash;  // ï¿½jï¿½fï¿½ï¿½ï¿½Kï¿½Sï¿½ï¿½
 
-    // ²Õ¥ó¤Þ¥Î
+    // ï¿½Õ¥ï¿½Þ¥ï¿½
     private TankController tankController;
     private AudioSource audioSource;
 
-    // ®gÀ»±±¨î
+    // ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private float nextFireTime = 0f;
 
     void Awake()
@@ -24,7 +24,7 @@ public class TankShooting : MonoBehaviour
         tankController = GetComponent<TankController>();
         audioSource = GetComponent<AudioSource>();
 
-        // ¦pªG¨S¦³AudioSource²Õ¥ó¡A²K¥[¤@­Ó
+        // ï¿½pï¿½Gï¿½Sï¿½ï¿½AudioSourceï¿½Õ¥ï¿½Aï¿½Kï¿½[ï¿½@ï¿½ï¿½
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
     }
@@ -36,7 +36,7 @@ public class TankShooting : MonoBehaviour
 
     private void HandleShooting()
     {
-        // ÀË¬d¬O§_¥i¥H®gÀ»
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½iï¿½Hï¿½gï¿½ï¿½
         if (tankController.IsShootPressed() && CanShoot())
         {
             Shoot();
@@ -50,24 +50,24 @@ public class TankShooting : MonoBehaviour
 
     private void Shoot()
     {
-        // ³]¸m¤U¦¸®gÀ»®É¶¡
+        // ï¿½]ï¿½mï¿½Uï¿½ï¿½ï¿½gï¿½ï¿½ï¿½É¶ï¿½
         nextFireTime = Time.time + (1f / fireRate);
 
-        // Àò¨úµo®g¦ì¸m©M¤è¦V
+        // ï¿½ï¿½ï¿½ï¿½oï¿½gï¿½ï¿½mï¿½Mï¿½ï¿½V
         Vector3 firePosition = tankController.GetFirePointPosition();
         Vector3 fireDirection = tankController.GetFireDirection();
 
-        // ³Ð«Ø¤l¼u
+        // ï¿½Ð«Ø¤lï¿½u
         GameObject bullet = Instantiate(bulletPrefab, firePosition, Quaternion.LookRotation(fireDirection));
 
-        // ³]¸m¤l¼u³t«×
+        // ï¿½]ï¿½mï¿½lï¿½uï¿½tï¿½ï¿½
         Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
         if (bulletRb != null)
         {
-            bulletRb.velocity = fireDirection * bulletSpeed;
+            bulletRb.linearVelocity = fireDirection * bulletSpeed;
         }
 
-        // ³]¸m¤l¼u¦s¬¡®É¶¡
+        // ï¿½]ï¿½mï¿½lï¿½uï¿½sï¿½ï¿½ï¿½É¶ï¿½
         Bullet bulletScript = bullet.GetComponent<Bullet>();
         if (bulletScript != null)
         {
@@ -75,17 +75,17 @@ public class TankShooting : MonoBehaviour
         }
         else
         {
-            // ¦pªG¨S¦³Bullet¸}¥»¡A¨Ï¥ÎDestroy§@¬°³Æ®×
+            // ï¿½pï¿½Gï¿½Sï¿½ï¿½Bulletï¿½}ï¿½ï¿½ï¿½Aï¿½Ï¥ï¿½Destroyï¿½@ï¿½ï¿½ï¿½Æ®ï¿½
             Destroy(bullet, bulletLifetime);
         }
 
-        // ¼½©ñ­µ®Ä
+        // ï¿½ï¿½ï¿½ñ­µ®ï¿½
         PlayShootSound();
 
-        // ¼½©ñºj¤f¤õµK¯S®Ä
+        // ï¿½ï¿½ï¿½ï¿½jï¿½fï¿½ï¿½ï¿½Kï¿½Sï¿½ï¿½
         PlayMuzzleFlash();
 
-        // °£¿ù¿é¥X
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½X
         Debug.Log($"Tank fired bullet at {firePosition} towards {fireDirection}");
     }
 
@@ -105,19 +105,19 @@ public class TankShooting : MonoBehaviour
         }
     }
 
-    // ¤½¦@¤èªk¡G³]¸m¤l¼u¹w»s¥ó¡]¥Î©ó¤£¦PÃþ«¬ªºªZ¾¹¡^
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½]ï¿½mï¿½lï¿½uï¿½wï¿½sï¿½ï¿½]ï¿½Î©ó¤£¦Pï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½^
     public void SetBulletPrefab(GameObject newBulletPrefab)
     {
         bulletPrefab = newBulletPrefab;
     }
 
-    // ¤½¦@¤èªk¡G³]¸m®gÀ»ÀW²v
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½]ï¿½mï¿½gï¿½ï¿½ï¿½Wï¿½v
     public void SetFireRate(float newFireRate)
     {
         fireRate = newFireRate;
     }
 
-    // ¤½¦@¤èªk¡G±j¨î­«¸m®gÀ»§N«o
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½jï¿½î­«ï¿½mï¿½gï¿½ï¿½ï¿½Nï¿½o
     public void ResetFireCooldown()
     {
         nextFireTime = 0f;

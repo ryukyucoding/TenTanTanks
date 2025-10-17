@@ -3,24 +3,24 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [Header("Bullet Settings")]
-    [SerializeField] private float damage = 1f;           // ©T©w¶Ë®`­È¡]1ÂI¦å¡^
-    [SerializeField] private float lifetime = 5f;         // ¦s¬¡®É¶¡
-    [SerializeField] private LayerMask hitLayers = -1;    // ¥i¥HÀ»¤¤ªº¼h¯Å
+    [SerializeField] private float damage = 1f;           // ï¿½Tï¿½wï¿½Ë®`ï¿½È¡]1ï¿½Iï¿½ï¿½^
+    [SerializeField] private float lifetime = 5f;         // ï¿½sï¿½ï¿½ï¿½É¶ï¿½
+    [SerializeField] private LayerMask hitLayers = -1;    // ï¿½iï¿½Hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½
 
     [Header("Effects")]
-    [SerializeField] private GameObject hitEffect;        // À»¤¤¯S®Ä
-    [SerializeField] private AudioClip hitSound;          // À»¤¤­µ®Ä
-    [SerializeField] private float hitEffectLifetime = 2f; // ¯S®Ä¦s¬¡®É¶¡
+    [SerializeField] private GameObject hitEffect;        // ï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½ï¿½
+    [SerializeField] private AudioClip hitSound;          // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [SerializeField] private float hitEffectLifetime = 2f; // ï¿½Sï¿½Ä¦sï¿½ï¿½ï¿½É¶ï¿½
 
-    // ²Õ¥ó¤Þ¥Î
+    // ï¿½Õ¥ï¿½Þ¥ï¿½
     private Rigidbody rb;
     private Collider bulletCollider;
 
-    // ¤l¼uª¬ºA
+    // ï¿½lï¿½uï¿½ï¿½ï¿½A
     private bool hasHit = false;
     private float spawnTime;
 
-    // ¤l¼uµo®gªÌ¡]Á×§K¦Û¶Ë¡^
+    // ï¿½lï¿½uï¿½oï¿½gï¿½Ì¡]ï¿½×§Kï¿½Û¶Ë¡^
     private GameObject shooter;
 
     void Awake()
@@ -29,14 +29,14 @@ public class Bullet : MonoBehaviour
         bulletCollider = GetComponent<Collider>();
         spawnTime = Time.time;
 
-        // ¦pªG¨S¦³Rigidbody¡A²K¥[¤@­Ó
+        // ï¿½pï¿½Gï¿½Sï¿½ï¿½Rigidbodyï¿½Aï¿½Kï¿½[ï¿½@ï¿½ï¿½
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody>();
-            rb.useGravity = false; // ¤l¼u¤£¨ü­«¤O¼vÅT
+            rb.useGravity = false; // ï¿½lï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½vï¿½T
         }
 
-        // ¦pªG¨S¦³Collider¡A²K¥[¤@­Ó²y§Î¸I¼²¾¹
+        // ï¿½pï¿½Gï¿½Sï¿½ï¿½Colliderï¿½Aï¿½Kï¿½[ï¿½@ï¿½Ó²yï¿½Î¸Iï¿½ï¿½ï¿½ï¿½
         if (bulletCollider == null)
         {
             SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
@@ -47,13 +47,13 @@ public class Bullet : MonoBehaviour
 
     void Start()
     {
-        // ³]¸m¾P·´®É¶¡
+        // ï¿½]ï¿½mï¿½Pï¿½ï¿½ï¿½É¶ï¿½
         Destroy(gameObject, lifetime);
     }
 
     void Update()
     {
-        // ÀË¬d¬O§_¶W¹L¦s¬¡®É¶¡
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½Wï¿½Lï¿½sï¿½ï¿½ï¿½É¶ï¿½
         if (Time.time - spawnTime >= lifetime)
         {
             DestroyBullet();
@@ -62,16 +62,16 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Á×§K­«½ÆÄ²µo
+        // ï¿½×§Kï¿½ï¿½ï¿½ï¿½Ä²ï¿½o
         if (hasHit) return;
 
-        // ©¿²¤µo®gªÌ
+        // ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½gï¿½ï¿½
         if (other.gameObject == shooter) return;
 
-        // ÀË¬d¬O§_¦b¥iÀ»¤¤ªº¼h¯Å¤¤
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½bï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½hï¿½Å¤ï¿½
         if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
-        // ³B²zÀ»¤¤
+        // ï¿½Bï¿½zï¿½ï¿½ï¿½ï¿½
         HandleHit(other);
     }
 
@@ -79,11 +79,11 @@ public class Bullet : MonoBehaviour
     {
         hasHit = true;
 
-        // Àò¨úÀ»¤¤¦ì¸m
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½m
         Vector3 hitPoint = transform.position;
-        Vector3 hitNormal = -transform.forward; // °²³]¤l¼u´Â«e­¸¦æ
+        Vector3 hitNormal = -transform.forward; // ï¿½ï¿½ï¿½]ï¿½lï¿½uï¿½Â«eï¿½ï¿½ï¿½ï¿½
 
-        // ¹Á¸Õ¹ï¥Ø¼Ð³y¦¨¶Ë®`
+        // ï¿½ï¿½ï¿½Õ¹ï¿½Ø¼Ð³yï¿½ï¿½ï¿½Ë®`
         IDamageable damageable = hitTarget.GetComponent<IDamageable>();
         if (damageable != null)
         {
@@ -95,13 +95,13 @@ public class Bullet : MonoBehaviour
             Debug.Log($"Bullet hit {hitTarget.name} (no damage component)");
         }
 
-        // ³Ð«ØÀ»¤¤¯S®Ä
+        // ï¿½Ð«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½ï¿½
         CreateHitEffect(hitPoint, hitNormal);
 
-        // ¼½©ñÀ»¤¤­µ®Ä
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         PlayHitSound(hitPoint);
 
-        // ¾P·´¤l¼u
+        // ï¿½Pï¿½ï¿½ï¿½lï¿½u
         DestroyBullet();
     }
 
@@ -118,7 +118,7 @@ public class Bullet : MonoBehaviour
     {
         if (hitSound != null)
         {
-            // ¦bÀ»¤¤¦ì¸m¼½©ñ3D­µ®Ä
+            // ï¿½bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½ï¿½ï¿½ï¿½3Dï¿½ï¿½ï¿½ï¿½
             AudioSource.PlayClipAtPoint(hitSound, position);
         }
     }
@@ -128,7 +128,7 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // ¤½¦@¤èªk¡G³]¸m¤l¼u°Ñ¼Æ
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½]ï¿½mï¿½lï¿½uï¿½Ñ¼ï¿½
     public void SetDamage(float newDamage)
     {
         damage = newDamage;
@@ -149,7 +149,7 @@ public class Bullet : MonoBehaviour
         hitLayers = layers;
     }
 
-    // °£¿ù¥ÎªºGizmos
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Gizmos
     void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -158,12 +158,12 @@ public class Bullet : MonoBehaviour
         if (rb != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(transform.position, rb.velocity.normalized * 0.5f);
+            Gizmos.DrawRay(transform.position, rb.linearVelocity.normalized * 0.5f);
         }
     }
 }
 
-// ¶Ë®`¤¶­±¡]¨ä¥L¸}¥»¥i¥H¹ê²{³o­Ó¤¶­±¨Ó±µ¦¬¶Ë®`¡^
+// ï¿½Ë®`ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½Lï¿½}ï¿½ï¿½ï¿½iï¿½Hï¿½ï¿½{ï¿½oï¿½Ó¤ï¿½ï¿½ï¿½ï¿½Ó±ï¿½ï¿½ï¿½ï¿½Ë®`ï¿½^
 public interface IDamageable
 {
     void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker);
