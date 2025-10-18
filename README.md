@@ -20,8 +20,22 @@ Assets/
 │   └── GameManager.cs  
 ├── Scenes/  
 │   └── SampleScene.unity  
-├── gltf/ $\to$ 我們的main分支把這個位置放錯  
-│   ├── Base.gltf  
-│   ├── Barrel.gltf  
-│   ├── Bullet.gltf  
-│   └── ArmTank.gltf  
+└── gltf/ $\to$ 我們的main分支把這個位置放錯  
+    ├── Base.gltf  
+    ├── Barrel.gltf  
+    ├── Bullet.gltf  
+    └── ArmTank.gltf  
+
+# 10/18 最後更新
+## 砲管啦
+我把坦克包成：
+PlayerTank/  
+├── ArmTank.fbx (裡面的Barrel.001取消勾選)  
+└── Turret  
+    ├── Barrel.fbx  
+    └── FirePoint  
+
+讓車身跟砲管獨立，滑鼠才追蹤的到
+
+## 子彈反彈
+@ 林康
