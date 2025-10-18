@@ -36,12 +36,26 @@ public class Bullet : MonoBehaviour
             rb.useGravity = false; // 子彈不受重力影響
         }
 
-        // 如果沒有Collider，添加一個球形碰撞器
+        // 如果沒有Collider，添加一個方形碰撞器
         if (bulletCollider == null)
         {
-            SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
-            sphereCollider.radius = 0.05f;
-            sphereCollider.isTrigger = true;
+            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
+            // 設定為較扁但較高的方形
+            boxCollider.size = new Vector3(0.2f, 1.0f, 0.2f);  // X:寬, Y:高, Z:深
+            boxCollider.isTrigger = true;
+        }
+        else
+        {
+            // 如果已經有Collider，檢查是否需要調整
+            BoxCollider box = bulletCollider as BoxCollider;
+            if (box != null)
+            {
+                // 確保Y軸夠高
+                if (box.size.y < 1.0f)
+                {
+                    box.size = new Vector3(0.2f, 1.0f, 0.2f);
+                }
+            }
         }
     }
 
