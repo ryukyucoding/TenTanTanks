@@ -117,6 +117,23 @@ public class TankController : MonoBehaviour
         Debug.Log($"Look Input: {lookInput}, Rotation Amount: {rotationAmount}");
     }
 
+    public Vector3 GetFirePointPosition()
+    {
+        if (firePoint != null)
+        {
+            return firePoint.position;
+        }
+
+        // 如果沒有設定firePoint，就用turret的位置
+        if (turret != null)
+        {
+            return turret.position;
+        }
+
+        // 最後備案：用坦克本身的位置
+        return transform.position;
+    }
+
     public Vector3 GetFireDirection()
     {
         return turret != null ? turret.forward : transform.forward;
