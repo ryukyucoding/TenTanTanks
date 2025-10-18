@@ -51,7 +51,7 @@ Rigidbody:
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -99,7 +99,7 @@ MonoBehaviour:
   lifetime: 5
   hitLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
   hitEffect: {fileID: 0}
   hitSound: {fileID: 0}
   hitEffectLifetime: 2

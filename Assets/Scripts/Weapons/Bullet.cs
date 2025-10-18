@@ -70,44 +70,22 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // 添加調試信息
-        Debug.Log($"子彈觸碰到: {other.name} (Tag: {other.tag})");
+        Debug.Log($"子彈碰到: {other.name}");
 
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者
-        if (other.gameObject == shooter)
-        {
-            Debug.Log("忽略發射者");
-            return;
-        }
+        if (other.gameObject == shooter) return;
 
-        // 簡化版本：忽略Layer檢查，直接用Tag判斷
-        bool shouldHit = false;
+        // 檢查Layer（用你的除錯代碼）
+        if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
-        // 可以擊中的目標
-        if (other.CompareTag("Player") || other.CompareTag("Enemy") || other.CompareTag("Untagged"))
-        {
-            // 避免自己打自己的陣營
-            if (shooter != null)
-            {
-                if (shooter.CompareTag("Player") && other.CompareTag("Player")) return;
-                if (shooter.CompareTag("Enemy") && other.CompareTag("Enemy")) return;
-            }
-            shouldHit = true;
-        }
+        Debug.Log("*** 子彈準備立即銷毀 ***");
+        hasHit = true;
 
-        if (!shouldHit)
-        {
-            Debug.Log($"不應該擊中: {other.tag}");
-            return;
-        }
-
-        Debug.Log($"子彈擊中目標: {other.name}");
-
-        // 處理擊中
-        HandleHit(other);
+        // 最簡單的立即銷毀，不做其他任何事
+        Destroy(gameObject);
     }
 
     private void HandleHit(Collider hitTarget)
