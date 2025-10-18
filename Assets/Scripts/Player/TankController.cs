@@ -107,14 +107,27 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretRotation()
     {
-        if (turret == null) return;
+        if (turret == null || playerCamera == null) return;
 
-        // 使用InputSystem的Look delta
-        float rotationAmount = lookInput.x * rotationSpeed * Time.deltaTime;
-        turret.Rotate(0, rotationAmount, 0);
+        // 使用滑鼠螢幕位置轉換為世界座標
+        Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Plane groundPlane = new Plane(Vector3.up, transform.position);
 
-        // Debug看數值
-        Debug.Log($"Look Input: {lookInput}, Rotation Amount: {rotationAmount}");
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            Vector3 worldMousePos = ray.GetPoint(distance);
+            Vector3 direction = (worldMousePos - turret.position).normalized;
+            direction.y = 0; // 保持水平
+
+            if (direction.magnitude > 0.1f)
+            {
+                // 計算目標旋轉角度
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+                // 平滑旋轉到目標角度
+                turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
+        }
     }
 
     public Vector3 GetFirePointPosition()
