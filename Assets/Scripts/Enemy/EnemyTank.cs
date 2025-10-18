@@ -18,7 +18,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 15f;
     [SerializeField] private float fireRate = 0.5f;
-    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float maxHealth = 1f;
 
     [Header("AI Behavior")]
     [SerializeField] private float patrolRadius = 5f;
