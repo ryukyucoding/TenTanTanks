@@ -18,6 +18,7 @@ public class TankController : MonoBehaviour
     // 輸入變數
     private Vector2 moveInput;
     private Vector2 mousePosition;
+    private Vector2 lookInput;
 
     // 組件引用
     private Rigidbody rb;
@@ -81,7 +82,8 @@ public class TankController : MonoBehaviour
     {
         // 獲取移動輸入
         moveInput = moveAction.ReadValue<Vector2>();
-
+        // 獲取瞄準
+        lookInput = playerInput.actions["Look"].ReadValue<Vector2>();
         // 獲取滑鼠位置
         mousePosition = lookAction.ReadValue<Vector2>();
     }
@@ -105,36 +107,14 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretRotation()
     {
-        if (turret == null || playerCamera == null) return;
+        if (turret == null) return;
 
-        // 將滑鼠螢幕座標轉換為世界座標
-        Ray ray = playerCamera.ScreenPointToRay(mousePosition);
+        // 使用InputSystem的Look delta
+        float rotationAmount = lookInput.x * rotationSpeed * Time.deltaTime;
+        turret.Rotate(0, rotationAmount, 0);
 
-        // 創建一個在坦克高度的平面
-        Plane groundPlane = new Plane(Vector3.up, transform.position);
-
-        // 檢查射線與平面的交點
-        if (groundPlane.Raycast(ray, out float distance))
-        {
-            Vector3 worldMousePos = ray.GetPoint(distance);
-
-            // 計算從砲塔到滑鼠位置的方向
-            Vector3 direction = (worldMousePos - turret.position).normalized;
-            direction.y = 0; // 保持在水平面上
-
-            // 旋轉砲塔朝向滑鼠位置
-            if (direction.magnitude > 0.1f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, 50f * Time.deltaTime);
-            }
-        }
-    }
-
-    // 提供給射擊腳本使用的方法
-    public Vector3 GetFirePointPosition()
-    {
-        return firePoint != null ? firePoint.position : turret.position;
+        // Debug看數值
+        Debug.Log($"Look Input: {lookInput}, Rotation Amount: {rotationAmount}");
     }
 
     public Vector3 GetFireDirection()
