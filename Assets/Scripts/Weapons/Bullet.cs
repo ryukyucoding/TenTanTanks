@@ -29,33 +29,27 @@ public class Bullet : MonoBehaviour
         bulletCollider = GetComponent<Collider>();
         spawnTime = Time.time;
 
-        // 如果沒有Rigidbody，添加一個
+        // If no Rigidbody, add one
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody>();
-            rb.useGravity = false; // 子彈不受重力影響
+            rb.useGravity = false; // No gravity
+
+            // Freeze Y position to keep horizontal flight
+            rb.constraints = RigidbodyConstraints.FreezePositionY |
+                            RigidbodyConstraints.FreezeRotationX |
+                            RigidbodyConstraints.FreezeRotationZ;
+
+            // Light mass to prevent physics issues
+            rb.mass = 0.01f;
         }
 
-        // 如果沒有Collider，添加一個方形碰撞器
+        // If no Collider, add sphere collider
         if (bulletCollider == null)
         {
-            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
-            // 設定為較扁但較高的方形
-            boxCollider.size = new Vector3(0.2f, 1.0f, 0.2f);  // X:寬, Y:高, Z:深
-            boxCollider.isTrigger = true;
-        }
-        else
-        {
-            // 如果已經有Collider，檢查是否需要調整
-            BoxCollider box = bulletCollider as BoxCollider;
-            if (box != null)
-            {
-                // 確保Y軸夠高
-                if (box.size.y < 1.0f)
-                {
-                    box.size = new Vector3(0.2f, 1.0f, 0.2f);
-                }
-            }
+            SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
+            sphereCollider.radius = 0.25f;  // Bigger than before but reasonable
+            sphereCollider.isTrigger = true; // Must be trigger
         }
     }
 
@@ -76,20 +70,44 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // 添加調試信息
+        Debug.Log($"子彈觸碰到: {other.name} (Tag: {other.tag})");
+
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者
-        if (other.gameObject == shooter) return;
+        if (other.gameObject == shooter)
+        {
+            Debug.Log("忽略發射者");
+            return;
+        }
 
-        // 檢查是否在可擊中的層級中
-        if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
+        // 簡化版本：忽略Layer檢查，直接用Tag判斷
+        bool shouldHit = false;
+
+        // 可以擊中的目標
+        if (other.CompareTag("Player") || other.CompareTag("Enemy") || other.CompareTag("Untagged"))
+        {
+            // 避免自己打自己的陣營
+            if (shooter != null)
+            {
+                if (shooter.CompareTag("Player") && other.CompareTag("Player")) return;
+                if (shooter.CompareTag("Enemy") && other.CompareTag("Enemy")) return;
+            }
+            shouldHit = true;
+        }
+
+        if (!shouldHit)
+        {
+            Debug.Log($"不應該擊中: {other.tag}");
+            return;
+        }
+
+        Debug.Log($"子彈擊中目標: {other.name}");
 
         // 處理擊中
         HandleHit(other);
-
-        // 先忽略其他子彈 簡單一點
-        if (other.gameObject.name.Contains("Bullet")) return;
     }
 
     private void HandleHit(Collider hitTarget)
