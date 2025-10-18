@@ -78,14 +78,31 @@ public class Bullet : MonoBehaviour
         // 忽略發射者
         if (other.gameObject == shooter) return;
 
-        // 檢查Layer（用你的除錯代碼）
+        // 檢查Layer
         if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
         Debug.Log("*** 子彈準備立即銷毀 ***");
         hasHit = true;
 
-        // 最簡單的立即銷毀，不做其他任何事
+        // 立即停止所有運動
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true; // 停止物理模擬
+        }
+
+        // 禁用Collider防止進一步碰撞
+        if (bulletCollider != null)
+        {
+            bulletCollider.enabled = false;
+        }
+
+        // 立即銷毀（Unity會在frame結束時執行）
         Destroy(gameObject);
+
+        // 或者更激進的方法：立即設為inactive
+        gameObject.SetActive(false);
     }
 
     private void HandleHit(Collider hitTarget)
