@@ -70,39 +70,29 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // 延遲0.2秒再開始碰撞檢測，讓子彈飛出發射者
+        if (Time.time - spawnTime < 0.2f)
+        {
+            Debug.Log("子彈剛發射，暫時忽略碰撞");
+            return;
+        }
+
         Debug.Log($"子彈碰到: {other.name}");
 
         // 避免重複觸發
         if (hasHit) return;
 
-        // 忽略發射者
+        // 忽略發射者（雙重保險）
         if (other.gameObject == shooter) return;
 
         // 檢查Layer
         if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
-        Debug.Log("*** 子彈準備立即銷毀 ***");
+        Debug.Log("擊中目標！");
+
+        // 處理擊中和銷毀
         hasHit = true;
-
-        // 立即停止所有運動
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true; // 停止物理模擬
-        }
-
-        // 禁用Collider防止進一步碰撞
-        if (bulletCollider != null)
-        {
-            bulletCollider.enabled = false;
-        }
-
-        // 立即銷毀（Unity會在frame結束時執行）
-        Destroy(gameObject);
-
-        // 或者更激進的方法：立即設為inactive
-        gameObject.SetActive(false);
+        HandleHit(other);
     }
 
     private void HandleHit(Collider hitTarget)
