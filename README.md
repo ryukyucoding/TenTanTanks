@@ -1,12 +1,14 @@
 # 加了
-1. 玩家坦克(如果要做更多坦克，建議collider size: y = 0) prefab
-   * 可以用WASD控制車身，砲塔會跟著車身轉但不會理游標??
-     * 我游標動的時候砲塔的rotation y 會反應但大概只有1度的變化:D
-     * 先找到到底炮管主視覺在哪
-     * 也可能是因為我只加了armtank.gltf 好我打著打著突然悟了
-2. 子彈 prefab
-   * 還沒加反彈設定，現在碰到除bullet自己的layer以外的任何東西就會不見，or 5秒後生命結束
-3. 
+## 玩家坦克
+   * Collider size = (1, 1, 1)
+   * Collider center = (0, 0.5, 0)
+## 敵人坦克
+   * AI 是隨便亂寫的
+   * Collider size = (1, 1, 1)
+   * Collider center = (0, 0.5, 0)
+## 子彈
+   * 還沒加反彈設定，但可以打人了
+## Files 
 Assets/  
 ├── Scripts/  
 │   ├── Player/  
@@ -26,16 +28,13 @@ Assets/
 │   ├── Bullet.gltf  
 │   └── ArmTank.gltf  
 
-# 10/18 最後更新
 ## 砲管啦
-我把坦克包成：
+把坦克包成：
 PlayerTank/  
 ├── ArmTank.fbx (裡面的Barrel.001取消勾選)  
 ├── Turret  
 │   ├── Barrel.fbx  
-│   └── FirePoint  
+│   └── FirePoint (0, 0.25, 0.49)  
 
 讓車身跟砲管獨立，滑鼠才追蹤的到
-
-## 子彈反彈
-@ 林康
+反正一切都可以複製
