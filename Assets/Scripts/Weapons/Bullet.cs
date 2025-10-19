@@ -22,6 +22,7 @@ public class Bullet : MonoBehaviour
 
     // 子彈發射者（避免自傷）
     private GameObject shooter;
+    private int shooterTeam = 0;
 
     void Awake()
     {
@@ -84,6 +85,13 @@ public class Bullet : MonoBehaviour
 
         // 忽略發射者（雙重保險）
         if (other.gameObject == shooter) return;
+        
+        // 檢查團隊（如果目標有團隊組件）
+        TeamComponent targetTeam = other.GetComponent<TeamComponent>();
+        if (targetTeam != null && targetTeam.Team == shooterTeam && shooterTeam != 0)
+        {
+            return; // 不傷害同隊
+        }
 
         // 檢查Layer
         if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
@@ -162,6 +170,13 @@ public class Bullet : MonoBehaviour
     public void SetShooter(GameObject newShooter)
     {
         shooter = newShooter;
+        
+        // 獲取發射者的團隊
+        TeamComponent shooterTeamComponent = newShooter.GetComponent<TeamComponent>();
+        if (shooterTeamComponent != null)
+        {
+            shooterTeam = shooterTeamComponent.Team;
+        }
     }
 
     public void SetHitLayers(LayerMask layers)

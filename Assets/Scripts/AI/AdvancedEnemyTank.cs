@@ -1,35 +1,21 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class EnemyTank : MonoBehaviour, IDamageable
+public class AdvancedEnemyTank : MonoBehaviour, IDamageable
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 3f;
-    [SerializeField] private float rotationSpeed = 150f;
-    [SerializeField] private float detectionRange = 10f;
-    [SerializeField] private float shootingRange = 8f;
-    [SerializeField] private float minDistanceToPlayer = 3f;
-
-    [Header("Tank Parts")]
+    [Header("Tank Components")]
     [SerializeField] private Transform tankBody;
     [SerializeField] private Transform turret;
     [SerializeField] private Transform firePoint;
-
-    [Header("Combat Settings")]
-    [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private float bulletSpeed = 15f;
-    [SerializeField] private float fireRate = 0.5f;
-    [SerializeField] private float maxHealth = 1f;
-
+    [SerializeField] private Rigidbody rb;
+    
     [Header("AI Settings")]
     [SerializeField] private string aiPersonality = "brown";
     [SerializeField] private string tankUnitType = "brown_tank";
-    [SerializeField] private AIPersonalitySetup aiSetup;
-    [SerializeField] private LayerMask obstacleLayer = 1;
-
+    
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
-
+    
     // AI Components
     private AIConfig aiConfig;
     private TankUnitConfig unitConfig;
@@ -70,10 +56,6 @@ public class EnemyTank : MonoBehaviour, IDamageable
     private float stuckTimer = 0f;
     private Vector3 lastValidPosition;
     
-    // Basic Components
-    private Rigidbody rb;
-    private float currentHealth;
-
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -82,7 +64,6 @@ public class EnemyTank : MonoBehaviour, IDamageable
             rb.freezeRotation = true;
         }
         
-        currentHealth = maxHealth;
         patrolCenter = transform.position;
         lastValidPosition = transform.position;
         
@@ -98,13 +79,6 @@ public class EnemyTank : MonoBehaviour, IDamageable
         {
             player = playerObj.transform;
             potentialTargets.Add(player);
-            currentTarget = player; // 直接設定玩家為目標
-            Debug.Log("EnemyTank: Player found and set as target");
-        }
-        
-        if (player == null)
-        {
-            Debug.LogWarning("EnemyTank: No player found with tag 'Player'");
         }
         
         // 初始化路徑尋找
@@ -140,55 +114,19 @@ public class EnemyTank : MonoBehaviour, IDamageable
     
     private void LoadAIConfig()
     {
-        // 載入AI配置
-        if (aiSetup != null)
-        {
-            aiConfig = aiSetup.GetPersonalityConfig(aiPersonality);
-        }
-        else
-        {
-            aiConfig = AIConfigLoader.GetAIConfig(aiPersonality);
-        }
-        
+        aiConfig = AIConfigLoader.GetAIConfig(aiPersonality);
         unitConfig = AIConfigLoader.GetTankUnitConfig(tankUnitType);
-        
-        // 如果配置載入失敗，使用默認配置
-        if (aiConfig == null)
-        {
-            Debug.LogWarning($"Failed to load AI config for {aiPersonality}, using default");
-            aiConfig = new AIConfig();
-        }
-        
-        if (unitConfig == null)
-        {
-            Debug.LogWarning($"Failed to load unit config for {tankUnitType}, using default");
-            unitConfig = new TankUnitConfig();
-        }
         
         // 應用單位配置到坦克
         if (rb != null)
         {
             rb.mass = 1f / unitConfig.tankSpeedModifier;
         }
-        
-        Debug.Log($"AI Config loaded: {aiPersonality}, Speed: {unitConfig.tankSpeedModifier}");
     }
     
     private void UpdateAI()
     {
-        // 如果沒有目標，嘗試找到玩家
-        if (currentTarget == null)
-        {
-            if (player != null)
-            {
-                currentTarget = player;
-                Debug.Log("EnemyTank: Player set as target");
-            }
-            else
-            {
-                return; // 如果沒有玩家，不執行AI
-            }
-        }
+        if (currentTarget == null) return;
         
         UpdateTargeting();
         UpdateProjectileDetection();
@@ -272,18 +210,14 @@ public class EnemyTank : MonoBehaviour, IDamageable
     
     private void HandleDefendState()
     {
-        Debug.Log($"HandleDefendState - TargetInSight: {targetInSight}, Distance: {distanceToTarget}, LeaveDefend: {aiConfig.distLeaveDefend}, LeaveAttack: {aiConfig.distLeaveAttack}");
-        
         if (!targetInSight || distanceToTarget > aiConfig.distLeaveDefend)
         {
-            Debug.Log("Leaving defend state - target not in sight or too far");
             stateData.ChangeState(AIBehaviorState.Patrolling);
             return;
         }
         
         if (distanceToTarget <= aiConfig.distLeaveAttack)
         {
-            Debug.Log("Entering attack state - target in range");
             stateData.ChangeState(AIBehaviorState.Attacking);
             return;
         }
@@ -293,11 +227,8 @@ public class EnemyTank : MonoBehaviour, IDamageable
     
     private void HandleAttackState()
     {
-        Debug.Log($"HandleAttackState - TargetInSight: {targetInSight}, Distance: {distanceToTarget}, LeaveAttack: {aiConfig.distLeaveAttack}");
-        
         if (!targetInSight || distanceToTarget > aiConfig.distLeaveAttack * 1.2f)
         {
-            Debug.Log("Leaving attack state - target not in sight or too far");
             stateData.ChangeState(AIBehaviorState.Defending);
             return;
         }
@@ -313,54 +244,8 @@ public class EnemyTank : MonoBehaviour, IDamageable
             MoveTowards(currentTarget.position);
         }
         
-        // 射擊 - 動態載入版本（像 PlayerTank 一樣）
-        bool canShoot = Time.time >= nextFireTime;
-        bool hasFirePoint = firePoint != null;
-        
-        // 動態載入子彈預製體
-        GameObject bulletToUse = bulletPrefab;
-        if (bulletToUse == null)
-        {
-            // 嘗試從 Resources 資料夾載入
-            bulletToUse = Resources.Load<GameObject>("Bullet");
-            if (bulletToUse == null)
-            {
-                // 嘗試找到場景中的子彈
-                Bullet existingBullet = FindFirstObjectByType<Bullet>();
-                if (existingBullet != null)
-                {
-                    bulletToUse = existingBullet.gameObject;
-                }
-            }
-        }
-        
-        bool hasBulletPrefab = bulletToUse != null;
-        
-        Debug.Log($"Shooting Check - CanShoot: {canShoot}, HasBullet: {hasBulletPrefab}, HasFirePoint: {hasFirePoint}, Time: {Time.time}, NextFire: {nextFireTime}");
-        
-        if (canShoot && hasBulletPrefab && hasFirePoint)
-        {
-            nextFireTime = Time.time + 1f; // 每秒射擊一次
-            GameObject bullet = Instantiate(bulletToUse, firePoint.position, firePoint.rotation);
-            
-            Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
-            if (bulletRb != null)
-            {
-                bulletRb.linearVelocity = firePoint.forward * bulletSpeed;
-            }
-            
-            Bullet bulletScript = bullet.GetComponent<Bullet>();
-            if (bulletScript != null)
-            {
-                bulletScript.SetShooter(gameObject);
-            }
-            
-            Debug.Log("EnemyTank: Dynamic bullet fired!");
-        }
-        else
-        {
-            Debug.Log($"Cannot shoot - CanShoot: {canShoot}, HasBullet: {hasBulletPrefab}, HasFirePoint: {hasFirePoint}");
-        }
+        // 射擊
+        TryShoot();
     }
     
     private void HandleWanderState()
@@ -479,7 +364,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         float distance = Vector3.Distance(transform.position, target.position);
         
         // 射線檢測障礙物
-        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, direction, distance, obstacleLayer))
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, direction, distance, aiConfig.obstacleLayer))
         {
             return false;
         }
@@ -574,35 +459,13 @@ public class EnemyTank : MonoBehaviour, IDamageable
     
     private void TryShoot()
     {
-        // 調試信息
-        bool canShoot = Time.time >= nextFireTime;
-        bool salvoReady = salvoCooldown <= 0f;
-        bool hasBulletPrefab = bulletPrefab != null;
-        bool hasFirePoint = firePoint != null;
-        bool targetInRange = distanceToTarget <= aiConfig.distLeaveAttack;
-        
-        Debug.Log($"TryShoot - CanShoot: {canShoot}, SalvoReady: {salvoReady}, HasBullet: {hasBulletPrefab}, HasFirePoint: {hasFirePoint}, TargetInRange: {targetInRange}, Distance: {distanceToTarget}");
-        
-        if (canShoot && salvoReady && hasBulletPrefab && hasFirePoint && targetInRange)
+        if (Time.time >= nextFireTime && salvoCooldown <= 0f)
         {
             nextFireTime = Time.time + (1f / unitConfig.firerate);
             salvoCooldown = aiConfig.salvoCooldownAmount;
             
-            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-            
-            Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
-            if (bulletRb != null)
-            {
-                bulletRb.linearVelocity = firePoint.forward * unitConfig.projectileSpeedModifier;
-            }
-            
-            Bullet bulletScript = bullet.GetComponent<Bullet>();
-            if (bulletScript != null)
-            {
-                bulletScript.SetShooter(gameObject);
-            }
-            
-            Debug.Log("EnemyTank: Bullet fired!");
+            // 這裡需要實現射擊邏輯
+            // ShootBullet();
         }
     }
     
@@ -656,56 +519,24 @@ public class EnemyTank : MonoBehaviour, IDamageable
     // IDamageable implementation
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
-        currentHealth -= damage;
-        
-        Debug.Log($"Enemy tank took {damage} damage. Health: {currentHealth}/{maxHealth}");
-        
-        if (currentHealth <= 0)
+        // 實現受傷邏輯
+        if (attacker != null && attacker.CompareTag("Player"))
         {
-            Die();
-        }
-        else
-        {
-            // 受傷後進入追擊狀態
-            if (attacker != null && attacker.CompareTag("Player"))
-            {
-                currentTarget = attacker.transform;
-                stateData.ChangeState(AIBehaviorState.Defending);
-            }
+            currentTarget = attacker.transform;
+            stateData.ChangeState(AIBehaviorState.Defending);
         }
     }
     
-    private void Die()
-    {
-        stateData.ChangeState(AIBehaviorState.Dead);
-        
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-        }
-        
-        // 通知GameManager
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnEnemyDestroyed();
-        }
-        
-        Debug.Log("Enemy tank destroyed!");
-        
-        Destroy(gameObject, 1f);
-    }
-    
-    // 除錯用的Gizmos
     void OnDrawGizmosSelected()
     {
         if (!showDebugGizmos) return;
         
         // 繪製AI狀態信息
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
+        Gizmos.DrawWireSphere(transform.position, aiConfig.distLeavePatrol);
         
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, shootingRange);
+        Gizmos.DrawWireSphere(transform.position, aiConfig.distLeaveAttack);
         
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(patrolCenter, aiConfig.patrolRadius);
@@ -719,10 +550,5 @@ public class EnemyTank : MonoBehaviour, IDamageable
                 Gizmos.DrawLine(currentPath[i], currentPath[i + 1]);
             }
         }
-        
-        // 顯示AI狀態
-        #if UNITY_EDITOR
-        UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, $"State: {stateData.currentState}");
-        #endif
     }
 }

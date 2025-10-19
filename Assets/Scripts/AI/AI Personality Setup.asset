@@ -1,0 +1,460 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c50bcf36538d447889221b350971fa5, type: 3}
+  m_Name: AI Personality Setup
+  m_EditorClassIdentifier: Assembly-CSharp::AIPersonalitySetup
+  allPersonalities:
+  - name: brown
+    config:
+      rotationSpeed: 0.8
+      aimingAngle: 180
+      rotationMultMax: 1
+      rotationMultMin: 0.75
+      patrolRadius: 200
+      distLeavePatrol: 500
+      distLeaveDefend: 800
+      distLeaveAttack: 200
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 45
+      projDodgeCooldownVal: 30
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 0
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 120
+      wanderRadius: 200
+      defendTime: 600
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u57FA\u790E\u9632\u79A6\u578B\uFF0C\u9AD8\u7D1A\u7784\u6E96\u4F46\u7121\u9810\u6E2C\u5C04\u64CA"
+  - name: ash
+    config:
+      rotationSpeed: 0.8
+      aimingAngle: 45
+      rotationMultMax: 1
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 200
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 0
+      predictiveTargeting: 1
+      predictiveTargetingChance: 60
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 2000
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u5DE1\u908F\u578B\uFF0C\u6709\u9810\u6E2C\u5C04\u64CA\u548C\u9583\u907F\u80FD\u529B"
+  - name: marine
+    config:
+      rotationSpeed: 1.2
+      aimingAngle: 1
+      rotationMultMax: 2
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 9999
+      distLeaveAttack: 9999
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 25
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 1
+      advancedTargeting: 1
+      predictiveTargeting: 0
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 999999
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u7CBE\u6E96\u5C04\u64CA\u578B\uFF0C\u5B8C\u7F8E\u7784\u6E96\u4F46\u7121\u9810\u6E2C"
+  - name: yellow
+    config:
+      rotationSpeed: 1.2
+      aimingAngle: 20
+      rotationMultMax: 2
+      rotationMultMin: 0.75
+      patrolRadius: 500
+      distLeavePatrol: 500
+      distLeaveDefend: 800
+      distLeaveAttack: 100
+      canDodgeProj: 0
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 25
+      mineDodgeCooldownVal: 100
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 0
+      predictiveTargeting: 1
+      predictiveTargetingChance: 60
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 90
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 500
+      randomMovement: 1
+      mineChance: 400
+      mineMinDistance: 250
+      randomMines: 1
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u96A8\u6A5F\u79FB\u52D5\u578B\uFF0C\u53EF\u5C04\u64CA\u6575\u65B9\u5B50\u5F48"
+  - name: pink
+    config:
+      rotationSpeed: 1.2
+      aimingAngle: 45
+      rotationMultMax: 2
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 0
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 25
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 0
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 200
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9AD8\u7D1A\u7784\u6E96\u578B\uFF0C\u7121\u9583\u907F\u80FD\u529B"
+  - name: green
+    config:
+      rotationSpeed: 1
+      aimingAngle: 70
+      rotationMultMax: 2
+      rotationMultMin: 0.75
+      patrolRadius: 200
+      distLeavePatrol: 500
+      distLeaveDefend: 800
+      distLeaveAttack: 200
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 45
+      projDodgeCooldownVal: 30
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 1
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 90
+      salvoCooldownAmount: 150
+      wanderRadius: 200
+      defendTime: 600
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9AD8\u7D1A\u7784\u6E96+\u9810\u6E2C\u5C04\u64CA\uFF0C\u53EF\u5C04\u64CA\u6575\u65B9\u5B50\u5F48"
+  - name: violet
+    config:
+      rotationSpeed: 1.2
+      aimingAngle: 45
+      rotationMultMax: 2
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 0
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 25
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 1
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 90
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 200
+      randomMovement: 0
+      mineChance: 1500
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u7D9C\u5408\u578B\uFF0C\u6709\u5730\u96F7\u80FD\u529B"
+  - name: white
+    config:
+      rotationSpeed: 2.4
+      aimingAngle: 45
+      rotationMultMax: 4
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 25
+      mineDodgeCooldownVal: 30
+      advancedDodge: 1
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 1
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 150
+      wanderRadius: 150
+      defendTime: 200
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9AD8\u7D1A\u9583\u907F\u578B\uFF0C\u9023\u5C04\u80FD\u529B"
+  - name: black
+    config:
+      rotationSpeed: 2
+      aimingAngle: 20
+      rotationMultMax: 5
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 850
+      distLeaveDefend: 800
+      distLeaveAttack: 100
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 20
+      mineDodgeCooldownVal: 30
+      advancedDodge: 1
+      perfectAim: 1
+      advancedTargeting: 1
+      predictiveTargeting: 0
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 90
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 100
+      randomMovement: 0
+      mineChance: 1
+      mineMinDistance: 150
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u6700\u5F37\u578B\uFF0C\u5B8C\u7F8E\u7784\u6E96+\u9AD8\u7D1A\u9583\u907F+\u5730\u96F7"
+  - name: zblue
+    config:
+      rotationSpeed: 2.4
+      aimingAngle: 45
+      rotationMultMax: 4
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 20
+      mineDodgeCooldownVal: 30
+      advancedDodge: 1
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 1
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 1
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 150
+      wanderRadius: 150
+      defendTime: 800
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9032\u968E\u85CD\u8272\uFF0C\u9AD8\u7D1A\u9583\u907F+\u9023\u5C04"
+  - name: zbrown
+    config:
+      rotationSpeed: 0.8
+      aimingAngle: 5
+      rotationMultMax: 1
+      rotationMultMin: 0.75
+      patrolRadius: 200
+      distLeavePatrol: 500
+      distLeaveDefend: 800
+      distLeaveAttack: 200
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 45
+      projDodgeCooldownVal: 30
+      mineDodgeCooldownVal: 30
+      advancedDodge: 0
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 0
+      predictiveTargetingChance: 50
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 0
+      wanderRadius: 200
+      defendTime: 600
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9032\u968E\u68D5\u8272\uFF0C\u5FEB\u901F\u5C04\u64CA"
+  - name: zash
+    config:
+      rotationSpeed: 0.8
+      aimingAngle: 45
+      rotationMultMax: 1
+      rotationMultMin: 0.75
+      patrolRadius: 250
+      distLeavePatrol: 450
+      distLeaveDefend: 800
+      distLeaveAttack: 250
+      canDodgeProj: 1
+      canDodgeMine: 1
+      distStartDodge: 50
+      projDodgeCooldownVal: 50
+      mineDodgeCooldownVal: 30
+      advancedDodge: 1
+      perfectAim: 0
+      advancedTargeting: 1
+      predictiveTargeting: 1
+      predictiveTargetingChance: 60
+      shootThreshold: 15
+      safeThreshold: 60
+      shootEnemyProjectiles: 0
+      shootEnemyProjectilesRange: 100
+      salvoCooldownAmount: 120
+      wanderRadius: 150
+      defendTime: 50
+      randomMovement: 0
+      mineChance: 10000
+      mineMinDistance: 250
+      randomMines: 0
+      avoidMineDist: 300
+      suicide: 0
+      obstacleLayer:
+        serializedVersion: 2
+        m_Bits: 1
+    description: "\u9032\u968E\u7070\u8272\uFF0C\u9AD8\u7D1A\u9583\u907F+\u9810\u6E2C\u5C04\u64CA"
+  autoInitialize: 1
