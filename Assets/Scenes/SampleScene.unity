@@ -12008,6 +12008,14 @@ PrefabInstance:
       propertyPath: m_Constraints
       value: 84
       objectReference: {fileID: 0}
+    - target: {fileID: 7502380060361126312, guid: 19d097f25c0d65e419bf776e70d8757f, type: 3}
+      propertyPath: m_Size.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7502380060361126312, guid: 19d097f25c0d65e419bf776e70d8757f, type: 3}
+      propertyPath: m_Center.y
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7853551222494013529, guid: 19d097f25c0d65e419bf776e70d8757f, type: 3}
       propertyPath: m_Camera
       value: 
@@ -12067,6 +12075,14 @@ PrefabInstance:
     - target: {fileID: 1955046153446535976, guid: 90166595365399f4e961287e558349aa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8859893981197329191, guid: 90166595365399f4e961287e558349aa, type: 3}
+      propertyPath: m_Size.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8859893981197329191, guid: 90166595365399f4e961287e558349aa, type: 3}
+      propertyPath: m_Center.y
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
       propertyPath: m_Name
