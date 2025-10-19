@@ -4,10 +4,10 @@
    * Collider center = (0, 0.5, 0)
 ## 敵人坦克
    * AI 是隨便亂寫的
-## 子彈
-   * 還沒加反彈設定，但可以打人了
    * Collider size = (1, 1, 1)
    * Collider center = (0, 0.5, 0)
+## 子彈
+   * 還沒加反彈設定，但可以打人了
 ## Files 
 Assets/  
 ├── Scripts/  
