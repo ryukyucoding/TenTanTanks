@@ -179,8 +179,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankShooting
   bulletPrefab: {fileID: 0}
-  bulletSpeed: 20
-  fireRate: 1
+  bulletSpeed: 10
+  fireRate: 3
   bulletLifetime: 5
   shootSound: {fileID: 0}
   muzzleFlash: {fileID: 0}
