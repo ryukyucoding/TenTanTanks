@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 8436216225186743832}
   - component: {fileID: 2225345097785869862}
   - component: {fileID: 1656594636627228810}
-  m_Layer: 0
+  - component: {fileID: 6781296168723231736}
+  m_Layer: 6
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,10 +100,24 @@ MonoBehaviour:
   lifetime: 5
   hitLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 4294967295
   hitEffect: {fileID: 0}
   hitSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
   hitEffectLifetime: 2
+  team: 1
+--- !u!114 &6781296168723231736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5759559603792554326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0223cd6cda8104a599b51067e3fc81e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BulletDanger
+  team: 1
 --- !u!1001 &7861047374575171342
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154,6 +169,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1b2f51204cd394608a1ef4208456f32e, type: 3}
       propertyPath: m_Name
       value: Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1b2f51204cd394608a1ef4208456f32e, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

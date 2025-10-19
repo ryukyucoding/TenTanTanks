@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class Bullet : MonoBehaviour, IAITankDanger
 {
     [Header("Bullet Settings")]
     [SerializeField] private float damage = 1f;           // 固定傷害值（1點血）
@@ -12,6 +12,10 @@ public class Bullet : MonoBehaviour
     [SerializeField] private AudioClip hitSound;          // 擊中音效
     [SerializeField] private float hitEffectLifetime = 2f; // 特效存活時間
 
+    [SerializeField] private int team = 1; // 1 = 玩家
+    public Vector3 Position => transform.position;
+    public int Team => team;
+
     // 組件引用
     private Rigidbody rb;
     private Collider bulletCollider;
@@ -22,6 +26,9 @@ public class Bullet : MonoBehaviour
 
     // 子彈發射者（避免自傷）
     private GameObject shooter;
+
+    // 連續碰撞與補償
+    private Vector3 _lastPos;
 
     void Awake()
     {
@@ -44,6 +51,9 @@ public class Bullet : MonoBehaviour
             rb.mass = 0.01f;
         }
 
+        // 提高高速子彈的碰撞穩定性
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
         // If no Collider, add sphere collider
         if (bulletCollider == null)
         {
@@ -51,6 +61,8 @@ public class Bullet : MonoBehaviour
             sphereCollider.radius = 0.25f;  // Bigger than before but reasonable
             sphereCollider.isTrigger = true; // Must be trigger
         }
+
+        _lastPos = transform.position;
     }
 
     void Start()
@@ -66,6 +78,22 @@ public class Bullet : MonoBehaviour
         {
             DestroyBullet();
         }
+    }
+
+    void FixedUpdate()
+    {
+        // 高速補償：在本幀移動距離內做射線檢測，避免穿牆
+        if (hasHit) return;
+        Vector3 vel = rb != null ? rb.linearVelocity : Vector3.zero;
+        float dist = vel.magnitude * Time.fixedDeltaTime;
+        if (dist > 0f)
+        {
+            if (Physics.Raycast(transform.position, vel.normalized, out RaycastHit hit, dist, hitLayers, QueryTriggerInteraction.Collide))
+            {
+                HandleHit(hit.collider);
+            }
+        }
+        _lastPos = transform.position;
     }
 
     void OnTriggerEnter(Collider other)

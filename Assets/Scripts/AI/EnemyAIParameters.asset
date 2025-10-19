@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 865c84459c81848d3833066f75638bed, type: 3}
+  m_Name: EnemyAIParameters
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAIParameters
+  moveSpeed: 3
+  rotationSpeed: 150
+  detectionRange: 10
+  shootingRange: 8
+  minDistanceToPlayer: 3
+  bulletPrefab: {fileID: 0}
+  bulletSpeed: 15
+  fireRate: 0.5
+  maxHealth: 1
+  patrolRadius: 5
+  patrolWaitTime: 2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  obstacleAwarenessMine: 0
+  randomTimerMaxMine: 2
+  randomTimerMinMine: 1
+  tankAwarenessMine: 0
+  chanceMineLayNearBreakables: 0
+  chanceMineLay: 0
+  maxAngleRandomTurn: 0
+  randomTimerMaxMove: 2
+  randomTimerMinMove: 1
+  awarenessFriendlyMine: 0
+  awarenessFriendlyShell: 0
+  awarenessHostileMine: 0
+  awarenessHostileShell: 0
+  cantShootWhileFleeing: 0
+  aggressivenessBias: 0
+  maxQueuedMovements: 4
+  obstacleAwarenessMovement: 0
+  aimOffsetRadians: 0
+  detectionForgivenessSelf: 0
+  detectionForgivenessFriendly: 0
+  detectionForgivenessHostile: 0
+  randomTimerMaxShoot: 2
+  randomTimerMinShoot: 1
+  turretSpeed: 0
+  turretMovementTimer: 0
+  tankAwarenessShoot: 0
+  remembranceTicks: 60
+  smartRicochets: 0
+  bounceReset: 1
+  redirectAngleRadians: 0.08726646
+  predictsPositions: 0
+  deflectsBullets: 0
+  shootsMinesSmartly: 0
+  baseXP: 0

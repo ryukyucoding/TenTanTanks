@@ -455,6 +455,8 @@ GameObject:
   - component: {fileID: 9143694021594648180}
   - component: {fileID: 8859893981197329191}
   - component: {fileID: 122771137472030046}
+  - component: {fileID: 6453364842122458583}
+  - component: {fileID: 828157161115006841}
   m_Layer: 0
   m_Name: EnemyTank
   m_TagString: Untagged
@@ -539,6 +541,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94103a6bee5cdad4a99063b4d836312f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTank
+  aiParameters: {fileID: 11400000, guid: 25356b22847fe427c879e4eb9554a2ce, type: 2}
+  useAIParameters: 1
   moveSpeed: 3
   rotationSpeed: 150
   detectionRange: 10
@@ -547,15 +551,55 @@ MonoBehaviour:
   tankBody: {fileID: 5313715337535331726}
   turret: {fileID: 8044837445949208610}
   firePoint: {fileID: 4448625178629235575}
-  bulletPrefab: {fileID: 0}
+  bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
   bulletSpeed: 15
-  fireRate: 0.5
+  fireRate: 3
   maxHealth: 1
   patrolRadius: 5
   patrolWaitTime: 2
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1
+  dangerScanner: {fileID: 6453364842122458583}
+  movementController: {fileID: 828157161115006841}
+--- !u!114 &6453364842122458583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8883446190524244325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 753d39446bba54ff1b9e97dd9ebff744, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AIDangerScanner
+  projectileLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  mineLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  scanRadius: 20
+  selfTeam: 0
+--- !u!114 &828157161115006841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8883446190524244325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b816e68c6384a42318e111a1041df241, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AIMovementController
+  tank: {fileID: 0}
+  DoMovements: 1
+  DoMoveTowards: 1
+  CurrentRandomMove: 0
+  IsSurviving: 0
+  IsTooCloseToObstacle: 0
 --- !u!1001 &8487733035452641612
 PrefabInstance:
   m_ObjectHideFlags: 0
