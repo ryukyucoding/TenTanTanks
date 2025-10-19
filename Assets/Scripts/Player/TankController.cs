@@ -18,6 +18,7 @@ public class TankController : MonoBehaviour
     // 輸入變數
     private Vector2 moveInput;
     private Vector2 mousePosition;
+    private Vector2 lookInput;
 
     // 組件引用
     private Rigidbody rb;
@@ -81,7 +82,8 @@ public class TankController : MonoBehaviour
     {
         // 獲取移動輸入
         moveInput = moveAction.ReadValue<Vector2>();
-
+        // 獲取瞄準
+        lookInput = playerInput.actions["Look"].ReadValue<Vector2>();
         // 獲取滑鼠位置
         mousePosition = lookAction.ReadValue<Vector2>();
     }
@@ -107,34 +109,42 @@ public class TankController : MonoBehaviour
     {
         if (turret == null || playerCamera == null) return;
 
-        // 將滑鼠螢幕座標轉換為世界座標
-        Ray ray = playerCamera.ScreenPointToRay(mousePosition);
-
-        // 創建一個在坦克高度的平面
+        // 使用滑鼠螢幕位置轉換為世界座標
+        Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         Plane groundPlane = new Plane(Vector3.up, transform.position);
 
-        // 檢查射線與平面的交點
         if (groundPlane.Raycast(ray, out float distance))
         {
             Vector3 worldMousePos = ray.GetPoint(distance);
-
-            // 計算從砲塔到滑鼠位置的方向
             Vector3 direction = (worldMousePos - turret.position).normalized;
-            direction.y = 0; // 保持在水平面上
+            direction.y = 0; // 保持水平
 
-            // 旋轉砲塔朝向滑鼠位置
             if (direction.magnitude > 0.1f)
             {
+                // 計算目標旋轉角度
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+                // 平滑旋轉到目標角度
                 turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
     }
 
-    // 提供給射擊腳本使用的方法
     public Vector3 GetFirePointPosition()
     {
-        return firePoint != null ? firePoint.position : turret.position;
+        if (firePoint != null)
+        {
+            return firePoint.position;
+        }
+
+        // 如果沒有設定firePoint，就用turret的位置
+        if (turret != null)
+        {
+            return turret.position;
+        }
+
+        // 最後備案：用坦克本身的位置
+        return transform.position;
     }
 
     public Vector3 GetFireDirection()
