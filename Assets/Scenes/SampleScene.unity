@@ -12170,6 +12170,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 330585545}
     - target: {fileID: 8839781499122029624, guid: 19d097f25c0d65e419bf776e70d8757f, type: 3}
+      propertyPath: maxHealth
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8839781499122029624, guid: 19d097f25c0d65e419bf776e70d8757f, type: 3}
       propertyPath: deathSound
       value: 
       objectReference: {fileID: 8300000, guid: ab7731d0b8d158b488298bf2c9af48c3, type: 3}
