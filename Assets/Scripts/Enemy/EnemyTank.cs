@@ -20,6 +20,11 @@ public class EnemyTank : MonoBehaviour, IDamageable
     [SerializeField] private float fireRate = 0.5f;
     [SerializeField] private float maxHealth = 1f;
 
+    [Header("Death Effects")]  // NEW SECTION
+    [SerializeField] private GameObject explosionEffect;  // Explosion particle prefab
+    [SerializeField] private AudioClip explosionSound;    // Explosion sound clip
+    [SerializeField] private float explosionDuration = 2f; // How long effect lasts
+
     [Header("AI Behavior")]
     [SerializeField] private float patrolRadius = 5f;
     [SerializeField] private float patrolWaitTime = 2f;
@@ -333,6 +338,28 @@ public class EnemyTank : MonoBehaviour, IDamageable
         {
             rb.linearVelocity = Vector3.zero;
         }
+
+        // === ADD EXPLOSION EFFECTS HERE === //
+
+        // Play explosion sound (3D sound that persists after object destruction)
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        }
+
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+
+            // Auto-destroy the explosion effect after duration
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
+        }
+
+        // === END OF NEW EFFECTS === //
 
         // ³qª¾GameManager
         if (GameManager.Instance != null)
