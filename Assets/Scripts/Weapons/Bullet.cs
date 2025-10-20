@@ -71,7 +71,7 @@ public class Bullet : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         // 延遲0.2秒再開始碰撞檢測，讓子彈飛出發射者
-        if (Time.time - spawnTime < 0.2f)
+        if (Time.time - spawnTime < 0.05f)
         {
             Debug.Log("子彈剛發射，暫時忽略碰撞");
             return;

@@ -25,6 +25,11 @@ public class EnemyTank : MonoBehaviour, IDamageable
     [SerializeField] private float patrolWaitTime = 2f;
     [SerializeField] private LayerMask obstacleLayer = 1;
 
+    [Header("Death Effects")]
+    [SerializeField] private GameObject explosionEffect;
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionDuration = 2f;
+
     // AI狀態
     private enum AIState
     {
@@ -334,6 +339,22 @@ public class EnemyTank : MonoBehaviour, IDamageable
             rb.linearVelocity = Vector3.zero;
         }
 
+        // Play explosion sound
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        }
+
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
+        }
+
         // 通知GameManager
         if (GameManager.Instance != null)
         {
@@ -344,7 +365,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         Debug.Log("Enemy tank destroyed!");
 
         // 銷毀物件（或者禁用組件）
-        Destroy(gameObject, 1f);
+        Destroy(gameObject);
     }
 
     // 除錯用的Gizmos
