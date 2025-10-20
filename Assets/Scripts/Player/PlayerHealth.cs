@@ -17,6 +17,10 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     [SerializeField] private Color damageFlashColor = Color.red;
     [SerializeField] private float flashDuration = 0.1f;
 
+    [Header("Death Effects")]
+    [SerializeField] private GameObject explosionEffect;  // Explosion particle prefab
+    [SerializeField] private float explosionDuration = 2f; // How long effect lasts
+
     // 組件引用
     private AudioSource audioSource;
 
@@ -24,6 +28,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     private bool isInvulnerable = false;
     private float lastDamageTime;
     private Color[] originalColors;
+    private bool isDead = false;
+
 
     // 事件
     public System.Action<int, int> OnHealthChanged; // 當前血量, 最大血量
@@ -156,30 +162,58 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        Debug.Log("Player died!");
+        if (isDead) return;
+        isDead = true;
 
-        // 播放死亡音效
-        if (deathSound != null && audioSource != null)
+        Debug.Log("Player tank destroyed!");
+
+        // Play death/explosion sound
+        if (deathSound != null)
         {
-            audioSource.PlayOneShot(deathSound);
+            AudioSource.PlayClipAtPoint(deathSound, transform.position);
         }
 
-        // 觸發死亡事件
-        OnPlayerDeath?.Invoke();
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
 
-        // 禁用控制
-        TankController controller = GetComponent<TankController>();
-        if (controller != null)
-            controller.enabled = false;
+            // Auto-destroy the explosion effect after duration
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
+        }
 
-        TankShooting shooting = GetComponent<TankShooting>();
-        if (shooting != null)
-            shooting.enabled = false;
+        // Disable player controls
+        var tankController = GetComponent<TankController>();
+        if (tankController != null)
+            tankController.enabled = false;
 
-        // 可以在這裡添加死亡動畫或特效
+        var tankShooting = GetComponent<TankShooting>();
+        if (tankShooting != null)
+            tankShooting.enabled = false;
 
-        // 延遲一段時間後通知GameManager
-        Invoke(nameof(NotifyGameManager), 1f);
+        // Stop movement
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Hide the tank immediately (so explosion shows without tank)
+        if (tankRenderers != null)
+        {
+            foreach (Renderer renderer in tankRenderers)
+            {
+                if (renderer != null)
+                    renderer.enabled = false;
+            }
+        }
+
+        // Destroy the player tank immediately
+        Destroy(gameObject);
     }
 
     private void NotifyGameManager()
