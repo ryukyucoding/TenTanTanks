@@ -19,6 +19,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     [Header("Death Effects")]
     [SerializeField] private GameObject explosionEffect;  // Explosion particle prefab
+    [SerializeField] private AudioClip explosionSound;
     [SerializeField] private float explosionDuration = 2f; // How long effect lasts
 
     // 組件引用
