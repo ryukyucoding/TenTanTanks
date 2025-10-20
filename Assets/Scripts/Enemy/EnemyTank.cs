@@ -25,6 +25,11 @@ public class EnemyTank : MonoBehaviour, IDamageable
     [SerializeField] private float patrolWaitTime = 2f;
     [SerializeField] private LayerMask obstacleLayer = 1;
 
+    [Header("Death Effects")]
+    [SerializeField] private GameObject explosionEffect;
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionDuration = 2f;
+
     // AIª¬ºA
     private enum AIState
     {
@@ -332,6 +337,22 @@ public class EnemyTank : MonoBehaviour, IDamageable
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
+        }
+
+        // Play explosion sound
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        }
+
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
         }
 
         // ³qª¾GameManager
