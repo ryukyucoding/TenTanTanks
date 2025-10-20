@@ -99,7 +99,7 @@ MonoBehaviour:
   lifetime: 5
   hitLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 193
   hitEffect: {fileID: 0}
 
   hitSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
@@ -155,6 +155,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 1b2f51204cd394608a1ef4208456f32e, type: 3}
       propertyPath: m_Name
       value: Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1b2f51204cd394608a1ef4208456f32e, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
