@@ -594,7 +594,7 @@ MonoBehaviour:
   bulletSpeed: 10
   fireRate: 3
   bulletLifetime: 5
-  shootSound: {fileID: 0}
+  shootSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
   muzzleFlash: {fileID: 0}
 --- !u!114 &6168854359044807033
 MonoBehaviour:
