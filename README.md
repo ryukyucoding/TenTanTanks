@@ -41,4 +41,3 @@ PlayerTank/
 
 ## 10/20 + Explosion
 音效+爆炸特效，敵人的確定可以用但玩家不確定，要先跟AI merge才能知道有沒有bug
-

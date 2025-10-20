@@ -55,7 +55,7 @@ public class LevelSystemSetup : MonoBehaviour
     {
         if (levelManager == null)
         {
-            levelManager = FindFirstObjectByType<LevelManager>();
+            levelManager = FindObjectOfType<LevelManager>();
             if (levelManager == null)
             {
                 GameObject levelManagerObj = new GameObject("LevelManager");
@@ -82,7 +82,7 @@ public class LevelSystemSetup : MonoBehaviour
     {
         if (waveManager == null)
         {
-            waveManager = FindFirstObjectByType<WaveManager>();
+            waveManager = FindObjectOfType<WaveManager>();
             if (waveManager == null)
             {
                 GameObject waveManagerObj = new GameObject("WaveManager");
@@ -97,7 +97,7 @@ public class LevelSystemSetup : MonoBehaviour
     {
         if (oldGameManager == null)
         {
-            oldGameManager = FindFirstObjectByType<GameManager>();
+            oldGameManager = FindObjectOfType<GameManager>();
         }
         
         if (oldGameManager != null)

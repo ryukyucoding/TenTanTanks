@@ -79,7 +79,7 @@ public class LevelData
 public class LevelDataAsset : ScriptableObject
 {
     [Header("關卡數據")]
-    public LevelData levelData = new LevelData();
+    public LevelData levelData;
     
     [Header("關卡預覽")]
     [Tooltip("關卡預覽圖片")]
@@ -91,20 +91,4 @@ public class LevelDataAsset : ScriptableObject
     
     [Tooltip("關卡解鎖條件")]
     public string unlockCondition = "";
-    
-    private void OnEnable()
-    {
-        // 確保 levelData 不為 null
-        if (levelData == null)
-        {
-            levelData = new LevelData();
-        }
-        
-        // 確保 enemyWaves 不為 null
-        if (levelData.enemyWaves == null)
-        {
-            levelData.enemyWaves = new System.Collections.Generic.List<EnemyWave>();
-        }
-    }
 }
-
