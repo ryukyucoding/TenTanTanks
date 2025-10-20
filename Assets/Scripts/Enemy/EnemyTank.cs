@@ -365,7 +365,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         Debug.Log("Enemy tank destroyed!");
 
         // 銷毀物件（或者禁用組件）
-        Destroy(gameObject, 1f);
+        Destroy(gameObject);
     }
 
     // 除錯用的Gizmos

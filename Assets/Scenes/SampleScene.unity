@@ -12036,6 +12036,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 122771137472030046, guid: 90166595365399f4e961287e558349aa, type: 3}
+      propertyPath: explosionSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
+    - target: {fileID: 122771137472030046, guid: 90166595365399f4e961287e558349aa, type: 3}
+      propertyPath: explosionEffect
+      value: 
+      objectReference: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
     - target: {fileID: 1955046153446535976, guid: 90166595365399f4e961287e558349aa, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7

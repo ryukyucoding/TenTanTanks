@@ -556,6 +556,9 @@ MonoBehaviour:
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 1
+  explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
+  explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
+  explosionDuration: 2
 --- !u!1001 &8487733035452641612
 PrefabInstance:
   m_ObjectHideFlags: 0
