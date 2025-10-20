@@ -3,33 +3,40 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health Settings")]
-    [SerializeField] private int maxHealth = 5;         // ³Ì¤j¦å¶qÂI¼Æ
-    [SerializeField] private int currentHealth;         // ·í«e¦å¶qÂI¼Æ
+    [SerializeField] private int maxHealth = 5;         // ï¿½Ì¤jï¿½ï¿½qï¿½Iï¿½ï¿½
+    [SerializeField] private int currentHealth;         // ï¿½ï¿½ï¿½eï¿½ï¿½qï¿½Iï¿½ï¿½
 
     [Header("Damage Effects")]
-    [SerializeField] private float invulnerabilityTime = 1f; // µL¼Ä®É¶¡
-    [SerializeField] private GameObject damageEffect;        // ¨ü¶Ë¯S®Ä
-    [SerializeField] private AudioClip damageSound;          // ¨ü¶Ë­µ®Ä
-    [SerializeField] private AudioClip deathSound;           // ¦º¤`­µ®Ä
+    [SerializeField] private float invulnerabilityTime = 1f; // ï¿½Lï¿½Ä®É¶ï¿½
+    [SerializeField] private GameObject damageEffect;        // ï¿½ï¿½ï¿½Ë¯Sï¿½ï¿½
+    [SerializeField] private AudioClip damageSound;          // ï¿½ï¿½ï¿½Ë­ï¿½ï¿½ï¿½
+    [SerializeField] private AudioClip deathSound;           // ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½ï¿½
 
     [Header("Visual Feedback")]
-    [SerializeField] private Renderer[] tankRenderers;      // ©Z§Jªº´è¬V¾¹¡]¥Î©ó°{Ã{®ÄªG¡^
+    [SerializeField] private Renderer[] tankRenderers;      // ï¿½Zï¿½Jï¿½ï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½]ï¿½Î©ï¿½{ï¿½{ï¿½ÄªGï¿½^
     [SerializeField] private Color damageFlashColor = Color.red;
     [SerializeField] private float flashDuration = 0.1f;
 
-    // ²Õ¥ó¤Þ¥Î
+    [Header("Death Effects")]
+    [SerializeField] private GameObject explosionEffect;  // Explosion particle prefab
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionDuration = 2f; // How long effect lasts
+
+    // ï¿½Õ¥ï¿½Þ¥ï¿½
     private AudioSource audioSource;
 
-    // ª¬ºAÅÜ¼Æ
+    // ï¿½ï¿½ï¿½Aï¿½Ü¼ï¿½
     private bool isInvulnerable = false;
     private float lastDamageTime;
     private Color[] originalColors;
+    private bool isDead = false;
 
-    // ¨Æ¥ó
-    public System.Action<int, int> OnHealthChanged; // ·í«e¦å¶q, ³Ì¤j¦å¶q
+
+    // ï¿½Æ¥ï¿½
+    public System.Action<int, int> OnHealthChanged; // ï¿½ï¿½ï¿½eï¿½ï¿½q, ï¿½Ì¤jï¿½ï¿½q
     public System.Action OnPlayerDeath;
 
-    // ¤½¦@ÄÝ©Ê
+    // ï¿½ï¿½ï¿½@ï¿½Ý©ï¿½
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
     public bool IsAlive => currentHealth > 0;
@@ -43,7 +50,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         currentHealth = maxHealth;
 
-        // «O¦s­ì©lÃC¦â
+        // ï¿½Oï¿½sï¿½ï¿½lï¿½Cï¿½ï¿½
         if (tankRenderers != null && tankRenderers.Length > 0)
         {
             originalColors = new Color[tankRenderers.Length];
@@ -59,13 +66,13 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     void Start()
     {
-        // ³qª¾UIªì©l¦å¶q
+        // ï¿½qï¿½ï¿½UIï¿½ï¿½lï¿½ï¿½q
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
     void Update()
     {
-        // ÀË¬dµL¼Ä®É¶¡
+        // ï¿½Ë¬dï¿½Lï¿½Ä®É¶ï¿½
         if (isInvulnerable && Time.time - lastDamageTime >= invulnerabilityTime)
         {
             isInvulnerable = false;
@@ -73,32 +80,32 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    // ¹ê²{IDamageable¤¶­±
+    // ï¿½ï¿½{IDamageableï¿½ï¿½ï¿½ï¿½
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
-        // ÀË¬d¬O§_³B©óµL¼Äª¬ºA
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½Bï¿½ï¿½Lï¿½Äªï¿½ï¿½A
         if (isInvulnerable || !IsAlive) return;
 
-        // ´î¤Ö¦å¶q¡]¨C¦¸§ðÀ»¦©1ÂI¦å¡^
+        // ï¿½ï¿½Ö¦ï¿½qï¿½]ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½Iï¿½ï¿½^
         currentHealth = Mathf.Max(0, currentHealth - 1);
         lastDamageTime = Time.time;
         isInvulnerable = true;
 
         Debug.Log($"Player took 1 damage. Health: {currentHealth}/{maxHealth}");
 
-        // Ä²µoµøÄ±©M­µ®Ä
+        // Ä²ï¿½oï¿½ï¿½Ä±ï¿½Mï¿½ï¿½ï¿½ï¿½
         PlayDamageEffects(hitPoint);
 
-        // ³qª¾¨t²Î¦å¶qÅÜ¤Æ
+        // ï¿½qï¿½ï¿½ï¿½tï¿½Î¦ï¿½qï¿½Ü¤ï¿½
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
-        // ³qª¾GameManager
+        // ï¿½qï¿½ï¿½GameManager
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnPlayerDamaged(currentHealth, maxHealth);
         }
 
-        // ÀË¬d¬O§_¦º¤`
+        // ï¿½Ë¬dï¿½Oï¿½_ï¿½ï¿½ï¿½`
         if (currentHealth <= 0)
         {
             Die();
@@ -107,20 +114,20 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void PlayDamageEffects(Vector3 hitPoint)
     {
-        // ¼½©ñ¨ü¶Ë­µ®Ä
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë­ï¿½ï¿½ï¿½
         if (damageSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(damageSound);
         }
 
-        // ³Ð«Ø¨ü¶Ë¯S®Ä
+        // ï¿½Ð«Ø¨ï¿½ï¿½Ë¯Sï¿½ï¿½
         if (damageEffect != null)
         {
             GameObject effect = Instantiate(damageEffect, hitPoint, Quaternion.identity);
             Destroy(effect, 2f);
         }
 
-        // °{Ã{®ÄªG
+        // ï¿½{ï¿½{ï¿½ÄªG
         StartFlashEffect();
     }
 
@@ -128,7 +135,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     {
         if (tankRenderers == null) return;
 
-        // §ïÅÜÃC¦â¬°¨ü¶ËÃC¦â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Cï¿½â¬°ï¿½ï¿½ï¿½ï¿½ï¿½Cï¿½ï¿½
         for (int i = 0; i < tankRenderers.Length; i++)
         {
             if (tankRenderers[i] != null && tankRenderers[i].material != null)
@@ -137,7 +144,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
             }
         }
 
-        // µu®É¶¡«á«ì´_­ì¦â
+        // ï¿½uï¿½É¶ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½
         Invoke(nameof(RestoreOriginalColors), flashDuration);
     }
 
@@ -156,41 +163,69 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        Debug.Log("Player died!");
+        if (isDead) return;
+        isDead = true;
 
-        // ¼½©ñ¦º¤`­µ®Ä
-        if (deathSound != null && audioSource != null)
+        Debug.Log("Player tank destroyed!");
+
+        // Play death/explosion sound
+        if (deathSound != null)
         {
-            audioSource.PlayOneShot(deathSound);
+            AudioSource.PlayClipAtPoint(deathSound, transform.position);
         }
 
-        // Ä²µo¦º¤`¨Æ¥ó
-        OnPlayerDeath?.Invoke();
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
 
-        // ¸T¥Î±±¨î
-        TankController controller = GetComponent<TankController>();
-        if (controller != null)
-            controller.enabled = false;
+            // Auto-destroy the explosion effect after duration
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
+        }
 
-        TankShooting shooting = GetComponent<TankShooting>();
-        if (shooting != null)
-            shooting.enabled = false;
+        // Disable player controls
+        var tankController = GetComponent<TankController>();
+        if (tankController != null)
+            tankController.enabled = false;
 
-        // ¥i¥H¦b³o¸Ì²K¥[¦º¤`°Êµe©Î¯S®Ä
+        var tankShooting = GetComponent<TankShooting>();
+        if (tankShooting != null)
+            tankShooting.enabled = false;
 
-        // ©µ¿ð¤@¬q®É¶¡«á³qª¾GameManager
-        Invoke(nameof(NotifyGameManager), 1f);
+        // Stop movement
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Hide the tank immediately (so explosion shows without tank)
+        if (tankRenderers != null)
+        {
+            foreach (Renderer renderer in tankRenderers)
+            {
+                if (renderer != null)
+                    renderer.enabled = false;
+            }
+        }
+
+        // Destroy the player tank immediately
+        Destroy(gameObject);
     }
 
     private void NotifyGameManager()
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.GameOver("ª±®a³QÀ»±Ñ¡I");
+            GameManager.Instance.GameOver("ï¿½ï¿½ï¿½aï¿½Qï¿½ï¿½ï¿½Ñ¡I");
         }
     }
 
-    // ¤½¦@¤èªk¡GªvÀø
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½vï¿½ï¿½
     public void Heal(int healAmount = 1)
     {
         if (!IsAlive) return;
@@ -205,7 +240,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    // ¤½¦@¤èªk¡G³]¸m³Ì¤j¦å¶q
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½]ï¿½mï¿½Ì¤jï¿½ï¿½q
     public void SetMaxHealth(int newMaxHealth)
     {
         float healthPercentage = HealthPercentage;
@@ -215,24 +250,24 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 
-    // ¤½¦@¤èªk¡G§¹¥þªvÀø
+    // ï¿½ï¿½ï¿½@ï¿½ï¿½kï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½
     public void FullHeal()
     {
         Heal(maxHealth);
     }
 
-    // °£¿ù¥ÎªºGizmos
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Gizmos
     void OnDrawGizmosSelected()
     {
-        // Åã¥Ü¦å¶q±ø
+        // ï¿½ï¿½Ü¦ï¿½qï¿½ï¿½
         Vector3 healthBarPos = transform.position + Vector3.up * 3f;
         Vector3 healthBarSize = new Vector3(2f, 0.2f, 0f);
 
-        // ­I´º¡]¬õ¦â¡^
+        // ï¿½Iï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½^
         Gizmos.color = Color.red;
         Gizmos.DrawCube(healthBarPos, healthBarSize);
 
-        // ¦å¶q¡]ºñ¦â¡^
+        // ï¿½ï¿½qï¿½]ï¿½ï¿½ï¿½^
         if (IsAlive)
         {
             Gizmos.color = Color.green;
@@ -243,7 +278,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
             Gizmos.DrawCube(healthPos, healthSize);
         }
 
-        // Åã¥Ü¦å¶qÂI¼Æ¤å¦r
+        // ï¿½ï¿½Ü¦ï¿½qï¿½Iï¿½Æ¤ï¿½r
         UnityEditor.Handles.Label(healthBarPos + Vector3.up * 0.5f, $"HP: {currentHealth}/{maxHealth}");
     }
 }

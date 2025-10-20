@@ -25,7 +25,12 @@ public class EnemyTank : MonoBehaviour, IDamageable
     [SerializeField] private float patrolWaitTime = 2f;
     [SerializeField] private LayerMask obstacleLayer = 1;
 
-    // AIª¬ºA
+    [Header("Death Effects")]
+    [SerializeField] private GameObject explosionEffect;
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionDuration = 2f;
+
+    // AIï¿½ï¿½ï¿½A
     private enum AIState
     {
         Patrol,
@@ -38,17 +43,17 @@ public class EnemyTank : MonoBehaviour, IDamageable
     private Transform player;
     private Rigidbody rb;
 
-    // ¾Ô°«¬ÛÃö
+    // ï¿½Ô°ï¿½ï¿½ï¿½ï¿½ï¿½
     private float currentHealth;
     private float nextFireTime;
 
-    // ¨µÅÞ¬ÛÃö
+    // ï¿½ï¿½ï¿½Þ¬ï¿½ï¿½ï¿½
     private Vector3 patrolCenter;
     private Vector3 currentPatrolTarget;
     private float patrolWaitTimer;
     private bool isWaiting = false;
 
-    // ²¾°Ê¬ÛÃö
+    // ï¿½ï¿½ï¿½Ê¬ï¿½ï¿½ï¿½
     private Vector3 lastValidPosition;
     private float stuckTimer = 0f;
     private float stuckCheckInterval = 2f;
@@ -67,7 +72,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
 
     void Start()
     {
-        // ´M§äª±®a¡]¼ÐÅÒ¬°"Player"ªºª«¥ó¡^
+        // ï¿½Mï¿½äª±ï¿½aï¿½]ï¿½ï¿½ï¿½Ò¬ï¿½"Player"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -97,8 +102,8 @@ public class EnemyTank : MonoBehaviour, IDamageable
 
     private void HandleMovement()
     {
-        // ²¾°ÊÅÞ¿è¦b¦U­Óª¬ºA³B²z¤èªk¤¤¹ê²{
-        // ³o¸Ì¤£»Ý­nÃB¥~ªºÅÞ¿è
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Þ¿ï¿½bï¿½Uï¿½Óªï¿½ï¿½Aï¿½Bï¿½zï¿½ï¿½kï¿½ï¿½ï¿½ï¿½{
+        // ï¿½oï¿½Ì¤ï¿½ï¿½Ý­nï¿½Bï¿½~ï¿½ï¿½ï¿½Þ¿ï¿½
     }
 
     private void UpdateAI()
@@ -108,7 +113,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         bool canSeePlayer = CanSeePlayer();
 
-        // ª¬ºA¾÷
+        // ï¿½ï¿½ï¿½Aï¿½ï¿½
         switch (currentState)
         {
             case AIState.Patrol:
@@ -124,7 +129,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
                 break;
         }
 
-        // ¯¥¶ð±ÛÂà¡]¦b§ðÀ»©M°lÀ»ª¬ºA®ÉºË·Çª±®a¡^
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½bï¿½ï¿½ï¿½ï¿½ï¿½Mï¿½lï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ÉºË·Çªï¿½ï¿½aï¿½^
         if ((currentState == AIState.Chase || currentState == AIState.Attack) && canSeePlayer)
         {
             RotateTurretTowards(player.position);
@@ -139,7 +144,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
             return;
         }
 
-        // ¨µÅÞÅÞ¿è
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Þ¿ï¿½
         if (!isWaiting)
         {
             MoveTowards(currentPatrolTarget);
@@ -175,7 +180,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
             return;
         }
 
-        // °lÀ»ª±®a
+        // ï¿½lï¿½ï¿½ï¿½ï¿½ï¿½a
         MoveTowards(player.position);
     }
 
@@ -187,20 +192,20 @@ public class EnemyTank : MonoBehaviour, IDamageable
             return;
         }
 
-        // «O«ù¶ZÂ÷§ðÀ»
+        // ï¿½Oï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (distanceToPlayer < minDistanceToPlayer)
         {
-            // «á°h
+            // ï¿½ï¿½h
             Vector3 direction = (transform.position - player.position).normalized;
             MoveTowards(transform.position + direction * 2f);
         }
         else if (distanceToPlayer > shootingRange)
         {
-            // ¾aªñ
+            // ï¿½aï¿½ï¿½
             MoveTowards(player.position);
         }
 
-        // ®gÀ»
+        // ï¿½gï¿½ï¿½
         TryShoot();
     }
 
@@ -211,7 +216,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         float distance = Vector3.Distance(transform.position, player.position);
 
-        // ®g½uÀË´ú¬O§_³Q»ÙÃªª«¾B¾×
+        // ï¿½gï¿½uï¿½Ë´ï¿½ï¿½Oï¿½_ï¿½Qï¿½ï¿½Ãªï¿½ï¿½ï¿½Bï¿½ï¿½
         if (Physics.Raycast(transform.position + Vector3.up * 0.5f, directionToPlayer, distance, obstacleLayer))
         {
             return false;
@@ -227,11 +232,11 @@ public class EnemyTank : MonoBehaviour, IDamageable
 
         if (direction.magnitude > 0.1f)
         {
-            // ²¾°Ê¡]­×¥¿¡G¨Ï¥Î linearVelocity ´À¥N velocity¡^
+            // ï¿½ï¿½ï¿½Ê¡]ï¿½×¥ï¿½ï¿½Gï¿½Ï¥ï¿½ linearVelocity ï¿½ï¿½ï¿½N velocityï¿½^
             Vector3 movement = direction * moveSpeed * Time.fixedDeltaTime;
             rb.MovePosition(transform.position + movement);
 
-            // ±ÛÂà¨®¨­
+            // ï¿½ï¿½ï¿½à¨®ï¿½ï¿½
             if (tankBody != null)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -290,7 +295,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
             stuckTimer += Time.deltaTime;
             if (stuckTimer >= stuckCheckInterval)
             {
-                // ³Q¥d¦í¤F¡A³]¸m·sªº¨µÅÞ¥Ø¼Ð
+                // ï¿½Qï¿½dï¿½ï¿½ï¿½Fï¿½Aï¿½]ï¿½mï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Þ¥Ø¼ï¿½
                 SetNewPatrolTarget();
                 stuckTimer = 0f;
             }
@@ -302,7 +307,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         }
     }
 
-    // ¹ê²{IDamageable¤¶­±
+    // ï¿½ï¿½{IDamageableï¿½ï¿½ï¿½ï¿½
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
         currentHealth -= damage;
@@ -315,7 +320,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
         }
         else
         {
-            // ³Q§ðÀ»®É¶i¤J°lÀ»ª¬ºA
+            // ï¿½Qï¿½ï¿½ï¿½ï¿½ï¿½É¶iï¿½Jï¿½lï¿½ï¿½ï¿½ï¿½ï¿½A
             if (attacker != null && attacker.CompareTag("Player"))
             {
                 player = attacker.transform;
@@ -328,45 +333,61 @@ public class EnemyTank : MonoBehaviour, IDamageable
     {
         currentState = AIState.Dead;
 
-        // °±¤î²¾°Ê¡]­×¥¿¡G¨Ï¥Î linearVelocity ´À¥N velocity¡^
+        // ï¿½ï¿½ï¿½î²¾ï¿½Ê¡]ï¿½×¥ï¿½ï¿½Gï¿½Ï¥ï¿½ linearVelocity ï¿½ï¿½ï¿½N velocityï¿½^
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
         }
 
-        // ³qª¾GameManager
+        // Play explosion sound
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        }
+
+        // Create explosion visual effect
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            if (explosionDuration > 0)
+            {
+                Destroy(explosion, explosionDuration);
+            }
+        }
+
+        // ï¿½qï¿½ï¿½GameManager
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnEnemyDestroyed();
         }
 
-        // ¥i¥H¦b³o¸Ì²K¥[¦º¤`¯S®Ä
+        // ï¿½iï¿½Hï¿½bï¿½oï¿½Ì²Kï¿½[ï¿½ï¿½ï¿½`ï¿½Sï¿½ï¿½
         Debug.Log("Enemy tank destroyed!");
 
-        // ¾P·´ª«¥ó¡]©ÎªÌ¸T¥Î²Õ¥ó¡^
-        Destroy(gameObject, 1f);
+        // ï¿½Pï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½ÎªÌ¸Tï¿½Î²Õ¥ï¿½^
+        Destroy(gameObject);
     }
 
-    // °£¿ù¥ÎªºGizmos
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Gizmos
     void OnDrawGizmosSelected()
     {
-        // ÀË´ú½d³ò
+        // ï¿½Ë´ï¿½ï¿½dï¿½ï¿½
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // ®gÀ»½d³ò
+        // ï¿½gï¿½ï¿½ï¿½dï¿½ï¿½
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, shootingRange);
 
-        // ¨µÅÞ½d³ò
+        // ï¿½ï¿½ï¿½Þ½dï¿½ï¿½
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(patrolCenter, patrolRadius);
 
-        // ·í«e¨µÅÞ¥Ø¼Ð
+        // ï¿½ï¿½ï¿½eï¿½ï¿½ï¿½Þ¥Ø¼ï¿½
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(currentPatrolTarget, 0.5f);
 
-        // Åã¥ÜÀË´ú½d³ò¼ÐÅÒ¡]¶È¦b½s¿è¾¹¤¤¡^
+        // ï¿½ï¿½ï¿½ï¿½Ë´ï¿½ï¿½dï¿½ï¿½ï¿½ï¿½Ò¡]ï¿½È¦bï¿½sï¿½è¾¹ï¿½ï¿½ï¿½^
 #if UNITY_EDITOR
         UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, $"State: {currentState}");
 #endif
