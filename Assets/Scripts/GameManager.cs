@@ -5,23 +5,28 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [Header("Game Settings")]
-    [SerializeField] private float gameTime = 300f; // �C���ɶ��]���^
-    [SerializeField] private int enemyCount = 3;     // �ĤH�ƶq
+    [SerializeField] private float gameTime = 300f; // 遊戲時間限制（如果關卡沒有設定時間限制則使用此值）
+    [SerializeField] private int enemyCount = 3;     // 敵人數量（舊系統，現在由關卡系統管理）
 
     [Header("Spawn Settings")]
     [SerializeField] private GameObject playerTankPrefab;
     [SerializeField] private GameObject enemyTankPrefab;
-    [SerializeField] private Transform[] spawnPoints; // �ͦ��I
+    [SerializeField] private Transform[] spawnPoints; // 生成點
 
     [Header("UI References")]
     [SerializeField] private Text healthText;
     [SerializeField] private Text enemyCountText;
     [SerializeField] private Text timeText;
+    [SerializeField] private Text waveInfoText; // 新增：波數信息顯示
+    [SerializeField] private Text levelInfoText; // 新增：關卡信息顯示
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private Text gameOverMessage;
 
-    // �C�����A
+    [Header("Level System")]
+    [SerializeField] private bool useLevelSystem = true; // 是否使用新的關卡系統
+
+    // 遊戲狀態
     public enum GameState
     {
         Playing,
@@ -34,12 +39,12 @@ public class GameManager : MonoBehaviour
     private int remainingEnemies;
     private GameObject playerTank;
 
-    // �R�A�ޥΡ]��L�}���i�H�X�ݡ^
+    // 單例模式（保持原有功能）
     public static GameManager Instance;
 
     void Awake()
     {
-        // ��ҼҦ�
+        // 單例模式
         if (Instance == null)
         {
             Instance = this;
@@ -50,14 +55,36 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        currentGameTime = gameTime;
+        // 初始化時間設定
+        if (useLevelSystem && LevelManager.Instance != null && LevelManager.Instance.CurrentLevelData != null)
+        {
+            var levelData = LevelManager.Instance.CurrentLevelData;
+            currentGameTime = levelData.timeLimit > 0 ? levelData.timeLimit : gameTime;
+        }
+        else
+        {
+            currentGameTime = gameTime;
+        }
+
         remainingEnemies = enemyCount;
     }
 
     void Start()
     {
         SpawnPlayer();
-        SpawnEnemies();
+        
+        if (useLevelSystem)
+        {
+            // 使用新的關卡系統，不直接生成敵人
+            // 敵人由WaveManager管理
+            SubscribeToLevelSystemEvents();
+        }
+        else
+        {
+            // 使用舊系統直接生成敵人
+            SpawnEnemies();
+        }
+        
         UpdateUI();
     }
 
@@ -68,6 +95,65 @@ public class GameManager : MonoBehaviour
         UpdateGameTime();
         UpdateUI();
         CheckGameConditions();
+    }
+
+    private void SubscribeToLevelSystemEvents()
+    {
+        // 訂閱關卡系統事件
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.OnLevelCompleted += OnLevelCompleted;
+            LevelManager.Instance.OnScoreChanged += OnScoreChanged;
+            LevelManager.Instance.OnExperienceChanged += OnExperienceChanged;
+        }
+
+        // 訂閱波數系統事件
+        if (WaveManager.Instance != null)
+        {
+            WaveManager.Instance.OnWaveStarted += OnWaveStarted;
+            WaveManager.Instance.OnWaveCompleted += OnWaveCompleted;
+            WaveManager.Instance.OnEnemyKilled += OnEnemyKilled;
+        }
+    }
+
+    private void OnLevelCompleted(LevelData levelData, bool success)
+    {
+        if (success)
+        {
+            Victory();
+        }
+        else
+        {
+            GameOver("關卡失敗");
+        }
+    }
+
+    private void OnScoreChanged(int newScore)
+    {
+        // 可以在這裡處理分數變化
+        Debug.Log($"分數更新: {newScore}");
+    }
+
+    private void OnExperienceChanged(int newExperience)
+    {
+        // 可以在這裡處理經驗變化
+        Debug.Log($"經驗更新: {newExperience}");
+    }
+
+    private void OnWaveStarted(int waveIndex, int totalWaves)
+    {
+        Debug.Log($"第 {waveIndex + 1} 波開始！");
+    }
+
+    private void OnWaveCompleted(int waveIndex, int totalWaves)
+    {
+        Debug.Log($"第 {waveIndex + 1} 波完成！");
+    }
+
+    private void OnEnemyKilled(int killed, int total)
+    {
+        remainingEnemies = total - killed;
+        Debug.Log($"敵人被消滅: {killed}/{total}");
     }
 
     private void SpawnPlayer()
@@ -82,7 +168,7 @@ public class GameManager : MonoBehaviour
         playerTank = Instantiate(playerTankPrefab, spawnPosition, Quaternion.identity);
         playerTank.tag = "Player";
 
-        // �K�[���a�ͩR�Ȳե�
+        // 添加玩家血量組件
         PlayerHealth playerHealth = playerTank.GetComponent<PlayerHealth>();
         if (playerHealth == null)
         {
@@ -108,7 +194,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                // �H���ͦ���m
+                // 隨機生成位置
                 spawnPosition = new Vector3(
                     Random.Range(-15f, 15f),
                     0f,
@@ -128,52 +214,71 @@ public class GameManager : MonoBehaviour
         if (currentGameTime <= 0)
         {
             currentGameTime = 0;
-            GameOver("�ɶ���I");
+            GameOver("時間到！");
         }
     }
 
     private void UpdateUI()
     {
-        // ��s�ɶ����
+        // 更新時間顯示
         if (timeText != null)
         {
             int minutes = Mathf.FloorToInt(currentGameTime / 60);
             int seconds = Mathf.FloorToInt(currentGameTime % 60);
-            timeText.text = $"�ɶ�: {minutes:00}:{seconds:00}";
+            timeText.text = $"時間: {minutes:00}:{seconds:00}";
         }
 
-        // ��s�ĤH�ƶq
+        // 更新敵人數量
         if (enemyCountText != null)
         {
-            enemyCountText.text = $"�ĤH: {remainingEnemies}";
+            if (useLevelSystem && WaveManager.Instance != null)
+            {
+                enemyCountText.text = $"敵人: {WaveManager.Instance.EnemiesKilledInWave}/{WaveManager.Instance.EnemiesInCurrentWave}";
+            }
+            else
+            {
+                enemyCountText.text = $"敵人: {remainingEnemies}";
+            }
         }
 
-        // ��s���a�ͩR��
+        // 更新波數信息
+        if (waveInfoText != null && WaveManager.Instance != null)
+        {
+            waveInfoText.text = WaveManager.Instance.GetCurrentWaveInfo();
+        }
+
+        // 更新關卡信息
+        if (levelInfoText != null && LevelManager.Instance != null)
+        {
+            levelInfoText.text = LevelManager.Instance.GetLevelProgressInfo();
+        }
+
+        // 更新玩家血量
         if (healthText != null && playerTank != null)
         {
             PlayerHealth playerHealth = playerTank.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
-                healthText.text = $"�ͩR��: {playerHealth.CurrentHealth}/{playerHealth.MaxHealth}";
+                healthText.text = $"血量: {playerHealth.CurrentHealth}/{playerHealth.MaxHealth}";
             }
         }
     }
 
     private void CheckGameConditions()
     {
-        // �ˬd���a�O�_���`
+        // 檢查玩家是否死亡
         if (playerTank == null)
         {
-            PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
+            PlayerHealth playerHealth = FindFirstObjectByType<PlayerHealth>();
             if (playerHealth == null || playerHealth.CurrentHealth <= 0)
             {
-                GameOver("�A�Q���ѤF�I");
+                GameOver("你被擊敗了！");
                 return;
             }
         }
 
-        // �ˬd�O�_�����Ҧ��ĤH
-        if (remainingEnemies <= 0)
+        // 檢查是否消滅所有敵人（舊系統）
+        if (!useLevelSystem && remainingEnemies <= 0)
         {
             Victory();
         }
@@ -181,13 +286,34 @@ public class GameManager : MonoBehaviour
 
     public void OnEnemyDestroyed()
     {
-        remainingEnemies--;
-        Debug.Log($"Enemy destroyed. Remaining: {remainingEnemies}");
+        if (useLevelSystem)
+        {
+            // 新系統中，敵人消滅由WaveManager處理
+            if (WaveManager.Instance != null)
+            {
+                WaveManager.Instance.OnEnemyDestroyed();
+            }
+            else
+            {
+                // 如果沒有WaveManager，嘗試找SimpleLevelController
+                var simpleController = FindFirstObjectByType<SimpleLevelController>();
+                if (simpleController != null)
+                {
+                    simpleController.OnEnemyDestroyed();
+                }
+            }
+        }
+        else
+        {
+            // 舊系統
+            remainingEnemies--;
+            Debug.Log($"Enemy destroyed. Remaining: {remainingEnemies}");
+        }
     }
 
     public void OnPlayerDamaged(int currentHealth, int maxHealth)
     {
-        // �i�H�b�o�̳B�z���a���˪��S�ĩέ���
+        // 可以在這裡處理玩家受傷的額外邏輯
         Debug.Log($"Player health: {currentHealth}/{maxHealth}");
     }
 
@@ -203,7 +329,7 @@ public class GameManager : MonoBehaviour
         if (gameOverMessage != null)
             gameOverMessage.text = reason;
 
-        // �Ȱ��C��
+        // 暫停遊戲
         Time.timeScale = 0f;
 
         Debug.Log($"Game Over: {reason}");
@@ -218,13 +344,13 @@ public class GameManager : MonoBehaviour
         if (victoryPanel != null)
             victoryPanel.SetActive(true);
 
-        // �Ȱ��C��
+        // 暫停遊戲
         Time.timeScale = 0f;
 
         Debug.Log("Victory!");
     }
 
-    // UI���s��k
+    // UI控制方法
     public void RestartGame()
     {
         Time.timeScale = 1f;
@@ -246,7 +372,24 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    // ���@�ݩ�
+    // 關卡系統相關方法
+    public void LoadNextLevel()
+    {
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.LoadNextLevel();
+        }
+    }
+
+    public void RestartLevel()
+    {
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.RestartCurrentLevel();
+        }
+    }
+
+    // 屬性訪問器
     public GameState CurrentState => currentState;
     public float RemainingTime => currentGameTime;
     public int RemainingEnemies => remainingEnemies;

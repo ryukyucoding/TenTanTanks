@@ -8,6 +8,8 @@ TagManager:
   - Wall
   - Obstacle
   - Ground
+  - Enemy
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX

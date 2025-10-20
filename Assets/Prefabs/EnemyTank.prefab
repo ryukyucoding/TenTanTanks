@@ -123,6 +123,7 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -1002211608603297877, guid: 8abfb55a84a4c47dc8f7c122a2fe36da, type: 3}
+  - {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -455,9 +456,10 @@ GameObject:
   - component: {fileID: 9143694021594648180}
   - component: {fileID: 8859893981197329191}
   - component: {fileID: 122771137472030046}
+  - component: {fileID: 308523504478111602}
   m_Layer: 0
   m_Name: EnemyTank
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -525,8 +527,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &122771137472030046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -534,7 +536,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8883446190524244325}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94103a6bee5cdad4a99063b4d836312f, type: 3}
   m_Name: 
@@ -559,7 +561,89 @@ MonoBehaviour:
   explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
   explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
   explosionDuration: 2
-
+--- !u!114 &308523504478111602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8883446190524244325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c555ec2cb45e9436ba98e71028fec752, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTankAI
+  moveSpeed: 3
+  rotationSpeed: 150
+  rotationThreshold: 10
+  rotationSmoothing: 0.3
+  detectionRange: 30
+  shootingRange: 8
+  tankBody: {fileID: 5313715337535331726}
+  turret: {fileID: 8044837445949208610}
+  firePoint: {fileID: 4448625178629235575}
+  bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
+  bulletSpeed: 15
+  fireRate: 0.5
+  maxHealth: 1
+  aiParameters:
+    maxAngleRandomTurn: 45
+    randomTimerMinMove: 1
+    randomTimerMaxMove: 3
+    obstacleAwarenessMovement: 5
+    aggressivenessBias: 0.3
+    maxQueuedMovements: 4
+    randomTimerMinShoot: 0.5
+    randomTimerMaxShoot: 2
+    aimOffset: 0.1
+    turretSpeed: 2
+    turretMovementTimer: 0.5
+    tankAwarenessShoot: 10
+    detectionForgivenessHostile: 1
+    detectionForgivenessFriendly: 2
+    detectionForgivenessSelf: 1
+    randomTimerMinMine: 2
+    randomTimerMaxMine: 5
+    chanceMineLay: 0.3
+    chanceMineLayNearBreakables: 0.6
+    obstacleAwarenessMine: 5
+    tankAwarenessMine: 8
+    awarenessFriendlyMine: 5
+    awarenessFriendlyShell: 8
+    awarenessHostileMine: 10
+    awarenessHostileShell: 12
+    cantShootWhileFleeing: 1
+    predictsPositions: 0
+    smartRicochets: 0
+    deflectsBullets: 0
+    bounceReset: 1
+    redirectAngle: 5
+    rememberance: 60
+    baseXP: 1
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  bulletLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 192
+  visionHeight: 0.5
+  visionCheckInterval: 0.1
+  pathfindingCheckRadius: 0.8
+  boundaryX: 20
+  boundaryZ: 20
+  currentState: 0
 --- !u!1001 &8487733035452641612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -608,6 +692,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
     - target: {fileID: 919132149155446097, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_Name
       value: Barrel
