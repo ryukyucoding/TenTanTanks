@@ -3577,7 +3577,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3173428de09924ae5919d24c949709d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleLevelController
-  levelDataAsset: {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
+  availableLevels:
+  - {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
+  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
+  currentLevelIndex: 0
+  autoLoadNextLevel: 1
+  levelTransitionDelay: 2
   spawnPoints:
   - {fileID: 545535484}
   - {fileID: 580951024}
@@ -9005,6 +9010,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1637584985
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1637584986}
+  m_Layer: 0
+  m_Name: SceneSelecter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1637584986
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1637584985}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.61897, y: 0, z: -2.68429}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1642337913
 GameObject:
   m_ObjectHideFlags: 0
@@ -12146,7 +12182,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2122013809
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12160,8 +12196,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   availableLevels:
+  - {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
   - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
-  currentLevelIndex: 2
+  currentLevelIndex: 1
   autoLoadNextLevel: 1
   currentLevelData:
     levelName: "\u95DC\u5361 1"
@@ -12608,3 +12645,4 @@ SceneRoots:
   - {fileID: 2108257075}
   - {fileID: 589933868}
   - {fileID: 577616193}
+  - {fileID: 1637584986}

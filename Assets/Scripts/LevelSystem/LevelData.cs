@@ -92,3 +92,4 @@ public class LevelDataAsset : ScriptableObject
     [Tooltip("關卡解鎖條件")]
     public string unlockCondition = "";
 }
+

@@ -20,7 +20,7 @@ public class AutoLevelSetup : MonoBehaviour
     public void SetupLevels()
     {
         // 找到 LevelManager
-        var levelManager = FindObjectOfType<LevelManager>();
+        var levelManager = FindFirstObjectByType<LevelManager>();
         if (levelManager == null)
         {
             Debug.LogError("找不到 LevelManager！");
@@ -55,7 +55,7 @@ public class AutoLevelSetup : MonoBehaviour
         // 確保關卡已設定後，強制載入第一個關卡
         if (levelAssets != null && levelAssets.Length > 0)
         {
-            var levelManager = FindObjectOfType<LevelManager>();
+            var levelManager = FindFirstObjectByType<LevelManager>();
             if (levelManager != null && levelManager.TotalLevels > 0)
             {
                 levelManager.LoadLevel(0);
