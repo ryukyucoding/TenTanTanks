@@ -279,8 +279,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
 
         // ��ܦ�q�I�Ƥ�r
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         UnityEditor.Handles.Label(healthBarPos + Vector3.up * 0.5f, $"HP: {currentHealth}/{maxHealth}");
-#endif
+        #endif
     }
 }

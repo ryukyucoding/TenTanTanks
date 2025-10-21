@@ -3558,6 +3558,7 @@ GameObject:
   m_Component:
   - component: {fileID: 577616193}
   - component: {fileID: 577616192}
+  - component: {fileID: 577616194}
   m_Layer: 0
   m_Name: SimpleLevelController
   m_TagString: Untagged
@@ -3578,8 +3579,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleLevelController
   availableLevels:
-  - {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
-  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
   currentLevelIndex: 0
   autoLoadNextLevel: 1
   levelTransitionDelay: 2
@@ -3608,6 +3609,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &577616194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577616191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed12bf82cefc54e5db5d30841d39153e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelControllerAdapter
+  newLevelData:
+  - {fileID: 11400000, guid: ffe5d6d5b2ccd45ecadebd72a4df4ce0, type: 2}
+  - {fileID: 11400000, guid: 76c14515bacc84d1c98e9d391748b5e8, type: 2}
+  spawnPoints:
+  - {fileID: 545535484}
+  - {fileID: 580951024}
+  - {fileID: 1870815557}
+  enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+  autoLoadFirstLevel: 1
+  autoLoadNextLevel: 1
 --- !u!1 &580951023
 GameObject:
   m_ObjectHideFlags: 0
@@ -3655,7 +3678,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &589933867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9010,37 +9033,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1637584985
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1637584986}
-  m_Layer: 0
-  m_Name: SceneSelecter
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1637584986
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1637584985}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.61897, y: 0, z: -2.68429}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1642337913
 GameObject:
   m_ObjectHideFlags: 0
@@ -12083,31 +12075,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2108257075}
-  - component: {fileID: 2108257074}
   - component: {fileID: 2108257076}
-  - component: {fileID: 2108257077}
-  - component: {fileID: 2108257078}
   m_Layer: 0
   m_Name: Debugger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &2108257074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2108257073}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea5510d157a0d4742b10e3b782fdff18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelSystemDebugger
-  enableDebugLogs: 1
-  showDebugInfo: 1
+  m_IsActive: 1
 --- !u!4 &2108257075
 Transform:
   m_ObjectHideFlags: 0
@@ -12132,39 +12107,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2108257073}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21f432fd401dc4e6e9af6b8eb84525c7, type: 3}
+  m_Script: {fileID: 11500000, guid: 98737f126b1814c74afeb00843231aa5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ForceStartWave
-  autoStartOnStart: 1
-  startDelay: 1
---- !u!114 &2108257077
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2108257073}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13e9e8493407f4d8d928c37120dda51e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WaveDiagnostic
-  enableDiagnostic: 1
-  checkInterval: 1
---- !u!114 &2108257078
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2108257073}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6be8c2e40f484a48bb1eacc7815f4e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ForceActivateWave
-  autoActivateOnStart: 1
-  activationDelay: 2
+  m_EditorClassIdentifier: Assembly-CSharp::WebGLCompatibility
+  fixOnStart: 1
+  showDebugInfo: 1
 --- !u!1 &2122013808
 GameObject:
   m_ObjectHideFlags: 0
@@ -12196,8 +12143,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   availableLevels:
-  - {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
-  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
   currentLevelIndex: 1
   autoLoadNextLevel: 1
   currentLevelData:
@@ -12247,14 +12194,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2122013808}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2a064e9bdfc5849218ef4e69c96893ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoLevelSetup
   setupOnAwake: 1
   levelAssets:
-  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &2142470375
 GameObject:
   m_ObjectHideFlags: 0
@@ -12645,4 +12593,3 @@ SceneRoots:
   - {fileID: 2108257075}
   - {fileID: 589933868}
   - {fileID: 577616193}
-  - {fileID: 1637584986}

@@ -34,15 +34,45 @@ public class SimpleLevelController : MonoBehaviour
         // 清理現有敵人
         ClearAllEnemies();
         
+        // WebGL 兼容性檢查
+        StartCoroutine(WebGLCompatibleStart());
+    }
+    
+    private System.Collections.IEnumerator WebGLCompatibleStart()
+    {
+        // 等待幾幀讓 WebGL 完全初始化
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
+        
+        // 檢查關卡配置
+        if (availableLevels == null || availableLevels.Count == 0)
+        {
+            Debug.LogWarning("SimpleLevelController: 沒有關卡配置，嘗試從其他來源獲取...");
+            
+            // 嘗試從 AutoLevelSetup 獲取關卡
+            var autoSetup = FindFirstObjectByType<AutoLevelSetup>();
+            if (autoSetup != null)
+            {
+                yield return new WaitForSeconds(0.1f); // 給 AutoLevelSetup 時間初始化
+            }
+        }
+        
         // 載入當前關卡
         LoadLevel(currentLevelIndex);
     }
     
     public void LoadLevel(int levelIndex)
     {
+        // 檢查關卡配置
+        if (availableLevels == null || availableLevels.Count == 0)
+        {
+            Debug.LogError("SimpleLevelController: 沒有可用的關卡配置！請確保關卡數據已正確設定。");
+            return;
+        }
+        
         if (levelIndex < 0 || levelIndex >= availableLevels.Count)
         {
-            Debug.LogError($"無效的關卡索引: {levelIndex}");
+            Debug.LogError($"無效的關卡索引: {levelIndex}，可用關卡數: {availableLevels.Count}");
             return;
         }
         
@@ -52,6 +82,13 @@ public class SimpleLevelController : MonoBehaviour
         
         Debug.Log($"載入關卡: {currentLevelData.levelName}");
         Debug.Log($"總波數: {totalWaves}");
+        
+        // WebGL 兼容性檢查：如果波數為0，嘗試修復
+        if (totalWaves == 0)
+        {
+            Debug.LogWarning("檢測到波數為0，嘗試修復關卡配置...");
+            FixEmptyLevelData();
+        }
         
         // 重置波數狀態
         currentWaveIndex = 0;
@@ -67,6 +104,40 @@ public class SimpleLevelController : MonoBehaviour
         
         // 開始第一波
         StartCoroutine(StartFirstWave());
+    }
+    
+    private void FixEmptyLevelData()
+    {
+        Debug.Log("嘗試修復空的關卡數據...");
+        
+        // 如果關卡數據為空，創建默認波數
+        if (currentLevelData.enemyWaves == null || currentLevelData.enemyWaves.Count == 0)
+        {
+            Debug.Log("創建默認波數配置...");
+            currentLevelData.enemyWaves = new System.Collections.Generic.List<EnemyWave>();
+            
+            // 添加默認波數
+            currentLevelData.enemyWaves.Add(new EnemyWave
+            {
+                enemyCount = 2,
+                enemyPrefab = enemyPrefab,
+                waveDelay = 2f,
+                spawnInterval = 1f,
+                spawnPoints = spawnPoints
+            });
+            
+            currentLevelData.enemyWaves.Add(new EnemyWave
+            {
+                enemyCount = 3,
+                enemyPrefab = enemyPrefab,
+                waveDelay = 3f,
+                spawnInterval = 0.8f,
+                spawnPoints = spawnPoints
+            });
+            
+            totalWaves = currentLevelData.enemyWaves.Count;
+            Debug.Log($"已創建 {totalWaves} 個默認波數");
+        }
     }
     
     public void LoadNextLevel()
