@@ -8,19 +8,19 @@ public class TankController : MonoBehaviour
     [SerializeField] private float rotationSpeed = 200f;
 
     [Header("Tank Parts")]
-    [SerializeField] private Transform tankBody;      // ©Z§J¨®¨­¡]²¾°Ê®É·|±ÛÂà¡^
-    [SerializeField] private Transform turret;        // ¯¥¶ð¡]¸òÀH·Æ¹«±ÛÂà¡^
-    [SerializeField] private Transform firePoint;     // ¯¥¼uµo®gÂI
+    [SerializeField] private Transform tankBody;      // ï¿½Zï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½Ê®É·|ï¿½ï¿½ï¿½ï¿½^
+    [SerializeField] private Transform turret;        // ï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½Hï¿½Æ¹ï¿½ï¿½ï¿½ï¿½ï¿½^
+    [SerializeField] private Transform firePoint;     // ï¿½ï¿½ï¿½uï¿½oï¿½gï¿½I
 
     [Header("Camera")]
-    [SerializeField] private Camera playerCamera;     // ª±®aÄá¹³¾÷
+    [SerializeField] private Camera playerCamera;     // ï¿½ï¿½ï¿½aï¿½á¹³ï¿½ï¿½
 
-    // ¿é¤JÅÜ¼Æ
+    // ï¿½ï¿½Jï¿½Ü¼ï¿½
     private Vector2 moveInput;
     private Vector2 mousePosition;
     private Vector2 lookInput;
 
-    // ²Õ¥ó¤Þ¥Î
+    // ï¿½Õ¥ï¿½Þ¥ï¿½
     private Rigidbody rb;
     private PlayerInput playerInput;
 
@@ -31,21 +31,21 @@ public class TankController : MonoBehaviour
 
     void Awake()
     {
-        // Àò¨ú²Õ¥ó
+        // ï¿½ï¿½ï¿½ï¿½Õ¥ï¿½
         rb = GetComponent<Rigidbody>();
         playerInput = GetComponent<PlayerInput>();
 
-        // ¦pªG¨S¦³«ü©wÄá¹³¾÷¡A¹Á¸Õ§ä¨ì¥DÄá¹³¾÷
+        // ï¿½pï¿½Gï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½wï¿½á¹³ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Õ§ï¿½ï¿½Dï¿½á¹³ï¿½ï¿½
         if (playerCamera == null)
             playerCamera = Camera.main;
 
-        // ³]¸mRigidbody¡]¨¾¤îÂ½ºu¡^
+        // ï¿½]ï¿½mRigidbodyï¿½]ï¿½ï¿½ï¿½ï¿½Â½ï¿½uï¿½^
         rb.freezeRotation = true;
     }
 
     void OnEnable()
     {
-        // ¸j©w¿é¤J¨Æ¥ó
+        // ï¿½jï¿½wï¿½ï¿½Jï¿½Æ¥ï¿½
         moveAction = playerInput.actions["Move"];
         lookAction = playerInput.actions["Look"];
         shootAction = playerInput.actions["Attack"];
@@ -57,7 +57,7 @@ public class TankController : MonoBehaviour
 
     void OnDisable()
     {
-        // ¸Ñ°£¸j©w
+        // ï¿½Ñ°ï¿½ï¿½jï¿½w
         moveAction?.Disable();
         lookAction?.Disable();
         shootAction?.Disable();
@@ -65,39 +65,39 @@ public class TankController : MonoBehaviour
 
     void Update()
     {
-        // Åª¨ú¿é¤J
+        // Åªï¿½ï¿½ï¿½ï¿½J
         HandleInput();
 
-        // ³B²z¯¥¶ð±ÛÂà¡]¨C´V§ó·s¡^
+        // ï¿½Bï¿½zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½Cï¿½Vï¿½ï¿½sï¿½^
         HandleTurretRotation();
     }
 
     void FixedUpdate()
     {
-        // ³B²z²¾°Ê¡]ª«²z§ó·s¡^
+        // ï¿½Bï¿½zï¿½ï¿½ï¿½Ê¡]ï¿½ï¿½ï¿½zï¿½ï¿½sï¿½^
         HandleMovement();
     }
 
     private void HandleInput()
     {
-        // Àò¨ú²¾°Ê¿é¤J
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½J
         moveInput = moveAction.ReadValue<Vector2>();
-        // Àò¨úºË·Ç
+        // ï¿½ï¿½ï¿½ï¿½Ë·ï¿½
         lookInput = playerInput.actions["Look"].ReadValue<Vector2>();
-        // Àò¨ú·Æ¹«¦ì¸m
+        // ï¿½ï¿½ï¿½ï¿½Æ¹ï¿½ï¿½ï¿½m
         mousePosition = lookAction.ReadValue<Vector2>();
     }
 
     private void HandleMovement()
     {
-        // ­pºâ²¾°Ê¤è¦V
+        // ï¿½pï¿½â²¾ï¿½Ê¤ï¿½V
         Vector3 moveDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
 
-        // À³¥Î²¾°Ê
+        // ï¿½ï¿½ï¿½Î²ï¿½ï¿½ï¿½
         Vector3 movement = moveDirection * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(transform.position + movement);
 
-        // ¦pªG¦³²¾°Ê¿é¤J¡A±ÛÂà¨®¨­´Â¦V²¾°Ê¤è¦V
+        // ï¿½pï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½Jï¿½Aï¿½ï¿½ï¿½à¨®ï¿½ï¿½ï¿½Â¦Vï¿½ï¿½ï¿½Ê¤ï¿½V
         if (moveDirection.magnitude > 0.1f && tankBody != null)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
@@ -107,9 +107,13 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretRotation()
     {
-        if (turret == null || playerCamera == null) return;
+        if (turret == null || playerCamera == null) 
+        {
+            Debug.LogWarning($"ç‚®ç®¡æ—‹è½‰å¤±æ•—: turret={turret != null}, camera={playerCamera != null}");
+            return;
+        }
 
-        // ¨Ï¥Î·Æ¹«¿Ã¹õ¦ì¸mÂà´«¬°¥@¬É®y¼Ð
+        // ï¿½Ï¥Î·Æ¹ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½mï¿½à´«ï¿½ï¿½ï¿½@ï¿½É®yï¿½ï¿½
         Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         Plane groundPlane = new Plane(Vector3.up, transform.position);
 
@@ -117,14 +121,14 @@ public class TankController : MonoBehaviour
         {
             Vector3 worldMousePos = ray.GetPoint(distance);
             Vector3 direction = (worldMousePos - turret.position).normalized;
-            direction.y = 0; // «O«ù¤ô¥­
+            direction.y = 0; // ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
             if (direction.magnitude > 0.1f)
             {
-                // ­pºâ¥Ø¼Ð±ÛÂà¨¤«×
+                // ï¿½pï¿½ï¿½Ø¼Ð±ï¿½ï¿½à¨¤ï¿½ï¿½
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
 
-                // ¥­·Æ±ÛÂà¨ì¥Ø¼Ð¨¤«×
+                // ï¿½ï¿½ï¿½Æ±ï¿½ï¿½ï¿½ï¿½Ø¼Ð¨ï¿½ï¿½ï¿½
                 turret.rotation = Quaternion.Slerp(turret.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
@@ -137,13 +141,13 @@ public class TankController : MonoBehaviour
             return firePoint.position;
         }
 
-        // ¦pªG¨S¦³³]©wfirePoint¡A´N¥Îturretªº¦ì¸m
+        // ï¿½pï¿½Gï¿½Sï¿½ï¿½ï¿½]ï¿½wfirePointï¿½Aï¿½Nï¿½ï¿½turretï¿½ï¿½ï¿½ï¿½m
         if (turret != null)
         {
             return turret.position;
         }
 
-        // ³Ì«á³Æ®×¡G¥Î©Z§J¥»¨­ªº¦ì¸m
+        // ï¿½Ì«ï¿½Æ®×¡Gï¿½Î©Zï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½m
         return transform.position;
     }
 
@@ -157,7 +161,7 @@ public class TankController : MonoBehaviour
         return shootAction.WasPressedThisFrame();
     }
 
-    // °£¿ù¥ÎªºGizmos
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Gizmos
     void OnDrawGizmosSelected()
     {
         if (firePoint != null)
