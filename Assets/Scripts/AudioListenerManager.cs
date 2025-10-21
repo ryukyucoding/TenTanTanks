@@ -4,7 +4,6 @@ public class AudioListenerManager : MonoBehaviour
 {
     [Header("音頻監聽器管理")]
     [SerializeField] private bool autoFixOnStart = true;
-    [SerializeField] private bool showDebugInfo = true;
     
     private void Start()
     {
@@ -18,7 +17,7 @@ public class AudioListenerManager : MonoBehaviour
     public void FixAudioListeners()
     {
         // 找到所有 Audio Listener 組件
-        AudioListener[] allListeners = FindObjectsOfType<AudioListener>();
+        AudioListener[] allListeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
         
         if (allListeners.Length == 0)
         {
@@ -50,7 +49,7 @@ public class AudioListenerManager : MonoBehaviour
     [ContextMenu("檢查音頻監聽器狀態")]
     public void CheckAudioListeners()
     {
-        AudioListener[] allListeners = FindObjectsOfType<AudioListener>();
+        AudioListener[] allListeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
         
         Debug.Log($"=== 音頻監聽器狀態檢查 ===");
         Debug.Log($"總共找到 {allListeners.Length} 個 Audio Listener:");

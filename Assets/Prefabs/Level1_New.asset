@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4306ba951f8534841bc0130b11134dcb, type: 3}
+  m_Name: Level1_New
+  m_EditorClassIdentifier: Assembly-CSharp::LevelDataNew
+  config:
+    levelName: "\u95DC\u5361 1"
+    levelDescription: 
+    timeLimit: 0
+    waves:
+    - enemyCount: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 2
+      spawnInterval: 1
+      spawnPoints: []
+      healthMultiplier: 1
+      speedMultiplier: 1
+      damageMultiplier: 1
+      fireRateMultiplier: 1
+    - enemyCount: 3
+      enemyPrefab: {fileID: 0}
+      waveDelay: 3
+      spawnInterval: 0.8
+      spawnPoints: []
+      healthMultiplier: 1
+      speedMultiplier: 1
+      damageMultiplier: 1
+      fireRateMultiplier: 1
+    requireAllEnemiesDefeated: 1
+    requireSurviveTime: 0
+    survivalTime: 60
+    scoreReward: 100
+    experienceReward: 50
+  levelPreview: {fileID: 0}
+  difficulty: 1
+  unlockCondition: 
