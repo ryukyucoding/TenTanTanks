@@ -205,9 +205,6 @@ MonoBehaviour:
   tankRenderers: []
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
-  explosionEffect: {fileID: 0}
-  explosionSound: {fileID: 0}
-  explosionDuration: 2
 --- !u!1 &4043825367339920819
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +262,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4e85d65a83924459eaa5ba7b92d76249, type: 2}
+  - {fileID: -1002211608603297877, guid: 8abfb55a84a4c47dc8f7c122a2fe36da, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -484,7 +481,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4e85d65a83924459eaa5ba7b92d76249, type: 2}
+  - {fileID: -1002211608603297877, guid: 8abfb55a84a4c47dc8f7c122a2fe36da, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
