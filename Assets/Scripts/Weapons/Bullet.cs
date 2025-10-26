@@ -12,6 +12,11 @@ public class Bullet : MonoBehaviour
     [SerializeField] private AudioClip hitSound;          // 擊中音效
     [SerializeField] private float hitEffectLifetime = 2f; // 特效存活時間
 
+    [Header("Bounce Settings")]
+    [SerializeField] private int maxBounces = 2;          // 最大反彈次數（0 = 不反彈）
+    [SerializeField] private LayerMask bounceLayers = 0;  // 可以反彈的層
+    [SerializeField] private float bounceSpeedMultiplier = 1f; // 每次反彈速度倍率
+
     // 組件引用
     private Rigidbody rb;
     private Collider bulletCollider;
@@ -19,6 +24,7 @@ public class Bullet : MonoBehaviour
     // 子彈狀態
     private bool hasHit = false;
     private float spawnTime;
+    private int remainingBounces = 0;
 
     // 子彈發射者（避免自傷）
     private GameObject shooter;
@@ -62,6 +68,8 @@ public class Bullet : MonoBehaviour
     {
         // 設置銷毀時間
         Destroy(gameObject, lifetime);
+        // 初始化反彈次數
+        remainingBounces = maxBounces;
     }
 
     void Update()
@@ -82,8 +90,8 @@ public class Bullet : MonoBehaviour
     private void CheckForWallCollision()
     {
         // 向移動方向發射射線
-        Vector3 direction = rb.linearVelocity.normalized;
-        float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 1.5f; // 稍微多一點距離
+    Vector3 direction = rb.linearVelocity.normalized;
+    float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 1.5f; // 稍微多一點距離
 
         RaycastHit hit;
         if (Physics.Raycast(transform.position, direction, out hit, checkDistance))
@@ -95,17 +103,32 @@ public class Bullet : MonoBehaviour
             // 檢測到牆壁或其他物體
             Debug.Log($"Raycast 偵測到: {hit.collider.name}");
             
+            // 如果擊中的是可反彈的層，處理反彈
+            if (maxBounces > 0 && ((1 << hit.collider.gameObject.layer) & bounceLayers) != 0 && remainingBounces > 0)
+            {
+                Debug.Log($"Bullet will bounce on: {hit.collider.name}");
+                Vector3 reflectDir = Vector3.Reflect(rb.linearVelocity.normalized, hit.normal);
+                float speed = rb.linearVelocity.magnitude * bounceSpeedMultiplier;
+                rb.linearVelocity = reflectDir * speed;
+                transform.position = hit.point + hit.normal * 0.01f; // 推離表面一點，避免再次穿透
+                remainingBounces--;
+                return;
+            }
+
             hasHit = true;
-            HandleHit(hit.collider);
+            HandleHit(hit.collider, hit.point, hit.normal);
         }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        HandleCollision(other);
+        // For trigger collisions we can estimate the contact normal as opposite of velocity
+        Vector3 hitPoint = transform.position;
+        Vector3 hitNormal = rb != null && rb.linearVelocity.sqrMagnitude > 0.001f ? -rb.linearVelocity.normalized : -transform.forward;
+        HandleCollision(other, hitPoint, hitNormal);
     }
 
-    private void HandleCollision(Collider other)
+    private void HandleCollision(Collider other, Vector3 hitPoint, Vector3 hitNormal)
     {
         // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
         if (Time.time - spawnTime < 0.05f)
@@ -116,8 +139,8 @@ public class Bullet : MonoBehaviour
 
         Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
 
-        // 避免重複觸發
-        if (hasHit) return;
+    // 避免重複觸發
+    if (hasHit) return;
 
         // 忽略發射者（雙重保險）
         if (other.gameObject == shooter) return;
@@ -133,18 +156,27 @@ public class Bullet : MonoBehaviour
 
         Debug.Log("擊中目標！");
 
+        // 如果碰撞到可反彈的層且有剩餘反彈次數，反彈而不是銷毀
+        if (maxBounces > 0 && ((1 << other.gameObject.layer) & bounceLayers) != 0 && remainingBounces > 0)
+        {
+            Debug.Log($"Trigger bounce on: {other.name}");
+            Vector3 reflectDir = Vector3.Reflect(rb.linearVelocity.normalized, hitNormal);
+            float speed = rb.linearVelocity.magnitude * bounceSpeedMultiplier;
+            rb.linearVelocity = reflectDir * speed;
+            transform.position = hitPoint + hitNormal * 0.01f;
+            remainingBounces--;
+            return;
+        }
+
         // 處理擊中和銷毀
         hasHit = true;
-        HandleHit(other);
+        HandleHit(other, hitPoint, hitNormal);
     }
 
-    private void HandleHit(Collider hitTarget)
+    // Overload: handle hit with collider + contact info
+    private void HandleHit(Collider hitTarget, Vector3 hitPoint, Vector3 hitNormal)
     {
         hasHit = true;
-
-        // 獲取擊中位置
-        Vector3 hitPoint = transform.position;
-        Vector3 hitNormal = -transform.forward; // 假設子彈朝前飛行
 
         // 嘗試對目標造成傷害
         IDamageable damageable = hitTarget.GetComponent<IDamageable>();
@@ -167,6 +199,7 @@ public class Bullet : MonoBehaviour
         // 銷毀子彈
         DestroyBullet();
     }
+
 
     private void CreateHitEffect(Vector3 position, Vector3 normal)
     {

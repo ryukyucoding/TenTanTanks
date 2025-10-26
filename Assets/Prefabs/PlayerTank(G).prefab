@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6898a30d215d35c439b5a331faafcd00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankController
-  moveSpeed: 5
+  moveSpeed: 3.5
   rotationSpeed: 200
   tankBody: {fileID: 6611656069306511290}
   turret: {fileID: 8177436133700395142}

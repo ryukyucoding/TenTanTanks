@@ -540,7 +540,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94103a6bee5cdad4a99063b4d836312f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTank
-  moveSpeed: 3
+  moveSpeed: 5
   rotationSpeed: 150
   detectionRange: 10
   shootingRange: 8
@@ -550,7 +550,7 @@ MonoBehaviour:
   firePoint: {fileID: 4448625178629235575}
   bulletPrefab: {fileID: 0}
   bulletSpeed: 15
-  fireRate: 0.5
+  fireRate: 3
   maxHealth: 1
   patrolRadius: 5
   patrolWaitTime: 2

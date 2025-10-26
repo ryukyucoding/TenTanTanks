@@ -101,9 +101,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 193
   hitEffect: {fileID: 0}
-
-  hitSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
+  hitSound: {fileID: 0}
   hitEffectLifetime: 2
+  maxBounces: 2
+  bounceLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  bounceSpeedMultiplier: 1
 --- !u!1001 &7861047374575171342
 PrefabInstance:
   m_ObjectHideFlags: 0
