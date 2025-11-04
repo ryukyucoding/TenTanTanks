@@ -48,13 +48,8 @@ public class Bullet : MonoBehaviour
         if (bulletCollider == null)
         {
             SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
-            sphereCollider.radius = 0.25f;
-            sphereCollider.isTrigger = true; // 保持 Trigger
-        }
-        else if (bulletCollider != null)
-        {
-            // 確保現有 Collider 是 Trigger
-            bulletCollider.isTrigger = true;
+            sphereCollider.radius = 0.25f;  // Bigger than before but reasonable
+            sphereCollider.isTrigger = true; // Must be trigger
         }
     }
 
@@ -71,65 +66,27 @@ public class Bullet : MonoBehaviour
         {
             DestroyBullet();
         }
-
-        // 用 Raycast 檢測前方是否有牆壁（即使牆壁不是 Trigger）
-        if (!hasHit && rb != null && rb.linearVelocity.magnitude > 0.1f)
-        {
-            CheckForWallCollision();
-        }
-    }
-
-    private void CheckForWallCollision()
-    {
-        // 向移動方向發射射線
-        Vector3 direction = rb.linearVelocity.normalized;
-        float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 1.5f; // 稍微多一點距離
-
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, direction, out hit, checkDistance))
-        {
-            // 忽略發射者
-            if (hit.collider.gameObject == shooter) return;
-            if (shooter != null && hit.collider.transform.IsChildOf(shooter.transform)) return;
-
-            // 檢測到牆壁或其他物體
-            Debug.Log($"Raycast 偵測到: {hit.collider.name}");
-            
-            hasHit = true;
-            HandleHit(hit.collider);
-        }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        HandleCollision(other);
-    }
-
-    private void HandleCollision(Collider other)
-    {
-        // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
+        // 延遲0.2秒再開始碰撞檢測，讓子彈飛出發射者
         if (Time.time - spawnTime < 0.05f)
         {
             Debug.Log("子彈剛發射，暫時忽略碰撞");
             return;
         }
 
-        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
+        Debug.Log($"子彈碰到: {other.name}");
 
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者（雙重保險）
         if (other.gameObject == shooter) return;
-        // 也忽略發射者的子物件
-        if (shooter != null && other.transform.IsChildOf(shooter.transform)) return;
 
-        // 檢查Layer（如果設定了 hitLayers）
-        if (hitLayers != -1 && ((1 << other.gameObject.layer) & hitLayers) == 0)
-        {
-            Debug.Log($"Layer 不符合，忽略: {LayerMask.LayerToName(other.gameObject.layer)}");
-            return;
-        }
+        // 檢查Layer
+        if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
 
         Debug.Log("擊中目標！");
 

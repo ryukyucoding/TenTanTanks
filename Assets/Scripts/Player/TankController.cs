@@ -107,7 +107,11 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretRotation()
     {
-        if (turret == null || playerCamera == null) return;
+        if (turret == null || playerCamera == null) 
+        {
+            Debug.LogWarning($"炮管旋轉失敗: turret={turret != null}, camera={playerCamera != null}");
+            return;
+        }
 
         // �ϥηƹ��ù���m�ഫ���@�ɮy��
         Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());

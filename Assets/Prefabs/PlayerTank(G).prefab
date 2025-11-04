@@ -124,7 +124,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4e85d65a83924459eaa5ba7b92d76249, type: 2}
+  - {fileID: -1002211608603297877, guid: 8abfb55a84a4c47dc8f7c122a2fe36da, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -594,7 +594,7 @@ MonoBehaviour:
   bulletSpeed: 10
   fireRate: 3
   bulletLifetime: 5
-  shootSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
+  shootSound: {fileID: 0}
   muzzleFlash: {fileID: 0}
 --- !u!114 &6168854359044807033
 MonoBehaviour:
@@ -668,10 +668,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 4e85d65a83924459eaa5ba7b92d76249, type: 2}
     - target: {fileID: 919132149155446097, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_Name
       value: Barrel
