@@ -122,7 +122,6 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -1002211608603297877, guid: 8abfb55a84a4c47dc8f7c122a2fe36da, type: 3}
   - {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -694,8 +693,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_Materials.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
     - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 

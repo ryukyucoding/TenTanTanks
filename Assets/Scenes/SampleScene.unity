@@ -3577,7 +3577,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3173428de09924ae5919d24c949709d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleLevelController
-  levelDataAsset: {fileID: 11400000, guid: 92de3a48d79c94e58aecfc4ab9d7bb81, type: 2}
+  availableLevels:
+  - {fileID: 0}
+  - {fileID: 0}
+  currentLevelIndex: 0
+  autoLoadNextLevel: 1
+  levelTransitionDelay: 2
   spawnPoints:
   - {fileID: 545535484}
   - {fileID: 580951024}

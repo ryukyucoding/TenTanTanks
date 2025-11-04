@@ -66,27 +66,71 @@ public class Bullet : MonoBehaviour
         {
             DestroyBullet();
         }
+
+        // 用 Raycast 檢測前方是否有牆壁（即使牆壁不是 Trigger）
+        if (!hasHit && rb != null && rb.linearVelocity.magnitude > 0.1f)
+        {
+            CheckForWallCollision();
+        }
+    }
+
+    private void CheckForWallCollision()
+    {
+        // 向移動方向發射射線
+        Vector3 direction = rb.linearVelocity.normalized;
+        float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 1.5f; // 稍微多一點距離
+
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, direction, out hit, checkDistance))
+        {
+            // 忽略發射者
+            if (hit.collider.gameObject == shooter) return;
+            if (shooter != null && hit.collider.transform.IsChildOf(shooter.transform)) return;
+
+            // 檢查Layer（如果設定了 hitLayers）
+            if (hitLayers != -1 && ((1 << hit.collider.gameObject.layer) & hitLayers) == 0)
+            {
+                return;
+            }
+
+            // 檢測到牆壁或其他物體
+            Debug.Log($"Raycast 偵測到: {hit.collider.name}");
+            
+            hasHit = true;
+            HandleHit(hit.collider);
+        }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // 延遲0.2秒再開始碰撞檢測，讓子彈飛出發射者
+        HandleCollision(other);
+    }
+
+    private void HandleCollision(Collider other)
+    {
+        // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
         if (Time.time - spawnTime < 0.05f)
         {
             Debug.Log("子彈剛發射，暫時忽略碰撞");
             return;
         }
 
-        Debug.Log($"子彈碰到: {other.name}");
+        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
 
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者（雙重保險）
         if (other.gameObject == shooter) return;
+        // 也忽略發射者的子物件
+        if (shooter != null && other.transform.IsChildOf(shooter.transform)) return;
 
-        // 檢查Layer
-        if (((1 << other.gameObject.layer) & hitLayers) == 0) return;
+        // 檢查Layer（如果設定了 hitLayers）
+        if (hitLayers != -1 && ((1 << other.gameObject.layer) & hitLayers) == 0)
+        {
+            Debug.Log($"Layer 不符合，忽略: {LayerMask.LayerToName(other.gameObject.layer)}");
+            return;
+        }
 
         Debug.Log("擊中目標！");
 
@@ -138,8 +182,29 @@ public class Bullet : MonoBehaviour
     {
         if (hitSound != null)
         {
-            // 在擊中位置播放3D音效
-            AudioSource.PlayClipAtPoint(hitSound, position);
+            // 確保有 AudioListener 存在
+            if (Camera.main != null && Camera.main.GetComponent<AudioListener>() != null)
+            {
+                // 在擊中位置播放3D音效
+                AudioSource.PlayClipAtPoint(hitSound, position);
+            }
+            else
+            {
+                // 如果沒有 AudioListener，嘗試找到一個
+                AudioListener listener = FindFirstObjectByType<AudioListener>();
+                if (listener != null)
+                {
+                    AudioSource.PlayClipAtPoint(hitSound, position);
+                }
+                else
+                {
+                    Debug.LogWarning("Bullet: 找不到 AudioListener，無法播放音效！");
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Bullet: hitSound 為空！");
         }
     }
 

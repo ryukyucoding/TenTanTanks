@@ -182,7 +182,7 @@ MonoBehaviour:
   bulletSpeed: 10
   fireRate: 3
   bulletLifetime: 5
-  shootSound: {fileID: 0}
+  shootSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
   muzzleFlash: {fileID: 0}
 --- !u!114 &8839781499122029624
 MonoBehaviour:
@@ -205,6 +205,9 @@ MonoBehaviour:
   tankRenderers: []
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
+  explosionEffect: {fileID: 0}
+  explosionSound: {fileID: 0}
+  explosionDuration: 2
 --- !u!1 &4043825367339920819
 GameObject:
   m_ObjectHideFlags: 0
