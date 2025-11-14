@@ -72,6 +72,7 @@ public class TankShooting : MonoBehaviour
         if (bulletScript != null)
         {
             bulletScript.SetLifetime(bulletLifetime);
+            bulletScript.SetShooter(gameObject);  // 設定發射者，避免打到自己
         }
         else
         {

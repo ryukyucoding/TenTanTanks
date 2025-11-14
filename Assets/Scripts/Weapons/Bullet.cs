@@ -25,7 +25,7 @@ public class Bullet : MonoBehaviour
     private bool hasHit = false;
     private float spawnTime;
     private float lastBounceTime = -1f;  // 上次反彈時間
-    private const float BOUNCE_COOLDOWN = 0.15f;  // 反彈冷卻時間，這段時間都不會反彈
+    private const float BOUNCE_COOLDOWN = 0.3f;  // 反彈冷卻時間，這段時間都不會反彈   
     private int bounceCount = 0;  // 目前已反彈次數
 
     // 子彈發射者（避免自傷）
@@ -200,20 +200,29 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
+        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)}, Tag: {other.tag}), Shooter: {(shooter != null ? shooter.name : "NULL")}");
 
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者（雙重保險）
-        if (other.gameObject == shooter) return;
+        if (other.gameObject == shooter)
+        {
+            Debug.Log($"✅ 忽略發射者本身: {other.name}");
+            return;
+        }
+        
         // 也忽略發射者的子物件
-        if (shooter != null && other.transform.IsChildOf(shooter.transform)) return;
+        if (shooter != null && other.transform.IsChildOf(shooter.transform))
+        {
+            Debug.Log($"✅ 忽略發射者的子物件: {other.name}");
+            return;
+        }
 
         // 友軍穿透：檢查是否同陣營
         if (shooter != null && IsFriendly(other.gameObject))
         {
-            Debug.Log($"友軍穿透 (Trigger): {other.name}");
+            Debug.Log($"✅ 友軍穿透 (Trigger): {other.name}, shooter: {shooter.name}");
             return;
         }
 
@@ -279,13 +288,34 @@ public class Bullet : MonoBehaviour
         return ((1 << obj.layer) & wallLayers) != 0;
     }
 
-    // 判斷是否為友軍（同 tag）
+    // 判斷是否應該忽略（只忽略發射者本身和其子物件）
     private bool IsFriendly(GameObject obj)
     {
         if (shooter == null) return false;
         
-        // 如果目標與發射者有相同的 tag，視為友軍
-        return obj.CompareTag(shooter.tag);
+        // 直接檢查是否為發射者本身
+        if (obj == shooter) 
+        {
+            Debug.Log($"忽略：碰到發射者本身 {obj.name}");
+            return true;
+        }
+        
+        // 檢查是否為發射者的子物件
+        if (obj.transform.IsChildOf(shooter.transform)) 
+        {
+            Debug.Log($"忽略：碰到發射者的子物件 {obj.name}");
+            return true;
+        }
+        
+        // 檢查是否為發射者的父物件（反向檢查）
+        if (shooter.transform.IsChildOf(obj.transform)) 
+        {
+            Debug.Log($"忽略：碰到發射者的父物件 {obj.name}");
+            return true;
+        }
+        
+        // 不再檢查 Tag，這樣敵人之間、玩家之間都可以互相傷害
+        return false;
     }
 
     // 反彈處理
