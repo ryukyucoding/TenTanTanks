@@ -5322,6 +5322,7 @@ GameObject:
   - component: {fileID: 959738678}
   - component: {fileID: 959738677}
   - component: {fileID: 959738676}
+  - component: {fileID: 959738680}
   m_Layer: 6
   m_Name: Cube
   m_TagString: Wall
@@ -5421,6 +5422,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &959738680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 959738675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd699ec9fb49c414b894febab106d2a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WallNormalVisualizer
+  showNormals: 1
+  normalLength: 5
+  normalColor: {r: 0, g: 0.641202, b: 1, a: 1}
 --- !u!1 &967810797
 GameObject:
   m_ObjectHideFlags: 0
@@ -12891,10 +12907,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 618302629183550047, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: fireRate
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 618302629183550047, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: bulletSpeed
+      value: 5.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 618302629183550047, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: bulletLifetime
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 874888524644429295, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 330585545}
+    - target: {fileID: 1926959128346804190, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: moveSpeed
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1926959128346804190, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
       propertyPath: playerCamera
       value: 

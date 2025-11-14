@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6898a30d215d35c439b5a331faafcd00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankController
-  moveSpeed: 5
+  moveSpeed: 3
   rotationSpeed: 200
   tankBody: {fileID: 6611656069306511290}
   turret: {fileID: 8177436133700395142}
@@ -591,9 +591,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankShooting
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
-  bulletSpeed: 10
-  fireRate: 3
-  bulletLifetime: 5
+  bulletSpeed: 5
+  fireRate: 1.2
+  bulletLifetime: 3
   shootSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
   muzzleFlash: {fileID: 0}
 --- !u!114 &6168854359044807033

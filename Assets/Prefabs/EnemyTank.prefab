@@ -582,7 +582,7 @@ MonoBehaviour:
   turret: {fileID: 8044837445949208610}
   firePoint: {fileID: 4448625178629235575}
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
-  bulletSpeed: 15
+  bulletSpeed: 10
   fireRate: 0.5
   maxHealth: 1
   aiParameters:
