@@ -228,6 +228,11 @@ public class Bullet : MonoBehaviour
     {
         shooter = newShooter;
     }
+    
+    public GameObject GetShooter()
+    {
+        return shooter;
+    }
 
     public void SetHitLayers(LayerMask layers)
     {
