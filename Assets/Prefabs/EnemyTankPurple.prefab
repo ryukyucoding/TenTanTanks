@@ -607,6 +607,12 @@ MonoBehaviour:
   visionHeight: 0.5
   visionCheckInterval: 0.1
   pathfindingCheckRadius: 0.8
+  wallDangerZone: 1.5
+  wallCostMultiplier: 2
+  manualDangerPoints:
+  - {fileID: 0}
+  dangerPointRadius: 2
+  dangerPointCostMultiplier: 5
   boundaryX: 20
   boundaryZ: 20
   currentState: 0
