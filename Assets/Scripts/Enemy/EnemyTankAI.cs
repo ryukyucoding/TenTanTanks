@@ -37,6 +37,11 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
     [SerializeField] private float visionHeight = 0.5f;  // 視線高度
     [SerializeField] private float visionCheckInterval = 0.1f; // 視覺檢測間隔
     [SerializeField] private float pathfindingCheckRadius = 0.8f; // 路徑尋找檢測半徑
+
+    [Header("Wall Avoidance Settings (方案3)")]
+    [SerializeField] private float wallDangerZone = 1.5f; // 牆壁危險區域半徑（在此範圍內成本增加）
+    [SerializeField] private float wallCostMultiplier = 2.0f; // 靠近牆壁時的成本倍數（越大越不想靠近）
+
     private float lastVisionCheck = 0f;
     
     [Header("Boundary Settings")]
@@ -1464,7 +1469,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
                 Gizmos.DrawLine(start, end);
             }
         }
-        
+
         // 顯示isWalkable檢測網格（可選）
         DrawWalkableGrid();
     }
@@ -1641,8 +1646,9 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
         Vector2Int end = new Vector2Int(Mathf.RoundToInt(targetTank.position.x), Mathf.RoundToInt(targetTank.position.z));
         
         Debug.Log($"EnemyTankAI: Calculating path from {start} to {end}");
-        
-        currentPath = AStarPathfinder.FindPath(start, end, IsPositionWalkable);
+
+        // 方案3：使用成本函數版本的 FindPath（讓路徑遠離牆壁）
+        currentPath = AStarPathfinder.FindPath(start, end, IsPositionWalkable, GetPositionCost);
         currentPathIndex = 0;
         hasValidPath = currentPath.Count > 0;
         
@@ -1670,7 +1676,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
             {
                 if (IsPositionWalkable(altTarget))
                 {
-                    currentPath = AStarPathfinder.FindPath(start, altTarget, IsPositionWalkable);
+                    currentPath = AStarPathfinder.FindPath(start, altTarget, IsPositionWalkable, GetPositionCost);
                     if (currentPath.Count > 0)
                     {
                         hasValidPath = true;
@@ -1679,7 +1685,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
                     }
                 }
             }
-            
+
             // 如果還是找不到路徑，嘗試找到最近的可通行點
             if (!hasValidPath)
             {
@@ -1687,7 +1693,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
                 if (intermediateTarget != end)
                 {
                     Debug.Log($"EnemyTankAI: Using nearest walkable point {intermediateTarget}");
-                    currentPath = AStarPathfinder.FindPath(start, intermediateTarget, IsPositionWalkable);
+                    currentPath = AStarPathfinder.FindPath(start, intermediateTarget, IsPositionWalkable, GetPositionCost);
                     hasValidPath = currentPath.Count > 0;
                 }
             }
@@ -1724,12 +1730,12 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
     private void FollowPath()
     {
         if (currentPathIndex >= currentPath.Count) return;
-        
+
         Vector2Int currentWaypoint = currentPath[currentPathIndex];
         Vector3 targetPosition = new Vector3(currentWaypoint.x, transform.position.y, currentWaypoint.y);
-        
+
         float distanceToWaypoint = Vector3.Distance(transform.position, targetPosition);
-        
+
         if (distanceToWaypoint < 1f)
         {
             currentPathIndex++;
@@ -1835,7 +1841,43 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
         
         return isWalkable;
     }
-    
+
+    // 方案3：計算位置成本（靠近牆壁成本更高）
+    private float GetPositionCost(Vector2Int position)
+    {
+        Vector3 worldPos = new Vector3(position.x, transform.position.y, position.y);
+
+        // 基礎成本：靠近牆壁的成本
+        Collider[] nearbyObstacles = Physics.OverlapSphere(worldPos, wallDangerZone, obstacleLayerMask);
+
+        float minDistanceToWall = float.MaxValue;
+        foreach (var col in nearbyObstacles)
+        {
+            if (col != null)
+            {
+                // 排除Ground和玩家
+                if (!col.name.ToLower().Contains("ground") &&
+                    !col.name.ToLower().Contains("player") &&
+                    col.gameObject.layer != 0)
+                {
+                    Vector3 closestPoint = col.ClosestPoint(worldPos);
+                    float distance = Vector3.Distance(worldPos, closestPoint);
+                    minDistanceToWall = Mathf.Min(minDistanceToWall, distance);
+                }
+            }
+        }
+
+        // 基礎成本：距離牆壁越近，成本越高
+        float cost = 1f;
+        if (minDistanceToWall < wallDangerZone)
+        {
+            float normalizedDistance = minDistanceToWall / wallDangerZone;
+            cost = 1f + (1f - normalizedDistance) * (wallCostMultiplier - 1f);
+        }
+
+        return cost;
+    }
+
     // 檢查是否會撞到障礙物
     private bool WouldCollideWithObstacle(Vector3 from, Vector3 to)
     {
