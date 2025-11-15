@@ -33,13 +33,12 @@ public class EnemyTank : MonoBehaviour, IDamageable
     // AI���A
     private enum AIState
     {
-        Patrol,
-        Chase,
+        Idle,
         Attack,
         Dead
     }
 
-    private AIState currentState = AIState.Patrol;
+    private AIState currentState = AIState.Idle;
     private Transform player;
     private Rigidbody rb;
 
@@ -64,10 +63,6 @@ public class EnemyTank : MonoBehaviour, IDamageable
         rb.freezeRotation = true;
 
         currentHealth = maxHealth;
-        patrolCenter = transform.position;
-        lastValidPosition = transform.position;
-
-        SetNewPatrolTarget();
     }
 
     void Start()
@@ -90,7 +85,6 @@ public class EnemyTank : MonoBehaviour, IDamageable
         if (currentState == AIState.Dead) return;
 
         UpdateAI();
-        CheckStuck();
     }
 
     void FixedUpdate()
@@ -116,12 +110,8 @@ public class EnemyTank : MonoBehaviour, IDamageable
         // ���A��
         switch (currentState)
         {
-            case AIState.Patrol:
-                HandlePatrolState(distanceToPlayer, canSeePlayer);
-                break;
-
-            case AIState.Chase:
-                HandleChaseState(distanceToPlayer, canSeePlayer);
+            case AIState.Idle:
+                HandleIdleState(distanceToPlayer, canSeePlayer);
                 break;
 
             case AIState.Attack:
@@ -130,47 +120,30 @@ public class EnemyTank : MonoBehaviour, IDamageable
         }
 
         // �������]�b�����M�l�����A�ɺ˷Ǫ��a�^
-        if ((currentState == AIState.Chase || currentState == AIState.Attack) && canSeePlayer)
+        if (currentState == AIState.Attack && canSeePlayer)
         {
             RotateTurretTowards(player.position);
         }
     }
 
-    private void HandlePatrolState(float distanceToPlayer, bool canSeePlayer)
+    private void HandleIdleState(float distanceToPlayer, bool canSeePlayer)
     {
         if (canSeePlayer && distanceToPlayer <= detectionRange)
         {
-            currentState = AIState.Chase;
+            currentState = AIState.Attack;
             return;
         }
 
         // �����޿�
-        if (!isWaiting)
-        {
-            MoveTowards(currentPatrolTarget);
-
-            if (Vector3.Distance(transform.position, currentPatrolTarget) < 1f)
-            {
-                isWaiting = true;
-                patrolWaitTimer = patrolWaitTime;
-            }
-        }
-        else
-        {
-            patrolWaitTimer -= Time.deltaTime;
-            if (patrolWaitTimer <= 0f)
-            {
-                SetNewPatrolTarget();
-                isWaiting = false;
-            }
-        }
+        // 否則保持待機狀態，不移動
     }
 
-    private void HandleChaseState(float distanceToPlayer, bool canSeePlayer)
+    // 已刪除：HandleChaseState - 最笨的坦克不需要追擊狀態
+    private void HandleChaseState_Deleted(float distanceToPlayer, bool canSeePlayer)
     {
         if (!canSeePlayer || distanceToPlayer > detectionRange * 1.5f)
         {
-            currentState = AIState.Patrol;
+            currentState = AIState.Idle;
             return;
         }
 
@@ -181,14 +154,13 @@ public class EnemyTank : MonoBehaviour, IDamageable
         }
 
         // �l�����a
-        MoveTowards(player.position);
     }
 
     private void HandleAttackState(float distanceToPlayer, bool canSeePlayer)
     {
         if (!canSeePlayer || distanceToPlayer > shootingRange * 1.2f)
         {
-            currentState = AIState.Chase;
+            currentState = AIState.Attack;
             return;
         }
 
@@ -310,9 +282,16 @@ public class EnemyTank : MonoBehaviour, IDamageable
     // ��{IDamageable����
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
+        // 只接受玩家造成的傷害，忽略其他敵人坦克的子彈
+        if (attacker == null || !attacker.CompareTag("Player"))
+        {
+            Debug.Log($"[{gameObject.name}] 忽略非玩家傷害，攻擊者: {(attacker != null ? attacker.name : "null")}");
+            return;
+        }
+
         currentHealth -= damage;
 
-        Debug.Log($"Enemy tank took {damage} damage. Health: {currentHealth}/{maxHealth}");
+        Debug.Log($"Enemy tank took {damage} damage from player. Health: {currentHealth}/{maxHealth}");
 
         if (currentHealth <= 0)
         {
@@ -321,11 +300,9 @@ public class EnemyTank : MonoBehaviour, IDamageable
         else
         {
             // �Q�����ɶi�J�l�����A
-            if (attacker != null && attacker.CompareTag("Player"))
-            {
-                player = attacker.transform;
-                currentState = AIState.Chase;
-            }
+            // 受到攻擊時進入追擊狀態（attacker 已經是玩家，不需要再檢查）
+            player = attacker.transform;
+            currentState = AIState.Attack;
         }
     }
 
