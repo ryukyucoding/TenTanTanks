@@ -454,7 +454,7 @@ GameObject:
   - component: {fileID: 1955046153446535976}
   - component: {fileID: 9143694021594648180}
   - component: {fileID: 8859893981197329191}
-  - component: {fileID: 122771137472030046}
+  - component: {fileID: -5758586374078236473}
   m_Layer: 0
   m_Name: EnemyTankSoil
   m_TagString: Enemy
@@ -527,7 +527,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5042801, y: 0.34965152, z: 0.76961076}
   m_Center: {x: 0.0030035973, y: 0.17482576, z: 0.11519462}
---- !u!114 &122771137472030046
+--- !u!114 &-5758586374078236473
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -536,13 +536,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 8883446190524244325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94103a6bee5cdad4a99063b4d836312f, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ecf7e6832bd04545bf5bc01794f3ce7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTank
-  moveSpeed: 10
-  rotationSpeed: 200
-  detectionRange: 20
-  shootingRange: 10
+  moveSpeed: 3
+  rotationSpeed: 150
+  detectionRange: 30
+  shootingRange: 8
   minDistanceToPlayer: 3
   tankBody: {fileID: 5313715337535331726}
   turret: {fileID: 8044837445949208610}

@@ -454,7 +454,7 @@ GameObject:
   - component: {fileID: 1955046153446535976}
   - component: {fileID: 9143694021594648180}
   - component: {fileID: 8859893981197329191}
-  - component: {fileID: 308523504478111602}
+  - component: {fileID: -3026136269611149956}
   m_Layer: 0
   m_Name: EnemyTankPurple
   m_TagString: Enemy
@@ -527,7 +527,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5042801, y: 0.34965152, z: 0.76961076}
   m_Center: {x: 0.0030035973, y: 0.17482576, z: 0.11519462}
---- !u!114 &308523504478111602
+--- !u!114 &-3026136269611149956
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -536,20 +536,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 8883446190524244325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c555ec2cb45e9436ba98e71028fec752, type: 3}
+  m_Script: {fileID: 11500000, guid: c3918d7f085a14a36baf0db8709f5323, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTankAI
-  moveSpeed: 4
-  rotationSpeed: 2000
-  rotationThreshold: 500
-  rotationSmoothing: 1
+  moveSpeed: 3
+  rotationSpeed: 150
+  rotationThreshold: 10
+  rotationSmoothing: 0.3
   detectionRange: 30
   shootingRange: 8
   tankBody: {fileID: 5313715337535331726}
   turret: {fileID: 8044837445949208610}
   firePoint: {fileID: 4448625178629235575}
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
-  bulletSpeed: 10
+  bulletSpeed: 15
   fireRate: 0.5
   maxHealth: 1
   aiParameters:
@@ -562,7 +562,7 @@ MonoBehaviour:
     randomTimerMinShoot: 0.5
     randomTimerMaxShoot: 2
     aimOffset: 0.1
-    turretSpeed: 9.19
+    turretSpeed: 2
     turretMovementTimer: 0.5
     tankAwarenessShoot: 10
     detectionForgivenessHostile: 1
@@ -577,7 +577,7 @@ MonoBehaviour:
     awarenessFriendlyMine: 5
     awarenessFriendlyShell: 8
     awarenessHostileMine: 10
-    awarenessHostileShell: 16
+    awarenessHostileShell: 12
     cantShootWhileFleeing: 1
     predictsPositions: 0
     smartRicochets: 0
@@ -609,10 +609,6 @@ MonoBehaviour:
   pathfindingCheckRadius: 0.8
   wallDangerZone: 1.5
   wallCostMultiplier: 2
-  manualDangerPoints:
-  - {fileID: 0}
-  dangerPointRadius: 2
-  dangerPointCostMultiplier: 5
   boundaryX: 20
   boundaryZ: 20
   currentState: 0
