@@ -104,6 +104,7 @@ public class MainMenuManager : MonoBehaviour
         SaveUpgradeState();
 
         // 載入遊戲場景
+        Debug.Log("StartGame 被調用了！");
         SceneManager.LoadScene("Level1");
     }
 
