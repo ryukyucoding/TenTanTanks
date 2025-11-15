@@ -236,10 +236,13 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
         // 調試信息
         if (Time.frameCount % 60 == 0) // 每秒輸出一次
         {
-            Debug.Log($"[{gameObject.name}] 📊 狀態總覽：State={currentState}, Target={targetTank?.name}, " +
+            string targetName = (targetTank != null && targetTank) ? targetTank.name : "null";
+            string dangerName = (closestDanger != null && closestDanger) ? closestDanger.name : "null";
+            float distance = (targetTank != null && targetTank) ? Vector3.Distance(transform.position, targetTank.position) : 0f;
+
+            Debug.Log($"[{gameObject.name}] 📊 狀態總覽：State={currentState}, Target={targetName}, " +
                      $"SeesTarget={seesTarget}, IsSurviving={isSurviving}, " +
-                     $"closestDanger={(closestDanger != null ? closestDanger.name : "null")}, " +
-                     $"Distance={Vector3.Distance(transform.position, targetTank?.position ?? Vector3.zero):F1}");
+                     $"closestDanger={dangerName}, Distance={distance:F1}");
         }
     }
 
