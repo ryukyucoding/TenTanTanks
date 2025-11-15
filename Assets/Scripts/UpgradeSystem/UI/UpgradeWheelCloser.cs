@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class UpgradeWheelCloser : MonoBehaviour
 {
@@ -10,8 +11,8 @@ public class UpgradeWheelCloser : MonoBehaviour
 
     void Update()
     {
-        // ESC 鍵關閉
-        if (closeOnEscape && Input.GetKeyDown(KeyCode.Escape))
+        // ESC 鍵關閉 - 使用新的 Input System
+        if (closeOnEscape && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             CloseUpgradeWheel();
         }
