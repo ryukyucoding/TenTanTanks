@@ -27,8 +27,8 @@ MonoBehaviour:
         speedMultiplier: 1
         damageMultiplier: 1
         fireRateMultiplier: 1
-    - enemyCount: 2
-      enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+    - enemyCount: 1
+      enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
       waveDelay: 3
       spawnInterval: 0.5
       spawnPoints: []
