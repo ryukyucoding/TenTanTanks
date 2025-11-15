@@ -12,6 +12,11 @@ public class Bullet : MonoBehaviour
     [SerializeField] private AudioClip hitSound;          // 擊中音效
     [SerializeField] private float hitEffectLifetime = 2f; // 特效存活時間
 
+    [Header("Bounce Settings")]
+    [SerializeField] private LayerMask wallLayers;        // 牆壁層級（會反彈）
+    [SerializeField] private float bounceSpeedMultiplier = 1f; // 反彈速度倍率
+    [SerializeField] private int maxBounces = 2;          // 最大反彈次數
+
     // 組件引用
     private Rigidbody rb;
     private Collider bulletCollider;
@@ -19,6 +24,9 @@ public class Bullet : MonoBehaviour
     // 子彈狀態
     private bool hasHit = false;
     private float spawnTime;
+    private float lastBounceTime = -1f;  // 上次反彈時間
+    private const float BOUNCE_COOLDOWN = 0.3f;  // 反彈冷卻時間，這段時間都不會反彈   
+    private int bounceCount = 0;  // 目前已反彈次數
 
     // 子彈發射者（避免自傷）
     private GameObject shooter;
@@ -48,8 +56,13 @@ public class Bullet : MonoBehaviour
         if (bulletCollider == null)
         {
             SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
-            sphereCollider.radius = 0.25f;  // Bigger than before but reasonable
-            sphereCollider.isTrigger = true; // Must be trigger
+            sphereCollider.radius = 0.25f;
+            sphereCollider.isTrigger = true; // 保持 Trigger
+        }
+        else if (bulletCollider != null)
+        {
+            // 確保現有 Collider 是 Trigger
+            bulletCollider.isTrigger = true;
         }
     }
 
@@ -76,16 +89,39 @@ public class Bullet : MonoBehaviour
 
     private void CheckForWallCollision()
     {
+        // 如果剛剛反彈過，暫時不檢測牆壁（避免連續反彈和卡牆）
+        if (Time.time - lastBounceTime < BOUNCE_COOLDOWN)
+        {
+            return;
+        }
+
         // 向移動方向發射射線
         Vector3 direction = rb.linearVelocity.normalized;
-        float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 1.5f; // 稍微多一點距離
+        float checkDistance = rb.linearVelocity.magnitude * Time.deltaTime * 2f; // 增加檢測距離
 
         RaycastHit hit;
         if (Physics.Raycast(transform.position, direction, out hit, checkDistance))
         {
-            // 忽略發射者
+            // 忽略發射者（穿透友軍）
             if (hit.collider.gameObject == shooter) return;
             if (shooter != null && hit.collider.transform.IsChildOf(shooter.transform)) return;
+
+            // 友軍穿透：檢查是否同陣營
+            if (shooter != null && IsFriendly(hit.collider.gameObject))
+            {
+                Debug.Log($"友軍穿透 (Raycast): {hit.collider.name}");
+                return;
+            }
+
+            // 如果是牆壁層，但在冷卻時間內，忽略
+            if (IsWall(hit.collider.gameObject))
+            {
+                if (Time.time - lastBounceTime < BOUNCE_COOLDOWN)
+                {
+                    Debug.Log($"反彈冷卻中，忽略牆壁: {hit.collider.name}");
+                    return;
+                }
+            }
 
             // 檢查Layer（如果設定了 hitLayers）
             if (hitLayers != -1 && ((1 << hit.collider.gameObject.layer) & hitLayers) == 0)
@@ -94,19 +130,61 @@ public class Bullet : MonoBehaviour
             }
 
             // 檢測到牆壁或其他物體
-            Debug.Log($"Raycast 偵測到: {hit.collider.name}");
+            Debug.Log($"Raycast 偵測到: {hit.collider.name}, 法線: {hit.normal}");
             
+            // 如果是牆壁層，進行反彈
+            if (IsWall(hit.collider.gameObject))
+            {
+                // 檢查是否還有反彈次數
+                if (bounceCount < maxBounces)
+                {
+                    BounceOffSurface(hit.point, hit.normal);
+                }
+                else
+                {
+                    Debug.Log($"反彈次數已達上限 ({maxBounces})，子彈銷毀");
+                    DestroyBullet();
+                }
+                return;
+            }
+
+            // 否則檢查是否可造成傷害
             hasHit = true;
-            HandleHit(hit.collider);
+            HandleHit(hit.collider, hit.point, hit.normal);
         }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        HandleCollision(other);
+        // 如果剛剛反彈過且碰到的是牆壁，暫時不檢測（給予無敵時間）
+        if (IsWall(other.gameObject) && Time.time - lastBounceTime < BOUNCE_COOLDOWN)
+        {
+            Debug.Log($"反彈冷卻中，穿透牆壁: {other.name}");
+            return;
+        }
+
+        // 估算擊中點和法線
+        Vector3 hitPoint = transform.position;
+        
+        // 嘗試用 ClosestPoint 取得更精確的碰撞點
+        if (other != null)
+        {
+            hitPoint = other.ClosestPoint(transform.position);
+        }
+        
+        // 計算法線（從碰撞點指向子彈的方向）
+        Vector3 hitNormal = (transform.position - hitPoint).normalized;
+        
+        // 如果法線太小，使用速度反方向
+        if (hitNormal.sqrMagnitude < 0.01f && rb != null && rb.linearVelocity.sqrMagnitude > 0.001f)
+        {
+            hitNormal = -rb.linearVelocity.normalized;
+        }
+        
+        HandleCollision(other, hitPoint, hitNormal);
     }
 
-    private void HandleCollision(Collider other)
+    private void HandleCollision(Collider other, Vector3 hitPoint, Vector3 hitNormal)
     {
         // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
         if (Time.time - spawnTime < 0.05f)
@@ -115,15 +193,38 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
+        // 如果在反彈冷卻期間碰到牆壁，直接忽略
+        if (IsWall(other.gameObject) && Time.time - lastBounceTime < BOUNCE_COOLDOWN)
+        {
+            Debug.Log($"反彈冷卻中，忽略牆壁碰撞: {other.name}");
+            return;
+        }
+
+        Debug.Log($"子彈碰到: {other.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)}, Tag: {other.tag}), Shooter: {(shooter != null ? shooter.name : "NULL")}");
 
         // 避免重複觸發
         if (hasHit) return;
 
         // 忽略發射者（雙重保險）
-        if (other.gameObject == shooter) return;
+        if (other.gameObject == shooter)
+        {
+            Debug.Log($"✅ 忽略發射者本身: {other.name}");
+            return;
+        }
+        
         // 也忽略發射者的子物件
-        if (shooter != null && other.transform.IsChildOf(shooter.transform)) return;
+        if (shooter != null && other.transform.IsChildOf(shooter.transform))
+        {
+            Debug.Log($"✅ 忽略發射者的子物件: {other.name}");
+            return;
+        }
+
+        // 友軍穿透：檢查是否同陣營
+        if (shooter != null && IsFriendly(other.gameObject))
+        {
+            Debug.Log($"✅ 友軍穿透 (Trigger): {other.name}, shooter: {shooter.name}");
+            return;
+        }
 
         // 檢查Layer（如果設定了 hitLayers）
         if (hitLayers != -1 && ((1 << other.gameObject.layer) & hitLayers) == 0)
@@ -134,18 +235,30 @@ public class Bullet : MonoBehaviour
 
         Debug.Log("擊中目標！");
 
-        // 處理擊中和銷毀
+        // 如果是牆壁層，進行反彈
+        if (IsWall(other.gameObject))
+        {
+            // 檢查是否還有反彈次數
+            if (bounceCount < maxBounces)
+            {
+                BounceOffSurface(hitPoint, hitNormal);
+            }
+            else
+            {
+                Debug.Log($"反彈次數已達上限 ({maxBounces})，子彈銷毀");
+                DestroyBullet();
+            }
+            return;
+        }
+
+        // 處理擊中和銷毀（只有非牆壁目標）
         hasHit = true;
-        HandleHit(other);
+        HandleHit(other, hitPoint, hitNormal);
     }
 
-    private void HandleHit(Collider hitTarget)
+    private void HandleHit(Collider hitTarget, Vector3 hitPoint, Vector3 hitNormal)
     {
         hasHit = true;
-
-        // 獲取擊中位置
-        Vector3 hitPoint = transform.position;
-        Vector3 hitNormal = -transform.forward; // 假設子彈朝前飛行
 
         // 嘗試對目標造成傷害
         IDamageable damageable = hitTarget.GetComponent<IDamageable>();
@@ -167,6 +280,185 @@ public class Bullet : MonoBehaviour
 
         // 銷毀子彈
         DestroyBullet();
+    }
+
+    // 判斷是否為牆壁層
+    private bool IsWall(GameObject obj)
+    {
+        return ((1 << obj.layer) & wallLayers) != 0;
+    }
+
+    // 判斷是否應該忽略（只忽略發射者本身和其子物件）
+    private bool IsFriendly(GameObject obj)
+    {
+        if (shooter == null) return false;
+        
+        // 直接檢查是否為發射者本身
+        if (obj == shooter) 
+        {
+            Debug.Log($"忽略：碰到發射者本身 {obj.name}");
+            return true;
+        }
+        
+        // 檢查是否為發射者的子物件
+        if (obj.transform.IsChildOf(shooter.transform)) 
+        {
+            Debug.Log($"忽略：碰到發射者的子物件 {obj.name}");
+            return true;
+        }
+        
+        // 檢查是否為發射者的父物件（反向檢查）
+        if (shooter.transform.IsChildOf(obj.transform)) 
+        {
+            Debug.Log($"忽略：碰到發射者的父物件 {obj.name}");
+            return true;
+        }
+        
+        // 不再檢查 Tag，這樣敵人之間、玩家之間都可以互相傷害
+        return false;
+    }
+
+    // 反彈處理
+    private void BounceOffSurface(Vector3 hitPoint, Vector3 hitNormal)
+    {
+        if (rb == null) return;
+
+        // 增加反彈計數
+        bounceCount++;
+
+        // 記錄反彈時間
+        lastBounceTime = Time.time;
+
+        // 儲存原始法線供 Debug 使用
+        Vector3 originalNormal = hitNormal;
+
+        // 使用子彈速度方向來輔助判斷法線（智能標準化）
+        Vector3 bulletDirection = rb.linearVelocity.normalized;
+        hitNormal = NormalizeToMainAxisSmart(hitNormal, bulletDirection);
+
+        Debug.Log($"子彈反彈！({bounceCount}/{maxBounces}) 入射速度: {rb.linearVelocity}, 原始法線: {originalNormal} -> 標準化法線: {hitNormal}");
+
+        // 計算反射方向
+        Vector3 incomingVelocity = rb.linearVelocity;
+        Vector3 reflectDir = Vector3.Reflect(incomingVelocity, hitNormal);
+        float speed = incomingVelocity.magnitude * bounceSpeedMultiplier;
+
+        Debug.Log($"反彈後速度: {reflectDir.normalized * speed}");
+
+        // 儲存 Debug 資訊
+        debugLastHitPoint = hitPoint;
+        debugLastNormal = hitNormal;
+        debugLastReflectDir = reflectDir.normalized;
+        debugLastBounceTime = Time.time;
+
+        // 設置新速度
+        rb.linearVelocity = reflectDir.normalized * speed;
+
+        // 將子彈推離牆面，距離更大以避免再次碰撞
+        float pushDistance = 0.3f;
+        transform.position = hitPoint + hitNormal * pushDistance;
+
+        // 調整子彈朝向
+        if (speed > 0.1f)
+        {
+            transform.forward = reflectDir.normalized;
+        }
+    }
+
+    // 智能法線標準化：使用子彈方向輔助判斷
+    // 當兩個軸的法線值接近時，選擇與子彈方向最對立的軸
+    private Vector3 NormalizeToMainAxisSmart(Vector3 normal, Vector3 bulletDirection)
+    {
+        // 取得各軸的絕對值
+        float absX = Mathf.Abs(normal.x);
+        float absY = Mathf.Abs(normal.y);
+        float absZ = Mathf.Abs(normal.z);
+
+        // 定義"接近"的閾值（如果兩個軸差異小於這個值，就需要用子彈方向判斷）
+        float ambiguityThreshold = 0.15f;
+
+        Vector3 result = Vector3.zero;
+
+        // 如果 Y 軸最大，直接返回（子彈在 XZ 平面，通常不會碰到水平面）
+        if (absY > absX && absY > absZ)
+        {
+            result = new Vector3(0, Mathf.Sign(normal.y), 0);
+            Debug.Log($"法線標準化 (Y軸): ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+            return result;
+        }
+
+        // 檢查 X 和 Z 是否接近（模糊情況）
+        bool isAmbiguous = Mathf.Abs(absX - absZ) < ambiguityThreshold;
+
+        if (isAmbiguous)
+        {
+            // X 和 Z 接近，使用子彈方向判斷
+            // 選擇與子彈方向最對立的軸（點積最負的）
+            float dotX = bulletDirection.x * normal.x;  // 子彈 X 方向與法線 X 的對立程度
+            float dotZ = bulletDirection.z * normal.z;  // 子彈 Z 方向與法線 Z 的對立程度
+
+            // 點積越負，表示越對立（子彈撞向這個方向的牆）
+            if (dotX < dotZ)
+            {
+                // 子彈主要撞向 X 方向的牆
+                result = new Vector3(Mathf.Sign(normal.x), 0, 0);
+                Debug.Log($"法線標準化 (模糊->X軸, dotX={dotX:F2}, dotZ={dotZ:F2}): ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+            }
+            else
+            {
+                // 子彈主要撞向 Z 方向的牆
+                result = new Vector3(0, 0, Mathf.Sign(normal.z));
+                Debug.Log($"法線標準化 (模糊->Z軸, dotX={dotX:F2}, dotZ={dotZ:F2}): ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+            }
+        }
+        else
+        {
+            // X 和 Z 差異明顯，直接選最大的
+            if (absX >= absZ)
+            {
+                result = new Vector3(Mathf.Sign(normal.x), 0, 0);
+                Debug.Log($"法線標準化 (明確->X軸): ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+            }
+            else
+            {
+                result = new Vector3(0, 0, Mathf.Sign(normal.z));
+                Debug.Log($"法線標準化 (明確->Z軸): ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+            }
+        }
+
+        return result;
+    }
+
+    // 舊版法線標準化（保留作為備用）
+    private Vector3 NormalizeToMainAxis(Vector3 normal)
+    {
+        // 取得各軸的絕對值
+        float absX = Mathf.Abs(normal.x);
+        float absY = Mathf.Abs(normal.y);
+        float absZ = Mathf.Abs(normal.z);
+
+        // 找出最大的分量
+        Vector3 result = Vector3.zero;
+
+        if (absX >= absY && absX >= absZ)
+        {
+            // X 軸最大
+            result = new Vector3(Mathf.Sign(normal.x), 0, 0);
+        }
+        else if (absZ >= absX && absZ >= absY)
+        {
+            // Z 軸最大
+            result = new Vector3(0, 0, Mathf.Sign(normal.z));
+        }
+        else
+        {
+            // Y 軸最大（保留原始，因為子彈在 XZ 平面）
+            result = new Vector3(0, Mathf.Sign(normal.y), 0);
+        }
+
+        Debug.Log($"法線標準化: ({normal.x:F2}, {normal.y:F2}, {normal.z:F2}) -> {result}");
+        
+        return result;
     }
 
     private void CreateHitEffect(Vector3 position, Vector3 normal)
@@ -245,10 +537,36 @@ public class Bullet : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, 0.05f);
 
-        if (rb != null)
+        if (rb != null && Application.isPlaying)
         {
+            // 顯示子彈速度方向（紅色）
             Gizmos.color = Color.red;
             Gizmos.DrawRay(transform.position, rb.linearVelocity.normalized * 0.5f);
+        }
+    }
+
+    // 顯示反彈時的法線和反射方向
+    private Vector3 debugLastHitPoint;
+    private Vector3 debugLastNormal;
+    private Vector3 debugLastReflectDir;
+    private float debugLastBounceTime;
+
+    void OnDrawGizmosSelected()
+    {
+        // 如果最近有反彈，顯示詳細資訊
+        if (Application.isPlaying && Time.time - debugLastBounceTime < 2f)
+        {
+            // 顯示碰撞點（黃色球）
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(debugLastHitPoint, 0.2f);
+
+            // 顯示原始法線（綠色）
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(debugLastHitPoint, debugLastNormal * 1f);
+
+            // 顯示反射方向（青色）
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawRay(debugLastHitPoint, debugLastReflectDir * 1f);
         }
     }
 }
