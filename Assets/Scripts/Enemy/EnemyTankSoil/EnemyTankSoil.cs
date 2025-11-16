@@ -96,8 +96,10 @@ public class EnemyTank : MonoBehaviour, IDamageable
 
     private void HandleMovement()
     {
-        // �����޿�b�U�Ӫ��A�B�z��k����{
-        // �o�̤��ݭn�B�~���޿�
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
     }
 
     private void UpdateAI()
@@ -138,63 +140,32 @@ public class EnemyTank : MonoBehaviour, IDamageable
         // 否則保持待機狀態，不移動
     }
 
-    // 已刪除：HandleChaseState - 最笨的坦克不需要追擊狀態
-    private void HandleChaseState_Deleted(float distanceToPlayer, bool canSeePlayer)
+    private void HandleAttackState(float distanceToPlayer, bool canSeePlayer)
     {
+        // 如果玩家不在視線範圍內或距離太遠，回到待機狀態
         if (!canSeePlayer || distanceToPlayer > detectionRange * 1.5f)
         {
             currentState = AIState.Idle;
             return;
         }
 
+        // 在攻擊範圍內就開火（不移動）
         if (distanceToPlayer <= shootingRange)
         {
-            currentState = AIState.Attack;
-            return;
+            TryShoot();
         }
-
-        // �l�����a
     }
 
-    private void HandleAttackState(float distanceToPlayer, bool canSeePlayer)
-    {
-        if (!canSeePlayer || distanceToPlayer > shootingRange * 1.2f)
-        {
-            currentState = AIState.Attack;
-            return;
-        }
-
-        // �O���Z������
-        if (distanceToPlayer < minDistanceToPlayer)
-        {
-            // ��h
-            Vector3 direction = (transform.position - player.position).normalized;
-            MoveTowards(transform.position + direction * 2f);
-        }
-        else if (distanceToPlayer > shootingRange)
-        {
-            // �a��
-            MoveTowards(player.position);
-        }
-
-        // �g��
-        TryShoot();
-    }
-
+    /// <summary>
+    /// 視線判定：最笨版本只看距離，不做遮蔽物判斷
+    /// 只要玩家在 detectionRange 內，就視為「看到了玩家」。
+    /// </summary>
     private bool CanSeePlayer()
     {
         if (player == null) return false;
 
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
         float distance = Vector3.Distance(transform.position, player.position);
-
-        // �g�u�˴��O�_�Q��ê���B��
-        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, directionToPlayer, distance, obstacleLayer))
-        {
-            return false;
-        }
-
-        return true;
+        return distance <= detectionRange;
     }
 
     private void MoveTowards(Vector3 targetPosition)

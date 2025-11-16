@@ -63,25 +63,7 @@ public class WebGLCompatibility : MonoBehaviour
     
     private void FixLevelConfiguration()
     {
-        // 確保 LevelManager 有正確的關卡配置
-        var levelManager = FindFirstObjectByType<LevelManager>();
-        if (levelManager != null)
-        {
-            if (levelManager.TotalLevels == 0)
-            {
-                Debug.LogWarning("LevelManager 沒有關卡配置，嘗試修復...");
-                
-                // 嘗試從 AutoLevelSetup 獲取關卡配置
-                var autoSetup = FindFirstObjectByType<AutoLevelSetup>();
-                if (autoSetup != null)
-                {
-                    autoSetup.SetupLevels();
-                    Debug.Log("已從 AutoLevelSetup 修復關卡配置");
-                }
-            }
-        }
-        
-        // 確保 SimpleLevelController 有正確的關卡配置
+        // 目前只檢查 SimpleLevelController（已不再使用 LevelManager / AutoLevelSetup）
         var simpleController = FindFirstObjectByType<SimpleLevelController>();
         if (simpleController != null)
         {
@@ -132,17 +114,10 @@ public class WebGLCompatibility : MonoBehaviour
     {
         Debug.Log("=== WebGL 兼容性檢查 ===");
         
-        // 檢查關卡系統
-        var levelManager = FindFirstObjectByType<LevelManager>();
+        // 檢查關卡系統（只看 SimpleLevelController）
         var simpleController = FindFirstObjectByType<SimpleLevelController>();
         
-        Debug.Log($"LevelManager: {(levelManager != null ? "存在" : "缺失")}");
         Debug.Log($"SimpleLevelController: {(simpleController != null ? "存在" : "缺失")}");
-        
-        if (levelManager != null)
-        {
-            Debug.Log($"LevelManager 關卡數量: {levelManager.TotalLevels}");
-        }
         
         // 檢查音頻系統
         AudioListener[] listeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);

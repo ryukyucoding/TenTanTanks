@@ -4921,7 +4921,7 @@ MonoBehaviour:
   - {fileID: 545535484}
   - {fileID: 580951024}
   - {fileID: 1870815557}
-  enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
+  enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
   waveStartDelay: 2
   currentWaveIndex: 0
   isWaveActive: 1
@@ -4989,7 +4989,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &589933867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5121,7 +5121,7 @@ MonoBehaviour:
   gameTime: 300
   enemyCount: 3
   playerTankPrefab: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
-  enemyTankPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
+  enemyTankPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
   spawnPoints: []
   healthText: {fileID: 0}
   enemyCountText: {fileID: 0}
@@ -5131,7 +5131,9 @@ MonoBehaviour:
   gameOverPanel: {fileID: 0}
   victoryPanel: {fileID: 0}
   gameOverMessage: {fileID: 0}
-  useLevelSystem: 1
+  autoLoadNextScene: 1
+  nextSceneDelay: 1
+  nextSceneName: 
 --- !u!4 &636289093
 Transform:
   m_ObjectHideFlags: 0
@@ -15886,6 +15888,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveDiagnostic
   enableDiagnostic: 1
   checkInterval: 1
+  lastCheckTime: 0
+  lastEnemyCount: 0
 --- !u!114 &2108257078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15986,9 +15990,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a064e9bdfc5849218ef4e69c96893ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoLevelSetup
-  setupOnAwake: 1
-  levelAssets:
-  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
 --- !u!1 &2142470375
 GameObject:
   m_ObjectHideFlags: 0
