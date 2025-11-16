@@ -22,13 +22,13 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private Transform centerPoint;           // 中心點
     [SerializeField] private Transform tier1Container;        // 第二層容器
     [SerializeField] private Transform tier2Container;        // 第三層容器
-    [SerializeField] private float tier1Radius = 150f;       // 第二層半徑
-    [SerializeField] private float tier2Radius = 250f;       // 第三層半徑
+    [SerializeField] private float tier1Radius = 320f;       // 第二層半徑
+    [SerializeField] private float tier2Radius = 480f;       // 第三層半徑
 
     [Header("Upgrade Button")]
     [SerializeField] private GameObject upgradeButtonPrefab; // 升級按鈕預製體
     [SerializeField] private Color selectedColor = Color.yellow;
-    [SerializeField] private Color defaultColor = Color.white;
+    [SerializeField] private Color availableColor = Color.white;
     [SerializeField] private Color disabledColor = Color.gray;
 
     [Header("Animation")]
@@ -37,7 +37,8 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private float buttonFadeDelay = 0.1f;
 
     private TankUpgradeSystem upgradeSystem;
-    private List<UpgradeButton> currentButtons = new List<UpgradeButton>();
+    private List<UpgradeButton> tier1Buttons = new List<UpgradeButton>();
+    private List<UpgradeButton> tier2Buttons = new List<UpgradeButton>();
     private UpgradeOption selectedTier1Option;
     private UpgradeOption selectedTier2Option;
     private UpgradeState currentState = UpgradeState.SelectingTier1;
@@ -58,7 +59,7 @@ public class UpgradeWheelUI : MonoBehaviour
     {
         upgradeSystem = FindObjectOfType<TankUpgradeSystem>();
         SetupUI();
-        StoreCenterProperties(); // Store center area properties on start
+        StoreCenterProperties();
         HideWheel();
     }
 
@@ -113,7 +114,10 @@ public class UpgradeWheelUI : MonoBehaviour
 
         StartCoroutine(ShowWheelAnimation());
         currentState = UpgradeState.SelectingTier1;
-        ShowTier1Options();
+
+        // Create all buttons at once
+        CreateAllUpgradeButtons();
+        UpdateButtonStates();
 
         UpdateTitle("選擇升級方向");
         UpdateDescription("選擇你想要的坦克升級路線");
@@ -144,7 +148,7 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
-        // 輪盤縮放動畫 - FIXED VERSION
+        // 輪盤縮放動畫
         if (wheelContainer != null)
         {
             wheelContainer.transform.localScale = Vector3.zero;
@@ -170,6 +174,9 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private IEnumerator HideWheelAnimation()
     {
+        // Clear all buttons
+        ClearAllButtons();
+
         // 輪盤縮放動畫（反向）
         if (wheelContainer != null)
         {
@@ -182,7 +189,6 @@ public class UpgradeWheelUI : MonoBehaviour
                 float progress = elapsed / (wheelScaleInDuration * 0.5f);
                 wheelContainer.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, progress);
 
-                // Keep center area properties intact during hide animation
                 RestoreCenterProperties();
 
                 yield return null;
@@ -211,44 +217,55 @@ public class UpgradeWheelUI : MonoBehaviour
             upgradeCanvas.gameObject.SetActive(false);
     }
 
-    private void ShowTier1Options()
+    private void CreateAllUpgradeButtons()
     {
-        ClearCurrentButtons();
-
         if (upgradeSystem == null) return;
 
+        // Create Tier 1 buttons (3 buttons at 120° intervals)
         var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
-        CreateButtonsInCircle(tier1Options, tier1Container, tier1Radius, OnTier1Selected);
+        CreateTier1Buttons(tier1Options);
+
+        // Create Tier 2 buttons (6 buttons at 60° intervals)
+        var allTier2Options = new List<UpgradeOption>();
+        foreach (var tier1Option in tier1Options)
+        {
+            var tier2Options = upgradeSystem.GetAvailableUpgrades(2, tier1Option.upgradeName);
+            allTier2Options.AddRange(tier2Options);
+        }
+        CreateTier2Buttons(allTier2Options);
     }
 
-    private void ShowTier2Options(string parentUpgradeName)
+    private void CreateTier1Buttons(List<UpgradeOption> options)
     {
-        ClearCurrentButtons();
-
-        if (upgradeSystem == null) return;
-
-        var tier2Options = upgradeSystem.GetAvailableUpgrades(2, parentUpgradeName);
-        CreateButtonsInCircle(tier2Options, tier2Container, tier2Radius, OnTier2Selected);
-
-        // 顯示確認按鈕
-        if (confirmButton != null)
-            confirmButton.gameObject.SetActive(false); // 等選擇第三層後才顯示
-    }
-
-    private void CreateButtonsInCircle(List<UpgradeOption> options, Transform container, float radius, System.Action<UpgradeOption> onClickCallback)
-    {
-        if (options.Count == 0) return;
-
-        float angleStep = 360f / options.Count;
-        float startAngle = -90f; // 從上方開始
+        // 3 buttons at 120° intervals starting from top
+        float angleStep = 120f;
+        float startAngle = -90f; // Start from top
 
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
             float angle = startAngle + (angleStep * i);
-            Vector3 position = GetCirclePosition(angle, radius);
+            Vector3 position = GetCirclePosition(angle, tier1Radius);
 
-            CreateUpgradeButton(option, container, position, onClickCallback, i * buttonFadeDelay);
+            var button = CreateUpgradeButton(option, tier1Container, position, OnTier1Selected, i * buttonFadeDelay);
+            tier1Buttons.Add(button);
+        }
+    }
+
+    private void CreateTier2Buttons(List<UpgradeOption> options)
+    {
+        // 6 buttons at 60° intervals starting from top
+        float angleStep = 60f;
+        float startAngle = -90f; // Start from top
+
+        for (int i = 0; i < options.Count; i++)
+        {
+            var option = options[i];
+            float angle = startAngle + (angleStep * i);
+            Vector3 position = GetCirclePosition(angle, tier2Radius);
+
+            var button = CreateUpgradeButton(option, tier2Container, position, OnTier2Selected, i * buttonFadeDelay);
+            tier2Buttons.Add(button);
         }
     }
 
@@ -260,9 +277,9 @@ public class UpgradeWheelUI : MonoBehaviour
         return new Vector3(x, y, 0f);
     }
 
-    private void CreateUpgradeButton(UpgradeOption option, Transform container, Vector3 position, System.Action<UpgradeOption> onClickCallback, float delay)
+    private UpgradeButton CreateUpgradeButton(UpgradeOption option, Transform container, Vector3 position, System.Action<UpgradeOption> onClickCallback, float delay)
     {
-        if (upgradeButtonPrefab == null) return;
+        if (upgradeButtonPrefab == null) return null;
 
         GameObject buttonObj = Instantiate(upgradeButtonPrefab, container);
         buttonObj.transform.localPosition = position;
@@ -272,10 +289,11 @@ public class UpgradeWheelUI : MonoBehaviour
             upgradeButton = buttonObj.AddComponent<UpgradeButton>();
 
         upgradeButton.Setup(option, () => onClickCallback(option));
-        currentButtons.Add(upgradeButton);
 
         // 淡入動畫
         StartCoroutine(FadeInButton(upgradeButton, delay));
+
+        return upgradeButton;
     }
 
     private IEnumerator FadeInButton(UpgradeButton button, float delay)
@@ -299,16 +317,55 @@ public class UpgradeWheelUI : MonoBehaviour
         canvasGroup.alpha = 1f;
     }
 
+    private void UpdateButtonStates()
+    {
+        // Update Tier 1 buttons
+        foreach (var button in tier1Buttons)
+        {
+            if (selectedTier1Option != null && button.GetUpgradeOption().upgradeName == selectedTier1Option.upgradeName)
+            {
+                button.SetButtonState(UpgradeButton.ButtonState.Selected);
+            }
+            else
+            {
+                button.SetButtonState(UpgradeButton.ButtonState.Available);
+            }
+        }
+
+        // Update Tier 2 buttons
+        foreach (var button in tier2Buttons)
+        {
+            if (selectedTier1Option != null && button.GetUpgradeOption().parentUpgradeName == selectedTier1Option.upgradeName)
+            {
+                if (selectedTier2Option != null && button.GetUpgradeOption().upgradeName == selectedTier2Option.upgradeName)
+                {
+                    button.SetButtonState(UpgradeButton.ButtonState.Selected);
+                }
+                else
+                {
+                    button.SetButtonState(UpgradeButton.ButtonState.Available);
+                }
+            }
+            else
+            {
+                button.SetButtonState(UpgradeButton.ButtonState.Disabled);
+            }
+        }
+    }
+
     private void OnTier1Selected(UpgradeOption option)
     {
         selectedTier1Option = option;
+        selectedTier2Option = null; // Reset tier 2 selection
         currentState = UpgradeState.SelectingTier2;
 
+        UpdateButtonStates();
         UpdateTitle($"選擇 {option.upgradeName} 的變體");
         UpdateDescription(option.description);
 
-        // 顯示第三層選項
-        ShowTier2Options(option.upgradeName);
+        // Hide confirm button until tier 2 is selected
+        if (confirmButton != null)
+            confirmButton.gameObject.SetActive(false);
     }
 
     private void OnTier2Selected(UpgradeOption option)
@@ -316,30 +373,13 @@ public class UpgradeWheelUI : MonoBehaviour
         selectedTier2Option = option;
         currentState = UpgradeState.Confirmed;
 
+        UpdateButtonStates();
         UpdateTitle($"確認選擇: {option.upgradeName}");
         UpdateDescription(option.description);
 
-        // 顯示確認按鈕
+        // Show confirm button
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(true);
-
-        // 高亮選中的按鈕
-        HighlightSelectedButton(option);
-    }
-
-    private void HighlightSelectedButton(UpgradeOption option)
-    {
-        foreach (var button in currentButtons)
-        {
-            if (button.GetUpgradeOption().upgradeName == option.upgradeName)
-            {
-                button.SetSelected(true);
-            }
-            else
-            {
-                button.SetSelected(false);
-            }
-        }
     }
 
     private void ConfirmUpgrade()
@@ -353,14 +393,21 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    private void ClearCurrentButtons()
+    private void ClearAllButtons()
     {
-        foreach (var button in currentButtons)
+        foreach (var button in tier1Buttons)
         {
             if (button != null && button.gameObject != null)
                 Destroy(button.gameObject);
         }
-        currentButtons.Clear();
+        tier1Buttons.Clear();
+
+        foreach (var button in tier2Buttons)
+        {
+            if (button != null && button.gameObject != null)
+                Destroy(button.gameObject);
+        }
+        tier2Buttons.Clear();
     }
 
     private void UpdateTitle(string title)
@@ -377,19 +424,16 @@ public class UpgradeWheelUI : MonoBehaviour
 
     public void BackToTier1()
     {
-        if (currentState == UpgradeState.SelectingTier2)
-        {
-            currentState = UpgradeState.SelectingTier1;
-            selectedTier1Option = null;
-            selectedTier2Option = null;
+        selectedTier1Option = null;
+        selectedTier2Option = null;
+        currentState = UpgradeState.SelectingTier1;
 
-            if (confirmButton != null)
-                confirmButton.gameObject.SetActive(false);
+        UpdateButtonStates();
+        UpdateTitle("選擇升級方向");
+        UpdateDescription("選擇你想要的坦克升級路線");
 
-            ShowTier1Options();
-            UpdateTitle("選擇升級方向");
-            UpdateDescription("選擇你想要的坦克升級路線");
-        }
+        if (confirmButton != null)
+            confirmButton.gameObject.SetActive(false);
     }
 
     // Debug method to manually fix center area positioning

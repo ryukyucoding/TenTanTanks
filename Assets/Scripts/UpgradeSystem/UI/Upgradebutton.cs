@@ -12,13 +12,21 @@ public class UpgradeButton : MonoBehaviour
     [SerializeField] private Image backgroundImage;
 
     [Header("Visual States")]
-    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color availableColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
+    [SerializeField] private Color disabledColor = Color.gray;
     [SerializeField] private Color hoverColor = Color.cyan;
+
+    public enum ButtonState
+    {
+        Available,   // Can be clicked
+        Selected,    // Currently selected
+        Disabled     // Cannot be clicked (grayed out)
+    }
 
     private UpgradeOption upgradeOption;
     private Action onClickCallback;
-    private bool isSelected = false;
+    private ButtonState currentState = ButtonState.Available;
 
     void Awake()
     {
@@ -62,37 +70,104 @@ public class UpgradeButton : MonoBehaviour
         }
 
         // Set initial visual state
-        SetSelected(false);
+        SetButtonState(ButtonState.Available);
     }
 
     private void OnButtonClick()
     {
+        // Only allow clicks if button is available or selected
+        if (currentState == ButtonState.Disabled) return;
+
         onClickCallback?.Invoke();
     }
 
-    public void SetSelected(bool selected)
+    public void SetButtonState(ButtonState state)
     {
-        isSelected = selected;
+        currentState = state;
 
+        if (button != null)
+        {
+            button.interactable = (state != ButtonState.Disabled);
+        }
+
+        UpdateVisualState();
+    }
+
+    private void UpdateVisualState()
+    {
+        Color targetColor;
+        float alpha = 1f;
+
+        switch (currentState)
+        {
+            case ButtonState.Available:
+                targetColor = availableColor;
+                alpha = 1f;
+                break;
+            case ButtonState.Selected:
+                targetColor = selectedColor;
+                alpha = 1f;
+                break;
+            case ButtonState.Disabled:
+                targetColor = disabledColor;
+                alpha = 0.5f;
+                break;
+            default:
+                targetColor = availableColor;
+                alpha = 1f;
+                break;
+        }
+
+        // Apply color to background
         if (backgroundImage != null)
         {
-            backgroundImage.color = selected ? selectedColor : normalColor;
+            var color = targetColor;
+            color.a = alpha;
+            backgroundImage.color = color;
+        }
+
+        // Apply alpha to text
+        if (nameText != null)
+        {
+            var textColor = nameText.color;
+            textColor.a = alpha;
+            nameText.color = textColor;
+        }
+
+        // Apply alpha to icon
+        if (iconImage != null)
+        {
+            var iconColor = iconImage.color;
+            iconColor.a = alpha;
+            iconImage.color = iconColor;
         }
     }
 
     public void SetHover(bool hover)
     {
-        if (isSelected) return; // Don't change color if selected
+        if (currentState == ButtonState.Selected || currentState == ButtonState.Disabled)
+            return; // Don't change color if selected or disabled
 
         if (backgroundImage != null)
         {
-            backgroundImage.color = hover ? hoverColor : normalColor;
+            backgroundImage.color = hover ? hoverColor : availableColor;
         }
     }
 
     public UpgradeOption GetUpgradeOption()
     {
         return upgradeOption;
+    }
+
+    public ButtonState GetCurrentState()
+    {
+        return currentState;
+    }
+
+    // Legacy method for backward compatibility
+    public void SetSelected(bool selected)
+    {
+        SetButtonState(selected ? ButtonState.Selected : ButtonState.Available);
     }
 
     // Optional: Add hover effects
