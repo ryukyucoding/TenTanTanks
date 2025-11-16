@@ -98,18 +98,14 @@ public class MainMenuManager : MonoBehaviour
     // ========== 原有功能 ==========
     public void StartGame()
     {
-<<<<<<< HEAD
         PlayButtonSound();
 
-        // 保存當前升級狀態
+        // Save current upgrade state
         SaveUpgradeState();
 
-        // 載入遊戲場景
+        // Load transition scene (which will then load Level1)
         Debug.Log("StartGame 被調用了！");
-        SceneManager.LoadScene("Level1");
-=======
         SceneManager.LoadScene("Transition");
->>>>>>> 394d7eb9096846397ec7e580ea56c9b7f501fa28
     }
 
     public void QuitGame()
