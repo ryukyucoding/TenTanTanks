@@ -256,7 +256,7 @@ public class UpgradeWheelUI : MonoBehaviour
     {
         // 6 buttons at 60¢X intervals starting from top
         float angleStep = 60f;
-        float startAngle = -60f; // Start from top
+        float startAngle = -120f; // Start from top
 
         for (int i = 0; i < options.Count; i++)
         {
