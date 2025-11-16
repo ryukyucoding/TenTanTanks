@@ -310,33 +310,40 @@ public class Bullet : MonoBehaviour
         return obj.name.Contains("BouncePlane");
     }
 
-    // 判斷是否應該忽略（只忽略發射者本身和其子物件）
+    // 判斷是否應該忽略（玩家：只忽略自己；敵人：忽略所有敵人）
     private bool IsFriendly(GameObject obj)
     {
         if (shooter == null) return false;
-        
+
         // 直接檢查是否為發射者本身
-        if (obj == shooter) 
+        if (obj == shooter)
         {
             Debug.Log($"忽略：碰到發射者本身 {obj.name}");
             return true;
         }
-        
+
         // 檢查是否為發射者的子物件
-        if (obj.transform.IsChildOf(shooter.transform)) 
+        if (obj.transform.IsChildOf(shooter.transform))
         {
             Debug.Log($"忽略：碰到發射者的子物件 {obj.name}");
             return true;
         }
-        
+
         // 檢查是否為發射者的父物件（反向檢查）
-        if (shooter.transform.IsChildOf(obj.transform)) 
+        if (shooter.transform.IsChildOf(obj.transform))
         {
             Debug.Log($"忽略：碰到發射者的父物件 {obj.name}");
             return true;
         }
-        
-        // 不再檢查 Tag，這樣敵人之間、玩家之間都可以互相傷害
+
+        // 敵人的子彈不能打到其他敵人
+        if (shooter.CompareTag("Enemy") && obj.CompareTag("Enemy"))
+        {
+            Debug.Log($"忽略：敵人友軍穿透 {obj.name}");
+            return true;
+        }
+
+        // 玩家的子彈可以打到任何目標（已經在上面檢查過自己了）
         return false;
     }
 
