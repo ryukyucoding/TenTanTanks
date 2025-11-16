@@ -219,9 +219,23 @@ public class WaveManager : MonoBehaviour
     private void CompleteCurrentWave()
     {
         isWaveActive = false;
-        Debug.Log($"第 {currentWaveIndex + 1} 波完成！");
+        Debug.Log($"[WaveManager] 第 {currentWaveIndex + 1} 波完成！");
+        Debug.Log($"[WaveManager] 已擊殺: {enemiesKilledInWave}/{enemiesInCurrentWave}");
         
         OnWaveCompleted?.Invoke(currentWaveIndex, totalWaves);
+        
+        // 通知 UpgradePointManager 波次完成，給予升級點數
+        Debug.Log($"[WaveManager] 尋找 UpgradePointManager...");
+        UpgradePointManager upgradeManager = FindFirstObjectByType<UpgradePointManager>();
+        if (upgradeManager != null)
+        {
+            Debug.Log($"[WaveManager] ✓ 找到 UpgradePointManager，呼叫 OnWaveComplete({currentWaveIndex + 1})");
+            upgradeManager.OnWaveComplete(currentWaveIndex + 1);
+        }
+        else
+        {
+            Debug.LogError("[WaveManager] ❌ 找不到 UpgradePointManager！請確保場景中有此組件。");
+        }
         
         currentWaveIndex++;
         

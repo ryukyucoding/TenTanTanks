@@ -16,6 +16,7 @@ public class SimpleLevelController : MonoBehaviour
     
     private LevelData currentLevelData;
     private int totalWaves = 0;
+    private UpgradePointManager upgradeManager; // 缓存引用
     
     private void Start()
     {
@@ -26,6 +27,9 @@ public class SimpleLevelController : MonoBehaviour
         
         // 初始化關卡
         InitializeLevel();
+        
+        // 初始化 UpgradePointManager
+        InitializeUpgradeManager();
         
         // 開始第一波
         StartCoroutine(StartFirstWave());
@@ -50,6 +54,25 @@ public class SimpleLevelController : MonoBehaviour
         else
         {
             Debug.LogError("沒有設定關卡數據！");
+        }
+    }
+    
+    private void InitializeUpgradeManager()
+    {
+        // 尋找現有的 UpgradePointManager
+        upgradeManager = FindFirstObjectByType<UpgradePointManager>();
+        
+        if (upgradeManager == null)
+        {
+            // 如果不存在，自動創建
+            Debug.Log("[SimpleLevelController] 場景中沒有 UpgradePointManager，自動創建...");
+            GameObject managerObj = new GameObject("UpgradePointManager");
+            upgradeManager = managerObj.AddComponent<UpgradePointManager>();
+            Debug.Log("[SimpleLevelController] ✓ UpgradePointManager 已創建");
+        }
+        else
+        {
+            Debug.Log($"[SimpleLevelController] ✓ 找到 UpgradePointManager: {upgradeManager.gameObject.name}");
         }
     }
     
@@ -142,7 +165,18 @@ public class SimpleLevelController : MonoBehaviour
     private void CompleteCurrentWave()
     {
         isWaveActive = false;
-        Debug.Log($"第 {currentWaveIndex + 1} 波完成！");
+        Debug.Log($"[SimpleLevelController] 第 {currentWaveIndex + 1} 波完成！");
+        
+        // 通知 UpgradePointManager 波次完成，給予升級點數
+        if (upgradeManager != null)
+        {
+            Debug.Log($"[SimpleLevelController] ✓ 呼叫 OnWaveComplete({currentWaveIndex + 1})");
+            upgradeManager.OnWaveComplete(currentWaveIndex + 1);
+        }
+        else
+        {
+            Debug.LogWarning("[SimpleLevelController] ⚠️ UpgradePointManager 未初始化！");
+        }
         
         currentWaveIndex++;
         
