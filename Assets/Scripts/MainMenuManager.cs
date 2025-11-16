@@ -25,6 +25,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip buttonClickSound;
 
+    [Header("Visual System")]
+    [SerializeField] private ModularTankController modularTankController;
+
     // Wheel upgrade system (pre-game tank configuration)
     private TankUpgradeSystem wheelUpgradeSystem;
     private UpgradeWheelUI upgradeWheelUI;
@@ -251,6 +254,16 @@ public class MainMenuManager : MonoBehaviour
         {
             string savedPath = PlayerPrefs.GetString("WheelUpgradePath", "Basic");
             wheelUpgradeSystem.ApplyUpgrade(savedPath);
+
+            // Also apply visual transformation
+            if (modularTankController == null)
+                modularTankController = FindFirstObjectByType<ModularTankController>();
+
+            if (modularTankController != null)
+            {
+                modularTankController.ApplyConfiguration(savedPath);
+            }
+
             Debug.Log($"Loaded wheel configuration: {savedPath}");
         }
     }
