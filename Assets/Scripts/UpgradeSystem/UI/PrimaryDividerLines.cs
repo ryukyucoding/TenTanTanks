@@ -86,7 +86,7 @@ public class PrimaryDividerLines : MonoBehaviour
 
         // Create main division lines: 0¢X, 120¢X, 240¢X (from center to edge)
         // These go behind everything except Basic center
-        float[] angles = { -60f, 60f, 180f }; // Adjusted for your rotation
+        float[] angles = { -30f, 90f, 210f }; // Adjusted for your rotation
 
         foreach (float angle in angles)
         {
