@@ -114,7 +114,7 @@ public class MainMenuManager : MonoBehaviour
 
         // Load the transition scene (which will apply tank configuration)
         Debug.Log("Starting game with current tank configuration...");
-        SceneManager.LoadScene("Level1");
+        SceneManager.LoadScene("Transition");
     }
 
     public void QuitGame()
