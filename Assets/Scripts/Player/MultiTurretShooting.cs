@@ -1,54 +1,54 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
 /// <summary>
-/// ¼W±j©Z§J®gÀ»¨t²Î¡A¤ä«ù¡G
-/// - ¦h¬¶¶ğ¦P®É®gÀ»
-/// - °ò©ó¬¶¶ğ¤j¤pªº¤l¼u¤j¤pÁY©ñ
-/// - ¤£¦P¤É¯Åªº¤£¦P¤l¼uÃş«¬
-/// - ©Ò¦³¬¶¶ğªº¦P¨B®gÀ»
+/// å¢å¼·å¦å…‹å°„æ“Šç³»çµ±ï¼Œæ”¯æŒï¼š
+/// - å¤šç‚®å¡”åŒæ™‚å°„æ“Š
+/// - åŸºæ–¼ç‚®å¡”å¤§å°çš„å­å½ˆå¤§å°ç¸®æ”¾
+/// - ä¸åŒå‡ç´šçš„ä¸åŒå­å½ˆé¡å‹
+/// - æ‰€æœ‰ç‚®å¡”çš„åŒæ­¥å°„æ“Š
 /// </summary>
 public class MultiTurretShooting : MonoBehaviour
 {
-    [Header("®gÀ»³]¸m")]
+    [Header("å°„æ“Šè¨­ç½®")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float baseBulletSpeed = 5f;
     [SerializeField] private float baseFireRate = 1.2f;
     [SerializeField] private float bulletLifetime = 5f;
 
-    [Header("¦h¬¶¶ğ³]¸m")]
+    [Header("å¤šç‚®å¡”è¨­ç½®")]
     [SerializeField] private bool fireAllTurretsSimultaneously = true;
-    [SerializeField] private float turretFireDelay = 0.05f; // ¬¶¶ğ¶¡ªº»´·L©µ¿ğ¥H²£¥Í®ÄªG
+    [SerializeField] private float turretFireDelay = 0.05f; // ç‚®å¡”é–“çš„è¼•å¾®å»¶é²ä»¥ç”¢ç”Ÿæ•ˆæœ
 
-    [Header("¦Û°Ê®gÀ»³]¸m")]
+    [Header("è‡ªå‹•å°„æ“Šè¨­ç½®")]
     [SerializeField] private bool enableAutoFire = false;
 
-    [Header("­µÀW©M®ÄªG")]
+    [Header("éŸ³é »å’Œæ•ˆæœ")]
     [SerializeField] private AudioClip shootSound;
     [SerializeField] private ParticleSystem muzzleFlashPrefab;
 
-    // ²Õ¥ó¤Ş¥Î
+    // çµ„ä»¶å¼•ç”¨
     private TankController tankController;
     private ModularTankController modularTank;
     private AudioSource audioSource;
 
-    // ®gÀ»ª¬ºA
+    // å°„æ“Šç‹€æ…‹
     private float nextFireTime = 0f;
     private bool wasAutoFireKeyPressed = false;
 
-    // ¦h¬¶¶ğ¸ê®Æ
+    // å¤šç‚®å¡”è³‡æ–™
     private List<Transform> allFirePoints = new List<Transform>();
     private List<ParticleSystem> muzzleFlashes = new List<ParticleSystem>();
 
     void Awake()
     {
-        // Àò¨ú²Õ¥ó¤Ş¥Î
+        // ç²å–çµ„ä»¶å¼•ç”¨
         tankController = GetComponent<TankController>();
         modularTank = GetComponent<ModularTankController>();
         audioSource = GetComponent<AudioSource>();
 
-        // ¦pªG¯Ê¤Ö«h²K¥[ AudioSource
+        // å¦‚æœç¼ºå°‘å‰‡æ·»åŠ  AudioSource
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
     }
@@ -60,30 +60,36 @@ public class MultiTurretShooting : MonoBehaviour
 
     private void InitializeFirePoints()
     {
-        // ±q¼Ò²Õ¤Æ©Z§J¨t²ÎÀò¨úµo®gÂI
+        // å¾æ¨¡çµ„åŒ–å¦å…‹ç³»çµ±ç²å–ç™¼å°„é»
         if (modularTank != null)
         {
             allFirePoints = modularTank.GetAllFirePoints();
         }
 
-        // ¦pªG¼Ò²Õ¤Æ¨t²Î¤£¥i¥Î¡A«h¦^°h¨ì³æ¤@µo®gÂI
-        if (allFirePoints.Count == 0 && tankController != null)
+        // å¦‚æœæ¨¡çµ„åŒ–ç³»çµ±ä¸å¯ç”¨ï¼Œå‰‡å›é€€åˆ°å–®ä¸€ç™¼å°„é»
+        if (allFirePoints.Count == 0)
         {
-            // ¨Ï¥Î TankController ¤¤²{¦³ªº¤èªk
-            Vector3 firePosition = tankController.GetFirePointPosition();
-
-            // ³Ğ«Ø¤@­ÓÁ{®Éªº Transform ¥Î©óµo®gÂI
-            GameObject tempFirePoint = new GameObject("TempFirePoint");
-            tempFirePoint.transform.SetParent(transform);
-            tempFirePoint.transform.position = firePosition;
-
-            allFirePoints.Add(tempFirePoint.transform);
+            // å˜—è©¦æŸ¥æ‰¾ FirePoint ç‰©ä»¶
+            Transform firePointTransform = transform.Find("FirePoint");
+            if (firePointTransform != null)
+            {
+                allFirePoints.Add(firePointTransform);
+            }
+            else
+            {
+                // å¦‚æœæ²’æ‰¾åˆ° FirePointï¼Œå‰µå»ºä¸€å€‹è‡¨æ™‚çš„
+                GameObject tempFirePoint = new GameObject("TempFirePoint");
+                tempFirePoint.transform.SetParent(transform);
+                tempFirePoint.transform.localPosition = new Vector3(0, 0.25f, 0.45f);
+                allFirePoints.Add(tempFirePoint.transform);
+                Debug.LogWarning("æœªæ‰¾åˆ° FirePointï¼Œå‰µå»ºäº†è‡¨æ™‚ç™¼å°„é»");
+            }
         }
 
-        // ¬°¨C­Óµo®gÂI³Ğ«Øºj¤f°{¥ú®ÄªG
+        // ç‚ºæ¯å€‹ç™¼å°„é»å‰µå»ºæ§å£é–ƒå…‰æ•ˆæœ
         SetupMuzzleFlashes();
 
-        Debug.Log($"MultiTurretShooting ¤wªì©l¤Æ¡A¦³ {allFirePoints.Count} ­Óµo®gÂI");
+        Debug.Log($"MultiTurretShooting å·²åˆå§‹åŒ–ï¼Œæœ‰ {allFirePoints.Count} å€‹ç™¼å°„é»");
     }
 
     private void SetupMuzzleFlashes()
@@ -96,7 +102,7 @@ public class MultiTurretShooting : MonoBehaviour
         {
             if (firePoint != null)
             {
-                // ¬°¦¹µo®gÂI³Ğ«Øºj¤f°{¥ú
+                // ç‚ºæ­¤ç™¼å°„é»å‰µå»ºæ§å£é–ƒå…‰
                 ParticleSystem flash = Instantiate(muzzleFlashPrefab, firePoint);
                 flash.transform.localPosition = Vector3.zero;
                 flash.transform.localRotation = Quaternion.identity;
@@ -106,38 +112,38 @@ public class MultiTurretShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// ³]¸m¤l¼u³t«×¡]¥Ñ²Î­p¨t²Î½Õ¥Î¡^
+    /// è¨­ç½®å­å½ˆé€Ÿåº¦ï¼ˆç”±çµ±è¨ˆç³»çµ±èª¿ç”¨ï¼‰
     /// </summary>
     public void SetBulletSpeed(float speed)
     {
         baseBulletSpeed = speed;
-        Debug.Log($"? MultiTurretShooting.SetBulletSpeed: {speed:F2}");
+        Debug.Log($"âœ“ MultiTurretShooting.SetBulletSpeed: {speed:F2}");
     }
 
     /// <summary>
-    /// ³]¸m®g³t¡]¥Ñ²Î­p¨t²Î½Õ¥Î¡^
+    /// è¨­ç½®å°„é€Ÿï¼ˆç”±çµ±è¨ˆç³»çµ±èª¿ç”¨ï¼‰
     /// </summary>
     public void SetFireRate(float rate)
     {
         baseFireRate = rate;
-        Debug.Log($"? MultiTurretShooting.SetFireRate: {rate:F2}");
+        Debug.Log($"âœ“ MultiTurretShooting.SetFireRate: {rate:F2}");
     }
 
     void Update()
     {
-        // ¦pªG¼Ò²Õ¤Æ©Z§J§ïÅÜ¡A§ó·sµo®gÂI
+        // å¦‚æœæ¨¡çµ„åŒ–å¦å…‹æ”¹è®Šï¼Œæ›´æ–°ç™¼å°„é»
         UpdateFirePoints();
 
-        // ³B²z¦Û°Ê®gÀ»¤Á´«
+        // è™•ç†è‡ªå‹•å°„æ“Šåˆ‡æ›
         HandleAutoFireToggle();
 
-        // ³B²z®gÀ»
+        // è™•ç†å°„æ“Š
         HandleShooting();
     }
 
     private void UpdateFirePoints()
     {
-        // ÀË¬dµo®gÂI¬O§_¤w§ó§ï¡]¨Ò¦p¡A¤É¯Å«á¡^
+        // æª¢æŸ¥ç™¼å°„é»æ˜¯å¦å·²æ›´æ”¹ï¼ˆä¾‹å¦‚ï¼Œå‡ç´šå¾Œï¼‰
         if (modularTank != null)
         {
             var newFirePoints = modularTank.GetAllFirePoints();
@@ -145,7 +151,7 @@ public class MultiTurretShooting : MonoBehaviour
             {
                 allFirePoints = newFirePoints;
                 SetupMuzzleFlashes();
-                Debug.Log($"µo®gÂI¤w§ó·s¡G{allFirePoints.Count} ­Ó¬¶¶ğ");
+                Debug.Log($"ç™¼å°„é»å·²æ›´æ–°ï¼š{allFirePoints.Count} å€‹ç‚®å¡”");
             }
         }
     }
@@ -159,7 +165,7 @@ public class MultiTurretShooting : MonoBehaviour
             if (isEKeyPressed && !wasAutoFireKeyPressed)
             {
                 enableAutoFire = !enableAutoFire;
-                Debug.Log($"¦Û°Ê®gÀ»¡G{(enableAutoFire ? "¤w±Ò¥Î" : "¤w¸T¥Î")}");
+                Debug.Log($"è‡ªå‹•å°„æ“Šï¼š{(enableAutoFire ? "å·²å•Ÿç”¨" : "å·²ç¦ç”¨")}");
             }
 
             wasAutoFireKeyPressed = isEKeyPressed;
@@ -170,12 +176,12 @@ public class MultiTurretShooting : MonoBehaviour
     {
         bool shouldShoot = false;
 
-        // ¤â°Ê®gÀ»¡]¥ªÁäÂIÀ»¡^
+        // æ‰‹å‹•å°„æ“Šï¼ˆå·¦éµé»æ“Šï¼‰
         if (tankController != null && tankController.IsShootPressed())
         {
             shouldShoot = true;
         }
-        // ¦Û°Ê®gÀ»¼Ò¦¡
+        // è‡ªå‹•å°„æ“Šæ¨¡å¼
         else if (enableAutoFire)
         {
             shouldShoot = true;
@@ -201,10 +207,10 @@ public class MultiTurretShooting : MonoBehaviour
 
     private void FireAllTurrets()
     {
-        // ³]¸m¤U¦¸®gÀ»®É¶¡
+        // è¨­ç½®ä¸‹æ¬¡å°„æ“Šæ™‚é–“
         nextFireTime = Time.time + (1f / baseFireRate);
 
-        // ±q©Ò¦³¬¶¶ğ¦P®É®gÀ»
+        // å¾æ‰€æœ‰ç‚®å¡”åŒæ™‚å°„æ“Š
         for (int i = 0; i < allFirePoints.Count; i++)
         {
             if (allFirePoints[i] != null)
@@ -213,26 +219,26 @@ public class MultiTurretShooting : MonoBehaviour
             }
         }
 
-        // ¬°©Ò¦³¬¶¶ğ¼½©ñ¤@¦¸Án­µ
+        // ç‚ºæ‰€æœ‰ç‚®å¡”æ’­æ”¾ä¸€æ¬¡è²éŸ³
         PlayShootSound();
 
-        Debug.Log($"±q {allFirePoints.Count} ­Ó¬¶¶ğ¦P®É®gÀ»");
+        Debug.Log($"å¾ {allFirePoints.Count} å€‹ç‚®å¡”åŒæ™‚å°„æ“Š");
     }
 
     private void FireTurretsSequentially()
     {
-        // ³o¥i¥H¥Î©ó¯S®í®gÀ»¼Ò¦¡
-        // ²{¦b¡A¥u¬O¥Î»´·L©µ¿ğ®gÀ»©Ò¦³¬¶¶ğ
+        // é€™å¯ä»¥ç”¨æ–¼ç‰¹æ®Šå°„æ“Šæ¨¡å¼
+        // ç¾åœ¨ï¼Œåªæ˜¯ç”¨è¼•å¾®å»¶é²å°„æ“Šæ‰€æœ‰ç‚®å¡”
         for (int i = 0; i < allFirePoints.Count; i++)
         {
             float delay = i * turretFireDelay;
             StartCoroutine(FireTurretWithDelay(i, delay));
         }
 
-        // ³]¸m¤U¦¸®gÀ»®É¶¡
+        // è¨­ç½®ä¸‹æ¬¡å°„æ“Šæ™‚é–“
         nextFireTime = Time.time + (1f / baseFireRate);
 
-        // ¼½©ñÁn­µ
+        // æ’­æ”¾è²éŸ³
         PlayShootSound();
     }
 
@@ -253,11 +259,11 @@ public class MultiTurretShooting : MonoBehaviour
 
         Transform firePoint = allFirePoints[turretIndex];
 
-        // ­pºâ®gÀ»¦ì¸m©M¤è¦V
+        // è¨ˆç®—å°„æ“Šä½ç½®å’Œæ–¹å‘
         Vector3 firePosition = firePoint.position;
         Vector3 fireDirection;
 
-        // ¨Ï¥Î TankController ªº®gÀ»¤è¦V¡A©ÎªÌ¨Ï¥Îµo®gÂIªº¤è¦V
+        // ä½¿ç”¨ TankController çš„å°„æ“Šæ–¹å‘ï¼Œæˆ–è€…ä½¿ç”¨ç™¼å°„é»çš„æ–¹å‘
         if (tankController != null)
         {
             fireDirection = tankController.GetFireDirection();
@@ -267,62 +273,79 @@ public class MultiTurretShooting : MonoBehaviour
             fireDirection = firePoint.forward;
         }
 
-        // ±q¼Ò²Õ¤Æ©Z§J¨t²ÎÀò¨ú¤l¼uÁY©ñ
+        // å¾æ¨¡çµ„åŒ–å¦å…‹ç³»çµ±ç²å–å­å½ˆç¸®æ”¾
         float bulletScale = 1f;
         if (modularTank != null)
         {
             bulletScale = modularTank.GetBulletSizeMultiplier();
         }
 
-        // ³Ğ«Ø¤l¼u
+        // å‰µå»ºå­å½ˆ
         GameObject bullet = Instantiate(bulletPrefab, firePosition, Quaternion.LookRotation(fireDirection));
 
-        // ®Ú¾Ú¬¶¶ğ¤j¤pÁY©ñ¤l¼u
+        // æ ¹æ“šç‚®å¡”å¤§å°ç¸®æ”¾å­å½ˆ
         bullet.transform.localScale = Vector3.one * bulletScale;
 
-        // ³]¸m¤l¼u³t«×
+        // è¨­ç½®å­å½ˆé€Ÿåº¦
         Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
         if (bulletRb != null)
         {
             bulletRb.linearVelocity = fireDirection * baseBulletSpeed;
         }
 
-        // °t¸m¤l¼u¸}¥»
-        Bullet bulletScript = bullet.GetComponent<Bullet>();
-        if (bulletScript != null)
+        // é…ç½®å­å½ˆè…³æœ¬ - æª¢æŸ¥å…©ç¨®å¯èƒ½çš„å­å½ˆè…³æœ¬
+        ScalableBullet scalableBullet = bullet.GetComponent<ScalableBullet>();
+        if (scalableBullet != null)
         {
-            bulletScript.SetLifetime(bulletLifetime);
-            bulletScript.SetShooter(gameObject);
+            scalableBullet.SetLifetime(bulletLifetime);
+            scalableBullet.SetShooter(gameObject);
+
+            // å¾æ¨¡çµ„åŒ–å¦å…‹æ‡‰ç”¨å‚·å®³å€æ•¸
+            if (modularTank != null)
+            {
+                float damageMultiplier = modularTank.GetDamageMultiplier();
+                scalableBullet.SetDamageMultiplier(damageMultiplier);
+            }
         }
         else
         {
-            // «á³Æ¾P·´
-            Destroy(bullet, bulletLifetime);
+            // å›é€€åˆ°åŸå§‹ Bullet è…³æœ¬
+            Bullet bulletScript = bullet.GetComponent<Bullet>();
+            if (bulletScript != null)
+            {
+                bulletScript.SetLifetime(bulletLifetime);
+                bulletScript.SetShooter(gameObject);
+            }
+            else
+            {
+                // å¦‚æœæ²’æœ‰ä»»ä½•å­å½ˆè…³æœ¬ï¼Œå‰‡å¾Œå‚™éŠ·æ¯€
+                Destroy(bullet, bulletLifetime);
+            }
         }
 
-        // ¬°¦¹¬¶¶ğ¼½©ñºj¤f°{¥ú
+        // ç‚ºæ­¤ç‚®å¡”æ’­æ”¾æ§å£é–ƒå…‰
         if (turretIndex < muzzleFlashes.Count && muzzleFlashes[turretIndex] != null)
         {
             muzzleFlashes[turretIndex].Play();
         }
 
-        Debug.Log($"±q¬¶¶ğ {turretIndex} ®gÀ» - ÁY©ñ¡G{bulletScale:F2}");
+        Debug.Log($"å¾ç‚®å¡” {turretIndex} å°„æ“Š - ç¸®æ”¾ï¼š{bulletScale:F2}");
     }
 
     private void PlayShootSound()
     {
         if (audioSource != null && shootSound != null)
         {
-            // ®Ú¾Ú¬¶¶ğ¼Æ¶qµy·L§ïÅÜ­µ½Õ¥H¼W¥[­µÀWÅÜ¤Æ
+            // æ ¹æ“šç‚®å¡”æ•¸é‡ç¨å¾®æ”¹è®ŠéŸ³èª¿ä»¥å¢åŠ éŸ³é »è®ŠåŒ–
             float pitchVariation = 1f + (allFirePoints.Count - 1) * 0.1f;
             audioSource.pitch = pitchVariation;
             audioSource.PlayOneShot(shootSound);
-            audioSource.pitch = 1f; // ­«¸m­µ½Õ
+            audioSource.pitch = 1f; // é‡ç½®éŸ³èª¿
         }
     }
 
     /// <summary>
-    /// ±j¨î¨ê·sµo®gÂI¡]·í©Z§J°t¸m§ó§ï®É½Õ¥Î¡^
+    /// å¼·åˆ¶åˆ·æ–°ç™¼å°„é»ï¼ˆç•¶å¦å…‹é…ç½®æ›´æ”¹æ™‚èª¿ç”¨ï¼‰
     /// </summary>
     public void RefreshFirePoints()
     {
@@ -330,7 +353,7 @@ public class MultiTurretShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// Àò¨ú·í«e¬¡ÅD¬¶¶ğ¼Æ¶q
+    /// ç²å–ç•¶å‰æ´»èºç‚®å¡”æ•¸é‡
     /// </summary>
     public int GetTurretCount()
     {
@@ -338,7 +361,7 @@ public class MultiTurretShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// ³]¸m¤l¼u¹w»s¥ó¡]¥Î©ó¤£¦P¤É¯ÅÃş«¬¡^
+    /// è¨­ç½®å­å½ˆé è£½ä»¶ï¼ˆç”¨æ–¼ä¸åŒå‡ç´šé¡å‹ï¼‰
     /// </summary>
     public void SetBulletPrefab(GameObject newBulletPrefab)
     {
@@ -346,7 +369,7 @@ public class MultiTurretShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// ­«¸m®gÀ»§N«o
+    /// é‡ç½®å°„æ“Šå†·å»
     /// </summary>
     public void ResetFireCooldown()
     {
@@ -354,17 +377,17 @@ public class MultiTurretShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// ¤Á´«¦Û°Ê®gÀ»¼Ò¦¡
+    /// åˆ‡æ›è‡ªå‹•å°„æ“Šæ¨¡å¼
     /// </summary>
     public void ToggleAutoFire()
     {
         enableAutoFire = !enableAutoFire;
-        Debug.Log($"¦Û°Ê®gÀ»¡G{(enableAutoFire ? "¤w±Ò¥Î" : "¤w¸T¥Î")}");
+        Debug.Log($"è‡ªå‹•å°„æ“Šï¼š{(enableAutoFire ? "å·²å•Ÿç”¨" : "å·²ç¦ç”¨")}");
     }
 
     #region Debug Methods
 
-    [ContextMenu("´ú¸Õ³æ¬¶¶ğ®gÀ»")]
+    [ContextMenu("æ¸¬è©¦å–®ç‚®å¡”å°„æ“Š")]
     public void TestSingleFire()
     {
         if (allFirePoints.Count > 0)
@@ -373,27 +396,27 @@ public class MultiTurretShooting : MonoBehaviour
         }
     }
 
-    [ContextMenu("´ú¸Õ©Ò¦³¬¶¶ğ®gÀ»")]
+    [ContextMenu("æ¸¬è©¦æ‰€æœ‰ç‚®å¡”å°„æ“Š")]
     public void TestAllTurretsFire()
     {
         FireAllTurrets();
     }
 
-    [ContextMenu("¥´¦L¬¶¶ğ¸ê°T")]
+    [ContextMenu("æ‰“å°ç‚®å¡”è³‡è¨Š")]
     public void PrintTurretInfo()
     {
-        Debug.Log($"=== ¦h¬¶¶ğ®gÀ»¸ê°T ===");
-        Debug.Log($"¬¡ÅD¬¶¶ğ¡G{allFirePoints.Count}");
-        Debug.Log($"®g³t¡G{baseFireRate:F2}");
-        Debug.Log($"¤l¼u³t«×¡G{baseBulletSpeed:F2}");
-        Debug.Log($"¦Û°Ê®gÀ»¡G{enableAutoFire}");
-        Debug.Log($"¥ş³¡¦P®É®gÀ»¡G{fireAllTurretsSimultaneously}");
+        Debug.Log($"=== å¤šç‚®å¡”å°„æ“Šè³‡è¨Š ===");
+        Debug.Log($"æ´»èºç‚®å¡”ï¼š{allFirePoints.Count}");
+        Debug.Log($"å°„é€Ÿï¼š{baseFireRate:F2}");
+        Debug.Log($"å­å½ˆé€Ÿåº¦ï¼š{baseBulletSpeed:F2}");
+        Debug.Log($"è‡ªå‹•å°„æ“Šï¼š{enableAutoFire}");
+        Debug.Log($"å…¨éƒ¨åŒæ™‚å°„æ“Šï¼š{fireAllTurretsSimultaneously}");
 
         for (int i = 0; i < allFirePoints.Count; i++)
         {
             if (allFirePoints[i] != null)
             {
-                Debug.Log($"  ¬¶¶ğ {i}¡G{allFirePoints[i].name} ¦b {allFirePoints[i].position}");
+                Debug.Log($"  ç‚®å¡” {i}ï¼š{allFirePoints[i].name} åœ¨ {allFirePoints[i].position}");
             }
         }
     }

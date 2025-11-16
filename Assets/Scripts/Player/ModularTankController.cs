@@ -36,6 +36,7 @@ public class ModularTankController : MonoBehaviour
     // 組件引用
     private TankController tankController;
     private TankShooting tankShooting;
+    private MultiTurretShooting multiTurretShooting;
 
     [System.Serializable]
     public class TankUpgradeConfig
@@ -81,6 +82,7 @@ public class ModularTankController : MonoBehaviour
         // 獲取組件引用
         tankController = GetComponent<TankController>();
         tankShooting = GetComponent<TankShooting>();
+        multiTurretShooting = GetComponent<MultiTurretShooting>();
 
         // 如果未分配，則自動查找坦克部件
         if (tankBase == null)
@@ -384,6 +386,12 @@ public class ModularTankController : MonoBehaviour
             AddAdditionalTurrets();
         }
 
+        // 通知多炮塔射擊系統更新發射點
+        if (multiTurretShooting != null)
+        {
+            multiTurretShooting.RefreshFirePoints();
+        }
+
         Debug.Log($"已應用炮塔配置 - 數量：{currentConfig.turretCount}");
     }
 
@@ -454,24 +462,27 @@ public class ModularTankController : MonoBehaviour
 
     private void ApplyGameplayStats()
     {
-        // 將統計資料應用於坦克控制器
-        if (tankController != null)
-        {
-            // 計算新移動速度
-            float newMoveSpeed = 5f * currentConfig.moveSpeedMultiplier; // 5f 是基礎速度
-            tankController.SetMoveSpeed(newMoveSpeed);
-        }
-
-        // 將統計資料應用於坦克射擊
-        if (tankShooting != null)
+        // 應用統計資料到射擊系統（TankShooting 或 MultiTurretShooting）
+        if (multiTurretShooting != null)
         {
             // 計算新射速（考慮多炮塔）
             float baseFireRate = 1.2f; // 基礎射速
             float adjustedFireRate = baseFireRate * currentConfig.fireRateMultiplier;
-            tankShooting.SetFireRate(adjustedFireRate);
+            multiTurretShooting.SetFireRate(adjustedFireRate);
 
             // 計算新子彈速度
             float baseBulletSpeed = 5f; // 基礎子彈速度
+            float newBulletSpeed = baseBulletSpeed * currentConfig.bulletSpeedMultiplier;
+            multiTurretShooting.SetBulletSpeed(newBulletSpeed);
+        }
+        else if (tankShooting != null)
+        {
+            // 回退到原始 TankShooting
+            float baseFireRate = 1.2f;
+            float adjustedFireRate = baseFireRate * currentConfig.fireRateMultiplier;
+            tankShooting.SetFireRate(adjustedFireRate);
+
+            float baseBulletSpeed = 5f;
             float newBulletSpeed = baseBulletSpeed * currentConfig.bulletSpeedMultiplier;
             tankShooting.SetBulletSpeed(newBulletSpeed);
         }
@@ -480,7 +491,6 @@ public class ModularTankController : MonoBehaviour
         var playerHealth = GetComponent<PlayerHealth>();
         if (playerHealth != null && currentConfig.healthBonus != 0)
         {
-            // 你可能想要創建一個方法來修改最大健康值
             Debug.Log($"已應用健康獎勵：{currentConfig.healthBonus}");
         }
 
@@ -492,14 +502,12 @@ public class ModularTankController : MonoBehaviour
         // 添加發光效果
         if (currentConfig.hasGlowEffect)
         {
-            // 將發光效果添加到坦克（你可以根據你的視覺偏好實現此功能）
             Debug.Log("已應用發光效果");
         }
 
         // 添加粒子尾跡
         if (currentConfig.hasParticleTrail)
         {
-            // 添加粒子尾跡效果（你可以根據你的視覺偏好實現此功能）
             Debug.Log("已應用粒子尾跡效果");
         }
     }
