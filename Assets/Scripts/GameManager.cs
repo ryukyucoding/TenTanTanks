@@ -46,6 +46,18 @@ public class GameManager : MonoBehaviour
 
     // 單例模式（保持原有功能）
     public static GameManager Instance;
+    
+    /// <summary>
+    /// 获取当前玩家坦克对象
+    /// </summary>
+    public static GameObject GetPlayerTank()
+    {
+        if (Instance != null)
+        {
+            return Instance.playerTank;
+        }
+        return null;
+    }
 
     void Awake()
     {

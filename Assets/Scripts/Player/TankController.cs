@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class TankController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
+    private float moveSpeed = 2.5f;  // 基礎速度，會被 TankStats 動態設置
     [SerializeField] private float rotationSpeed = 200f;
 
     [Header("Tank Parts")]
@@ -35,24 +35,65 @@ public class TankController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerInput = GetComponent<PlayerInput>();
 
+        Debug.Log($"[TankController.Awake] 物件: {gameObject.name}");
+        Debug.Log($"  - Rigidbody: {(rb != null ? "找到" : "缺失")}");
+        Debug.Log($"  - PlayerInput: {(playerInput != null ? "找到" : "缺失")}");
+
         // 嚙緘嚙瘦嚙磅嚙踝蕭嚙踝蕭嚙緩嚙賦像嚙踝蕭嚙璀嚙踝蕭嚙調改蕭嚙瘩嚙賦像嚙踝蕭
         if (playerCamera == null)
             playerCamera = Camera.main;
 
         // 嚙稽嚙練Rigidbody嚙稽嚙踝蕭嚙踝蕭翻嚙線嚙稷
-        rb.freezeRotation = true;
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+        }
+        else
+        {
+            Debug.LogError($"? Rigidbody 缺失！物件: {gameObject.name}");
+        }
+    }
+
+    /// <summary>
+    /// 設置移動速度（由 TankStats 呼叫）
+    /// </summary>
+    public void SetMoveSpeed(float speed)
+    {
+        float oldSpeed = moveSpeed;
+        moveSpeed = speed;
+        Debug.Log($"? TankController.SetMoveSpeed 被調用！");
+        Debug.Log($"   物件: {gameObject.name}");
+        Debug.Log($"   舊速度: {oldSpeed:F2}");
+        Debug.Log($"   新速度: {speed:F2}");
+        Debug.Log($"   當前 moveSpeed 值: {moveSpeed:F2}");
+    }
+
+    /// <summary>
+    /// 獲取當前移動速度（用於調試）
+    /// </summary>
+    public float GetCurrentMoveSpeed()
+    {
+        return moveSpeed;
     }
 
     void OnEnable()
     {
+        if (playerInput == null)
+        {
+            Debug.LogError($"? PlayerInput 是 null，無法啟用輸入！物件: {gameObject.name}");
+            return;
+        }
+
         // 嚙篌嚙緩嚙踝蕭J嚙複伐蕭
         moveAction = playerInput.actions["Move"];
         lookAction = playerInput.actions["Look"];
         shootAction = playerInput.actions["Attack"];
 
-        moveAction.Enable();
-        lookAction.Enable();
-        shootAction.Enable();
+        moveAction?.Enable();
+        lookAction?.Enable();
+        shootAction?.Enable();
+        
+        Debug.Log($"[TankController.OnEnable] 輸入系統已啟用 (物件: {gameObject.name})");
     }
 
     void OnDisable()
@@ -65,6 +106,19 @@ public class TankController : MonoBehaviour
 
     void Update()
     {
+        // 測試用：按 K 鍵強制設置速度為 10（使用 Input System）
+        if (Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
+        {
+            moveSpeed = 10f;
+            Debug.Log($"!!! 強制設置速度為 10.0 (物件: {gameObject.name})");
+        }
+        
+        // 測試用：按 L 鍵顯示當前速度（使用 Input System）
+        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
+        {
+            Debug.Log($"=== 當前移動速度 = {moveSpeed:F2} (物件: {gameObject.name}) ===");
+        }
+        
         // 讀嚙踝蕭嚙踝蕭J
         HandleInput();
 
@@ -80,6 +134,13 @@ public class TankController : MonoBehaviour
 
     private void HandleInput()
     {
+        // 檢查輸入系統是否已初始化
+        if (moveAction == null || lookAction == null || playerInput == null)
+        {
+            Debug.LogWarning("Input系統尚未初始化！");
+            return;
+        }
+        
         // 嚙踝蕭嚙踝蕭嚙踝蕭尪嚙皚
         moveInput = moveAction.ReadValue<Vector2>();
         // 嚙踝蕭嚙踝蕭侇嚙?
@@ -90,6 +151,18 @@ public class TankController : MonoBehaviour
 
     private void HandleMovement()
     {
+        if (rb == null)
+        {
+            Debug.LogError("? Rigidbody 是 null，無法移動！");
+            return;
+        }
+        
+        // 每隔一段時間顯示當前速度值（調試用）
+        if (Time.frameCount % 60 == 0 && moveInput.magnitude > 0.1f)
+        {
+            Debug.Log($"[HandleMovement] 當前 moveSpeed = {moveSpeed:F2}, moveInput = {moveInput}");
+        }
+        
         // 嚙緘嚙賤移嚙褊歹蕭V
         Vector3 moveDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
 

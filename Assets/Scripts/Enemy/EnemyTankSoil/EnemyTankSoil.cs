@@ -309,6 +309,13 @@ public class EnemyTank : MonoBehaviour, IDamageable
             GameManager.Instance.OnEnemyDestroyed();
         }
 
+        // 通知 UpgradePointManager 敵人已被擊殺
+        UpgradePointManager upgradeManager = FindFirstObjectByType<UpgradePointManager>();
+        if (upgradeManager != null)
+        {
+            upgradeManager.OnEnemyKilled();
+        }
+
         // �i�H�b�o�̲K�[���`�S��
         Debug.Log("Enemy tank destroyed!");
 

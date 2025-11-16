@@ -457,6 +457,7 @@ GameObject:
   - component: {fileID: 874888524644429295}
   - component: {fileID: 1926959128346804190}
   - component: {fileID: 618302629183550047}
+  - component: {fileID: -460199179078218526}
   - component: {fileID: 6168854359044807033}
   m_Layer: 0
   m_Name: PlayerTank(G)
@@ -473,9 +474,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8621377706946314261}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0027477, y: -0.089049, z: -0.048337}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6611656069306511290}
@@ -528,8 +529,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.5249262, y: 0.3336054, z: 0.73655766}
-  m_Center: {x: 0.0054538846, y: 0.1668027, z: 0.09594294}
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &874888524644429295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -572,7 +573,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6898a30d215d35c439b5a331faafcd00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankController
-  moveSpeed: 4
   rotationSpeed: 200
   tankBody: {fileID: 6611656069306511290}
   turret: {fileID: 8177436133700395142}
@@ -591,11 +591,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankShooting
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
-  bulletSpeed: 10
-  fireRate: 1
-  bulletLifetime: 5
+  bulletLifetime: 3
   shootSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
   muzzleFlash: {fileID: 0}
+--- !u!114 &-460199179078218526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8621377706946314261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ad9a7334beca649a5a5a058703d11d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankStats
+  baseMoveSpeed: 2.5
+  baseBulletSpeed: 5
+  baseFireRate: 1.2
+  moveSpeedIncrement: 0.3
+  bulletSpeedIncrement: 0.5
+  fireRateIncrement: 0.3
+  maxMoveSpeedLevel: 100
+  maxBulletSpeedLevel: 100
+  maxFireRateLevel: 100
 --- !u!114 &6168854359044807033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -608,7 +627,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aec0fecb9837ac4dbb4c116fe837e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 2
+  maxHealth: 5
   currentHealth: 0
   invulnerabilityTime: 1
   damageEffect: {fileID: 0}
