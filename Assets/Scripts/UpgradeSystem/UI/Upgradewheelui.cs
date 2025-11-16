@@ -22,8 +22,8 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private Transform centerPoint;           // 中心點
     [SerializeField] private Transform tier1Container;        // 第二層容器
     [SerializeField] private Transform tier2Container;        // 第三層容器
-    [SerializeField] private float tier1Radius = 150f;       // 第二層半徑
-    [SerializeField] private float tier2Radius = 250f;       // 第三層半徑
+    [SerializeField] private float tier1Radius = 320f;       // 第二層半徑
+    [SerializeField] private float tier2Radius = 640f;       // 第三層半徑
 
     [Header("Upgrade Button")]
     [SerializeField] private GameObject upgradeButtonPrefab; // 升級按鈕預製體
@@ -42,6 +42,11 @@ public class UpgradeWheelUI : MonoBehaviour
     private UpgradeOption selectedTier2Option;
     private UpgradeState currentState = UpgradeState.SelectingTier1;
 
+    // Store original center area properties to preserve them during animation
+    private Vector3 originalCenterScale;
+    private Vector3 originalCenterPosition;
+    private bool centerPropertiesStored = false;
+
     private enum UpgradeState
     {
         SelectingTier1,  // 選擇第二層
@@ -53,7 +58,28 @@ public class UpgradeWheelUI : MonoBehaviour
     {
         upgradeSystem = FindObjectOfType<TankUpgradeSystem>();
         SetupUI();
+        StoreCenterProperties(); // Store center area properties on start
         HideWheel();
+    }
+
+    private void StoreCenterProperties()
+    {
+        if (centerPoint != null)
+        {
+            originalCenterScale = centerPoint.localScale;
+            originalCenterPosition = centerPoint.localPosition;
+            centerPropertiesStored = true;
+            Debug.Log($"Stored center properties: Position={originalCenterPosition}, Scale={originalCenterScale}");
+        }
+    }
+
+    private void RestoreCenterProperties()
+    {
+        if (centerPoint != null && centerPropertiesStored)
+        {
+            centerPoint.localScale = originalCenterScale;
+            centerPoint.localPosition = originalCenterPosition;
+        }
     }
 
     private void SetupUI()
@@ -80,6 +106,10 @@ public class UpgradeWheelUI : MonoBehaviour
     {
         if (upgradeCanvas != null)
             upgradeCanvas.gameObject.SetActive(true);
+
+        // Store center properties if not already stored
+        if (!centerPropertiesStored)
+            StoreCenterProperties();
 
         StartCoroutine(ShowWheelAnimation());
         currentState = UpgradeState.SelectingTier1;
@@ -114,7 +144,7 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
-        // 輪盤縮放動畫
+        // 輪盤縮放動畫 - FIXED VERSION
         if (wheelContainer != null)
         {
             wheelContainer.transform.localScale = Vector3.zero;
@@ -125,9 +155,16 @@ public class UpgradeWheelUI : MonoBehaviour
                 elapsed += Time.deltaTime;
                 float progress = Mathf.SmoothStep(0f, 1f, elapsed / wheelScaleInDuration);
                 wheelContainer.transform.localScale = Vector3.one * progress;
+
+                // Keep center area properties intact during animation
+                RestoreCenterProperties();
+
                 yield return null;
             }
             wheelContainer.transform.localScale = Vector3.one;
+
+            // Final restoration to ensure center area is correctly positioned
+            RestoreCenterProperties();
         }
     }
 
@@ -144,6 +181,10 @@ public class UpgradeWheelUI : MonoBehaviour
                 elapsed += Time.deltaTime;
                 float progress = elapsed / (wheelScaleInDuration * 0.5f);
                 wheelContainer.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, progress);
+
+                // Keep center area properties intact during hide animation
+                RestoreCenterProperties();
+
                 yield return null;
             }
         }
@@ -348,6 +389,18 @@ public class UpgradeWheelUI : MonoBehaviour
             ShowTier1Options();
             UpdateTitle("選擇升級方向");
             UpdateDescription("選擇你想要的坦克升級路線");
+        }
+    }
+
+    // Debug method to manually fix center area positioning
+    [ContextMenu("Fix Center Area Position")]
+    public void FixCenterAreaPosition()
+    {
+        if (centerPoint != null)
+        {
+            centerPoint.localPosition = Vector3.zero;
+            centerPoint.localScale = Vector3.one;
+            Debug.Log("Center area position manually fixed");
         }
     }
 }
