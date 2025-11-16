@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;  // 加入 Input System 命名空間
 
 public class TankShooting : MonoBehaviour
 {
@@ -8,6 +9,9 @@ public class TankShooting : MonoBehaviour
     [SerializeField] private float fireRate = 1f;         // ??????????
     [SerializeField] private float bulletLifetime = 5f;   // ??????
 
+    [Header("Auto Fire Settings")]
+    // 不再使用 KeyCode，改用 Input System 的 Key
+    
     [Header("Audio & Effects")]
     [SerializeField] private AudioClip shootSound;        // ????
     [SerializeField] private ParticleSystem muzzleFlash;  // ??????
@@ -18,6 +22,8 @@ public class TankShooting : MonoBehaviour
 
     // ????
     private float nextFireTime = 0f;
+    private bool isAutoFireEnabled = false;  // 自動射擊開關
+    private bool wasAutoFireKeyPressed = false;  // 記錄上一幀的按鍵狀態
 
     void Awake()
     {
@@ -31,13 +37,50 @@ public class TankShooting : MonoBehaviour
 
     void Update()
     {
+        // 檢查自動射擊切換鍵
+        HandleAutoFireToggle();
+        
+        // 處理射擊
         HandleShooting();
+    }
+
+    private void HandleAutoFireToggle()
+    {
+        // 使用 Input System 的 Keyboard.current 來檢測 E 鍵
+        if (Keyboard.current != null)
+        {
+            bool isEKeyPressed = Keyboard.current.eKey.isPressed;
+            
+            // 檢測按鍵從未按下變成按下（類似 GetKeyDown）
+            if (isEKeyPressed && !wasAutoFireKeyPressed)
+            {
+                isAutoFireEnabled = !isAutoFireEnabled;
+                Debug.Log($"自動射擊: {(isAutoFireEnabled ? "開啟" : "關閉")}");
+            }
+            
+            // 更新按鍵狀態
+            wasAutoFireKeyPressed = isEKeyPressed;
+        }
     }
 
     private void HandleShooting()
     {
-        // ????????
-        if (tankController.IsShootPressed() && CanShoot())
+        // 檢查是否應該射擊
+        bool shouldShoot = false;
+        
+        // 情況 1: 按住左鍵（手動射擊）
+        if (tankController.IsShootPressed())
+        {
+            shouldShoot = true;
+        }
+        // 情況 2: 自動射擊模式開啟
+        else if (isAutoFireEnabled)
+        {
+            shouldShoot = true;
+        }
+
+        // 如果應該射擊且冷卻時間已過
+        if (shouldShoot && CanShoot())
         {
             Shoot();
         }
