@@ -1,9 +1,11 @@
+using WheelUpgradeSystem;
+
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 
 [System.Serializable]
-public class TankStats
+public class WheelTankStats
 {
     [Header("Combat Stats")]
     public float damage = 1f;           // 傷害值
@@ -26,7 +28,7 @@ public class TankStats
 }
 
 [System.Serializable]
-public class UpgradeOption
+public class WheelUpgradeOption
 {
     [Header("Basic Info")]
     public string upgradeName;          // 升級名稱
@@ -34,7 +36,7 @@ public class UpgradeOption
     public Sprite icon;                 // 圖標
 
     [Header("Stats Modification")]
-    public TankStats stats;             // 該升級的屬性
+    public WheelTankStats stats;             // 該升級的屬性
 
     [Header("Unlock Requirements")]
     public int tierLevel;               // 層級 (1=第二層, 2=第三層)
@@ -44,14 +46,14 @@ public class UpgradeOption
 public class TankUpgradeSystem : MonoBehaviour
 {
     [Header("Upgrade Configuration")]
-    [SerializeField] private List<UpgradeOption> availableUpgrades = new List<UpgradeOption>();
+    [SerializeField] private List<WheelUpgradeOption> availableUpgrades = new List<WheelUpgradeOption>();
 
     [Header("Current Tank State")]
-    [SerializeField] private TankStats currentStats = new TankStats();
+    [SerializeField] private WheelTankStats currentStats = new WheelTankStats();
     [SerializeField] private string currentUpgradePath = "Basic"; // 當前升級路徑
 
     // 升級事件
-    public static event Action<TankStats> OnTankUpgraded;
+    public static event Action<WheelTankStats> OnTankUpgraded;
     public static event Action<string> OnUpgradePathChanged;
     private void Start()
     {
@@ -65,12 +67,12 @@ public class TankUpgradeSystem : MonoBehaviour
         availableUpgrades.Clear();
 
         // 基礎坦克
-        var basicTank = new UpgradeOption
+        var basicTank = new WheelUpgradeOption
         {
             upgradeName = "Basic",
             description = "標準坦克配置",
             tierLevel = 0,
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 25f,
                 fireRate = 1f,
@@ -85,12 +87,12 @@ public class TankUpgradeSystem : MonoBehaviour
         };
 
         // 第二層升級選項
-        var heavyOption = new UpgradeOption
+        var heavyOption = new WheelUpgradeOption
         {
             upgradeName = "Heavy",
             description = "重型砲管 - 大傷害，慢射速",
             tierLevel = 1,
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 50f,           // 大傷害
                 fireRate = 0.5f,        // 慢射速
@@ -104,12 +106,12 @@ public class TankUpgradeSystem : MonoBehaviour
             }
         };
 
-        var rapidOption = new UpgradeOption
+        var rapidOption = new WheelUpgradeOption
         {
             upgradeName = "Rapid",
             description = "快速砲管 - 高射速，小傷害",
             tierLevel = 1,
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 15f,           // 小傷害
                 fireRate = 3f,          // 快射速
@@ -123,12 +125,12 @@ public class TankUpgradeSystem : MonoBehaviour
             }
         };
 
-        var balancedOption = new UpgradeOption
+        var balancedOption = new WheelUpgradeOption
         {
             upgradeName = "Balanced",
             description = "平衡砲管 - 中等屬性",
             tierLevel = 1,
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 30f,           // 中等傷害
                 fireRate = 1.5f,        // 中等射速
@@ -143,13 +145,13 @@ public class TankUpgradeSystem : MonoBehaviour
         };
 
         // 第三層升級選項（Heavy的變體）
-        var superHeavy = new UpgradeOption
+        var superHeavy = new WheelUpgradeOption
         {
             upgradeName = "SuperHeavy",
             description = "超重型砲管 - 極大傷害",
             tierLevel = 2,
             parentUpgradeName = "Heavy",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 80f,
                 fireRate = 0.3f,
@@ -163,13 +165,13 @@ public class TankUpgradeSystem : MonoBehaviour
             }
         };
 
-        var armorPiercing = new UpgradeOption
+        var armorPiercing = new WheelUpgradeOption
         {
             upgradeName = "ArmorPiercing",
             description = "穿甲砲管 - 穿透護甲",
             tierLevel = 2,
             parentUpgradeName = "Heavy",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 40f,
                 fireRate = 0.8f,
@@ -184,13 +186,13 @@ public class TankUpgradeSystem : MonoBehaviour
         };
 
         // Rapid的變體
-        var machineGun = new UpgradeOption
+        var machineGun = new WheelUpgradeOption
         {
             upgradeName = "MachineGun",
             description = "機槍砲管 - 極高射速",
             tierLevel = 2,
             parentUpgradeName = "Rapid",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 8f,
                 fireRate = 5f,          // 極高射速
@@ -204,13 +206,13 @@ public class TankUpgradeSystem : MonoBehaviour
             }
         };
 
-        var burst = new UpgradeOption
+        var burst = new WheelUpgradeOption
         {
             upgradeName = "Burst",
             description = "爆發砲管 - 三連發",
             tierLevel = 2,
             parentUpgradeName = "Rapid",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 12f,
                 fireRate = 2f,
@@ -225,13 +227,13 @@ public class TankUpgradeSystem : MonoBehaviour
         };
 
         // Balanced的變體
-        var versatile = new UpgradeOption
+        var versatile = new WheelUpgradeOption
         {
             upgradeName = "Versatile",
             description = "萬能砲管 - 全能提升",
             tierLevel = 2,
             parentUpgradeName = "Balanced",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 35f,
                 fireRate = 1.8f,
@@ -245,13 +247,13 @@ public class TankUpgradeSystem : MonoBehaviour
             }
         };
 
-        var tactical = new UpgradeOption
+        var tactical = new WheelUpgradeOption
         {
             upgradeName = "Tactical",
             description = "戰術砲管 - 精準射擊",
             tierLevel = 2,
             parentUpgradeName = "Balanced",
-            stats = new TankStats
+            stats = new WheelTankStats
             {
                 damage = 40f,
                 fireRate = 1.2f,
@@ -298,9 +300,9 @@ public class TankUpgradeSystem : MonoBehaviour
         Debug.Log($"Current tank stats applied: {currentUpgradePath}");
     }
 
-    public List<UpgradeOption> GetAvailableUpgrades(int tierLevel, string parentName = "")
+    public List<WheelUpgradeOption> GetAvailableUpgrades(int tierLevel, string parentName = "")
     {
-        var available = new List<UpgradeOption>();
+        var available = new List<WheelUpgradeOption>();
 
         foreach (var upgrade in availableUpgrades)
         {
@@ -322,6 +324,6 @@ public class TankUpgradeSystem : MonoBehaviour
         return available;
     }
 
-    public TankStats GetCurrentStats() => currentStats;
+    public WheelTankStats GetCurrentStats() => currentStats;
     public string GetCurrentUpgradePath() => currentUpgradePath;
 }
