@@ -122,7 +122,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
+  - {fileID: 2100000, guid: 106872a3a3d0f48c8b7187b0d212c206, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -454,9 +454,9 @@ GameObject:
   - component: {fileID: 1955046153446535976}
   - component: {fileID: 9143694021594648180}
   - component: {fileID: 8859893981197329191}
-  - component: {fileID: -5758586374078236473}
+  - component: {fileID: -7144581216109391598}
   m_Layer: 0
-  m_Name: EnemyTankSoil
+  m_Name: EnemyTankGreen
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -527,7 +527,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.5042801, y: 0.34965152, z: 0.76961076}
   m_Center: {x: 0.0030035973, y: 0.17482576, z: 0.11519462}
---- !u!114 &-5758586374078236473
+--- !u!114 &-7144581216109391598
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -536,29 +536,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 8883446190524244325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ecf7e6832bd04545bf5bc01794f3ce7, type: 3}
+  m_Script: {fileID: 11500000, guid: fc0d1c1703e4d440b99af3ab8bcf95ec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyTank
-  moveSpeed: 3
-  rotationSpeed: 100
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTankGreen
+  moveSpeed: 20
+  rotationSpeed: 150
   detectionRange: 10
-  shootingRange: 8
-  minDistanceToPlayer: 3
+  shootingRange: 4
+  stopDistance: 2
+  pathfindingCheckRadius: 0.8
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  boundaryX: 20
+  boundaryZ: 20
+  pathUpdateInterval: 1
   tankBody: {fileID: 5313715337535331726}
   turret: {fileID: 8044837445949208610}
   firePoint: {fileID: 4448625178629235575}
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
-  bulletSpeed: 7
-  fireRate: 1
+  bulletSpeed: 15
+  fireRate: 0.5
   maxHealth: 1
-  patrolRadius: 5
-  patrolWaitTime: 2
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 1
   explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
   explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
   explosionDuration: 2
+  currentState: 0
 --- !u!1001 &8487733035452641612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -614,7 +617,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 137cf844b33be3d4ea0bd359edf7f5f4, type: 2}
+      objectReference: {fileID: 2100000, guid: 106872a3a3d0f48c8b7187b0d212c206, type: 2}
     - target: {fileID: -7511558181221131132, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 

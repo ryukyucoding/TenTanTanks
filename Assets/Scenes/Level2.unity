@@ -3577,12 +3577,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3173428de09924ae5919d24c949709d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleLevelController
-  levelDataAsset: {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
+  levelDataAsset: {fileID: 11400000, guid: fa7b44adcc3cd477bba8416ecca8acf6, type: 2}
   spawnPoints:
   - {fileID: 545535484}
   - {fileID: 580951024}
   - {fileID: 1870815557}
-  enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+  enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
   waveStartDelay: 2
   currentWaveIndex: 0
   isWaveActive: 1
@@ -3712,7 +3712,7 @@ MonoBehaviour:
   gameTime: 300
   enemyCount: 3
   playerTankPrefab: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
-  enemyTankPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+  enemyTankPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
   spawnPoints: []
   healthText: {fileID: 0}
   enemyCountText: {fileID: 0}
