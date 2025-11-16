@@ -53,7 +53,6 @@ public class TankUpgradeSystem : MonoBehaviour
     // ¤É¯Å¨Æ¥ó
     public static event Action<TankStats> OnTankUpgraded;
     public static event Action<string> OnUpgradePathChanged;
-
     private void Start()
     {
         InitializeDefaultUpgrades();

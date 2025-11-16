@@ -150,8 +150,9 @@ GameObject:
   - component: {fileID: 3102418913379217430}
   - component: {fileID: 148670567588267892}
   - component: {fileID: 3097942531174212696}
+  - component: {fileID: 8824372983964834539}
   m_Layer: 5
-  m_Name: Tier1Button
+  m_Name: Buttons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -259,3 +260,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8824372983964834539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3417239843519057441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be9d235372d04814a86d36ae5ea2fdee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeButton
+  button: {fileID: 0}
+  nameText: {fileID: 0}
+  iconImage: {fileID: 0}
+  backgroundImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  hoverColor: {r: 0, g: 1, b: 1, a: 1}
