@@ -20,7 +20,7 @@ public class TankController : MonoBehaviour
     private Vector2 mousePosition;
     private Vector2 lookInput;
 
-    // ï¿½Õ¥ï¿½Þ¥ï¿½
+    // ï¿½Õ¥ï¿½Þ¥ï¿?
     private Rigidbody rb;
     private PlayerInput playerInput;
 
@@ -31,7 +31,7 @@ public class TankController : MonoBehaviour
 
     void Awake()
     {
-        // ï¿½ï¿½ï¿½ï¿½Õ¥ï¿½
+        // ï¿½ï¿½ï¿½ï¿½Õ¥ï¿?
         rb = GetComponent<Rigidbody>();
         playerInput = GetComponent<PlayerInput>();
 
@@ -82,9 +82,9 @@ public class TankController : MonoBehaviour
     {
         // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½J
         moveInput = moveAction.ReadValue<Vector2>();
-        // ï¿½ï¿½ï¿½ï¿½Ë·ï¿½
+        // ï¿½ï¿½ï¿½ï¿½Ë·ï¿?
         lookInput = playerInput.actions["Look"].ReadValue<Vector2>();
-        // ï¿½ï¿½ï¿½ï¿½Æ¹ï¿½ï¿½ï¿½m
+        // ï¿½ï¿½ï¿½ï¿½?¹ï¿½ï¿½ï¿½m
         mousePosition = lookAction.ReadValue<Vector2>();
     }
 
@@ -109,7 +109,7 @@ public class TankController : MonoBehaviour
     {
         if (turret == null || playerCamera == null) 
         {
-            Debug.LogWarning($"ç‚®ç®¡æ—‹è½‰å¤±æ•—: turret={turret != null}, camera={playerCamera != null}");
+            Debug.LogWarning($"??®ç®¡???è½?å¤±æ??: turret={turret != null}, camera={playerCamera != null}");
             return;
         }
 
@@ -125,7 +125,7 @@ public class TankController : MonoBehaviour
 
             if (direction.magnitude > 0.1f)
             {
-                // ï¿½pï¿½ï¿½Ø¼Ð±ï¿½ï¿½à¨¤ï¿½ï¿½
+                // ï¿½pï¿½ï¿½Ø¼Ð±ï¿½ï¿½à¨¤ï¿½ï¿?
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
 
                 // ï¿½ï¿½ï¿½Æ±ï¿½ï¿½ï¿½ï¿½Ø¼Ð¨ï¿½ï¿½ï¿½
@@ -147,7 +147,7 @@ public class TankController : MonoBehaviour
             return turret.position;
         }
 
-        // ï¿½Ì«ï¿½Æ®×¡Gï¿½Î©Zï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½m
+        // ï¿½Ì«ï¿½?®×¡Gï¿½Î©Zï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½m
         return transform.position;
     }
 
@@ -158,7 +158,9 @@ public class TankController : MonoBehaviour
 
     public bool IsShootPressed()
     {
-        return shootAction.WasPressedThisFrame();
+        // ??¹ç?ºæª¢??¥æ???????¯å?¦æ??ä½?ï¼????ä¸???¯å?®æ¬¡???ä¸?
+        // ???æ¨???¯ä»¥??¯æ?´æ??ä½?å·¦é?µé??çº?å°????ï¼?ä¸?ä¸??????»æ??ç§»å??
+        return shootAction.IsPressed();
     }
 
     // ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Gizmos
