@@ -5,8 +5,8 @@ public class TankShooting : MonoBehaviour
 {
     [Header("Shooting Settings")]
     [SerializeField] private GameObject bulletPrefab;     // ?????
-    [SerializeField] private float bulletSpeed = 20f;     // ????
-    [SerializeField] private float fireRate = 1f;         // ??????????
+    private float bulletSpeed = 5f;      // 基礎子彈速度，會被 TankStats 動態設置
+    private float fireRate = 1.2f;       // 基礎射速，會被 TankStats 動態設置
     [SerializeField] private float bulletLifetime = 5f;   // ??????
 
     [Header("Auto Fire Settings")]
@@ -33,6 +33,24 @@ public class TankShooting : MonoBehaviour
         // ????AudioSource???????
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
+    }
+
+    /// <summary>
+    /// 設置子彈速度（由 TankStats 呼叫）
+    /// </summary>
+    public void SetBulletSpeed(float speed)
+    {
+        bulletSpeed = speed;
+        Debug.Log($"✓ TankShooting.SetBulletSpeed 被調用！新速度: {speed:F2} (物件: {gameObject.name})");
+    }
+
+    /// <summary>
+    /// 設置射速（由 TankStats 呼叫）
+    /// </summary>
+    public void SetFireRate(float rate)
+    {
+        fireRate = rate;
+        Debug.Log($"✓ TankShooting.SetFireRate 被調用！新射速: {rate:F2} (物件: {gameObject.name})");
     }
 
     void Update()
@@ -153,12 +171,6 @@ public class TankShooting : MonoBehaviour
     public void SetBulletPrefab(GameObject newBulletPrefab)
     {
         bulletPrefab = newBulletPrefab;
-    }
-
-    // ???????????
-    public void SetFireRate(float newFireRate)
-    {
-        fireRate = newFireRate;
     }
 
     // ?????????????
