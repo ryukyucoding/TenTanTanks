@@ -87,7 +87,7 @@ public class SecondaryDividerLines : MonoBehaviour
 
         // Create secondary division lines: -30¢X, 30¢X, 90¢X, 150¢X, 210¢X, 270¢X 
         // These only go from tier 1 boundary to edge, behind tier 2 buttons only
-        float[] angles = { -30f, 30f, 90f, 150f, 210f, 270f };
+        float[] angles = { 30f, 150f, 270f };
 
         foreach (float angle in angles)
         {
