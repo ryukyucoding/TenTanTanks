@@ -309,7 +309,12 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
             }
         }
 
-        // TODO: 如需通知 GameManager，可在此呼叫
+        // 通知 GameManager 有一個敵人被消滅，用於統計關卡進度
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemyDestroyed();
+        }
+
         Destroy(gameObject);
     }
 

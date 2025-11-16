@@ -3729,7 +3729,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &589933867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3801,7 +3801,9 @@ MonoBehaviour:
   gameOverPanel: {fileID: 0}
   victoryPanel: {fileID: 0}
   gameOverMessage: {fileID: 0}
-  useLevelSystem: 1
+  autoLoadNextScene: 1
+  nextSceneDelay: 1
+  nextSceneName: 
 --- !u!4 &636289093
 Transform:
   m_ObjectHideFlags: 0
@@ -12596,6 +12598,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveDiagnostic
   enableDiagnostic: 1
   checkInterval: 1
+  lastCheckTime: 0
+  lastEnemyCount: 0
 --- !u!114 &2108257078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12696,9 +12700,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a064e9bdfc5849218ef4e69c96893ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoLevelSetup
-  setupOnAwake: 1
-  levelAssets:
-  - {fileID: 11400000, guid: b50efe0e2b6a2407a910095643b4d17c, type: 2}
 --- !u!1 &2142470375
 GameObject:
   m_ObjectHideFlags: 0

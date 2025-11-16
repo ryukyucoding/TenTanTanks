@@ -105,6 +105,12 @@ public class SimpleLevelController : MonoBehaviour
         enemy.tag = "Enemy";
         
         Debug.Log($"生成敵人: {enemy.name} 在位置 {spawnPosition}");
+
+        // 通知 GameManager 有新敵人生成，維護總敵人數量
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemySpawned();
+        }
     }
     
     private Vector3 GetSpawnPosition()
@@ -155,6 +161,12 @@ public class SimpleLevelController : MonoBehaviour
         else
         {
             Debug.Log("所有波數已完成！");
+            
+            // 通知 GameManager 關卡完成（全部波數打完）
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.Victory();
+            }
         }
     }
     

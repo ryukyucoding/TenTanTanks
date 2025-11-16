@@ -23,8 +23,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private Text gameOverMessage;
 
-    [Header("Level System")]
-    [SerializeField] private bool useLevelSystem = true; // 是否使用新的關卡系統
+    [Header("Level Flow")]
+    [Tooltip("勝利後是否自動載入下一個關卡")]
+    [SerializeField] private bool autoLoadNextScene = true;
+    [Tooltip("從 Victory 到載入下一關的延遲時間（秒）")]
+    [SerializeField] private float nextSceneDelay = 2f;
+    [Tooltip("指定下一個場景名稱（留空則按照 Build Settings 的下一個場景）")]
+    [SerializeField] private string nextSceneName;
 
     // 遊戲狀態
     public enum GameState
@@ -55,16 +60,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // 初始化時間設定
-        if (useLevelSystem && LevelManager.Instance != null && LevelManager.Instance.CurrentLevelData != null)
-        {
-            var levelData = LevelManager.Instance.CurrentLevelData;
-            currentGameTime = levelData.timeLimit > 0 ? levelData.timeLimit : gameTime;
-        }
-        else
-        {
-            currentGameTime = gameTime;
-        }
+        // 初始化時間設定（目前只用 GameManager 自己的設定）
+        currentGameTime = gameTime;
 
         remainingEnemies = enemyCount;
     }
@@ -73,17 +70,8 @@ public class GameManager : MonoBehaviour
     {
         SpawnPlayer();
         
-        if (useLevelSystem)
-        {
-            // 使用新的關卡系統，不直接生成敵人
-            // 敵人由WaveManager管理
-            SubscribeToLevelSystemEvents();
-        }
-        else
-        {
-            // 使用舊系統直接生成敵人
-            SpawnEnemies();
-        }
+        // 初始化當前場景的敵人數量（場景中已存在的敵人）
+        CountEnemiesInScene();
         
         UpdateUI();
     }
@@ -95,65 +83,6 @@ public class GameManager : MonoBehaviour
         UpdateGameTime();
         UpdateUI();
         CheckGameConditions();
-    }
-
-    private void SubscribeToLevelSystemEvents()
-    {
-        // 訂閱關卡系統事件
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.OnLevelCompleted += OnLevelCompleted;
-            LevelManager.Instance.OnScoreChanged += OnScoreChanged;
-            LevelManager.Instance.OnExperienceChanged += OnExperienceChanged;
-        }
-
-        // 訂閱波數系統事件
-        if (WaveManager.Instance != null)
-        {
-            WaveManager.Instance.OnWaveStarted += OnWaveStarted;
-            WaveManager.Instance.OnWaveCompleted += OnWaveCompleted;
-            WaveManager.Instance.OnEnemyKilled += OnEnemyKilled;
-        }
-    }
-
-    private void OnLevelCompleted(LevelData levelData, bool success)
-    {
-        if (success)
-        {
-            Victory();
-        }
-        else
-        {
-            GameOver("關卡失敗");
-        }
-    }
-
-    private void OnScoreChanged(int newScore)
-    {
-        // 可以在這裡處理分數變化
-        Debug.Log($"分數更新: {newScore}");
-    }
-
-    private void OnExperienceChanged(int newExperience)
-    {
-        // 可以在這裡處理經驗變化
-        Debug.Log($"經驗更新: {newExperience}");
-    }
-
-    private void OnWaveStarted(int waveIndex, int totalWaves)
-    {
-        Debug.Log($"第 {waveIndex + 1} 波開始！");
-    }
-
-    private void OnWaveCompleted(int waveIndex, int totalWaves)
-    {
-        Debug.Log($"第 {waveIndex + 1} 波完成！");
-    }
-
-    private void OnEnemyKilled(int killed, int total)
-    {
-        remainingEnemies = total - killed;
-        Debug.Log($"敵人被消滅: {killed}/{total}");
     }
 
     private void SpawnPlayer()
@@ -228,30 +157,13 @@ public class GameManager : MonoBehaviour
             timeText.text = $"時間: {minutes:00}:{seconds:00}";
         }
 
-        // 更新敵人數量
+        // 更新敵人數量（使用簡單計數，或顯示場上敵人數）
         if (enemyCountText != null)
         {
-            if (useLevelSystem && WaveManager.Instance != null)
-            {
-                enemyCountText.text = $"敵人: {WaveManager.Instance.EnemiesKilledInWave}/{WaveManager.Instance.EnemiesInCurrentWave}";
-            }
-            else
-            {
-                enemyCountText.text = $"敵人: {remainingEnemies}";
-            }
+            enemyCountText.text = $"敵人: {remainingEnemies}";
         }
-
-        // 更新波數信息
-        if (waveInfoText != null && WaveManager.Instance != null)
-        {
-            waveInfoText.text = WaveManager.Instance.GetCurrentWaveInfo();
-        }
-
-        // 更新關卡信息
-        if (levelInfoText != null && LevelManager.Instance != null)
-        {
-            levelInfoText.text = LevelManager.Instance.GetLevelProgressInfo();
-        }
+        
+        // 不再從 WaveManager / LevelManager 讀取資訊
 
         // 更新玩家血量
         if (healthText != null && playerTank != null)
@@ -277,37 +189,38 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 檢查是否消滅所有敵人（舊系統）
-        if (!useLevelSystem && remainingEnemies <= 0)
-        {
-            Victory();
-        }
+        // 不再用「場上敵人數歸零」來自動判斷通關，
+        // 關卡是否完成改由 SimpleLevelController（或其他關卡控制器）主動呼叫 Victory()。
     }
 
+    /// <summary>
+    /// 掃描場景中目前有多少敵人，初始化 remainingEnemies。
+    /// </summary>
+    private void CountEnemiesInScene()
+    {
+        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        remainingEnemies = enemies.Length;
+    }
+    
+    /// <summary>
+    /// 供生成系統（例如 SimpleLevelController）呼叫，在生成敵人時增加敵人數量。
+    /// </summary>
+    public void OnEnemySpawned()
+    {
+        remainingEnemies++;
+    }
+    
     public void OnEnemyDestroyed()
     {
-        if (useLevelSystem)
+        // 單純統計場上敵人數
+        remainingEnemies--;
+        Debug.Log($"Enemy destroyed. Remaining: {remainingEnemies}");
+
+        // 通知簡化關卡控制器，用於統計「本波已擊殺數量」，決定何時啟動下一波 / 通關
+        var simpleController = FindFirstObjectByType<SimpleLevelController>();
+        if (simpleController != null)
         {
-            // 新系統中，敵人消滅由WaveManager處理
-            if (WaveManager.Instance != null)
-            {
-                WaveManager.Instance.OnEnemyDestroyed();
-            }
-            else
-            {
-                // 如果沒有WaveManager，嘗試找SimpleLevelController
-                var simpleController = FindFirstObjectByType<SimpleLevelController>();
-                if (simpleController != null)
-                {
-                    simpleController.OnEnemyDestroyed();
-                }
-            }
-        }
-        else
-        {
-            // 舊系統
-            remainingEnemies--;
-            Debug.Log($"Enemy destroyed. Remaining: {remainingEnemies}");
+            simpleController.OnEnemyDestroyed();
         }
     }
 
@@ -343,11 +256,48 @@ public class GameManager : MonoBehaviour
 
         if (victoryPanel != null)
             victoryPanel.SetActive(true);
-
-        // 暫停遊戲
-        Time.timeScale = 0f;
-
+        
         Debug.Log("Victory!");
+
+        // 自動載入下一關或由玩家手動操作
+        if (autoLoadNextScene)
+        {
+            StartCoroutine(LoadNextSceneRoutine());
+        }
+        else
+        {
+            // 不自動換關時，停住遊戲讓玩家看 Victory 畫面
+            Time.timeScale = 0f;
+        }
+    }
+
+    private System.Collections.IEnumerator LoadNextSceneRoutine()
+    {
+        // 使用實際時間等待，以免受 Time.timeScale 影響
+        Time.timeScale = 1f;
+        yield return new WaitForSecondsRealtime(nextSceneDelay);
+
+        // 如果有指定下一個場景名稱，就用名稱載入
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            SceneManager.LoadScene(nextSceneName);
+            yield break;
+        }
+
+        // 否則就按照 Build Settings 的順序載入下一個場景
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextIndex = currentIndex + 1;
+
+        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextIndex);
+        }
+        else
+        {
+            Debug.Log("沒有下一關可以載入（Build Settings 中已是最後一個場景）");
+            // 這裡也可以選擇回主選單，例如：
+            // SceneManager.LoadScene("Menu");
+        }
     }
 
     // UI控制方法
@@ -370,23 +320,6 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         Time.timeScale = 1f;
-    }
-
-    // 關卡系統相關方法
-    public void LoadNextLevel()
-    {
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.LoadNextLevel();
-        }
-    }
-
-    public void RestartLevel()
-    {
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.RestartCurrentLevel();
-        }
     }
 
     // 屬性訪問器
