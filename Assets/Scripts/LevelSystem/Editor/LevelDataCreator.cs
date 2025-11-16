@@ -52,15 +52,13 @@ public class LevelDataCreator : EditorWindow
                 {
                     enemyCount = 1,
                     waveDelay = 2,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 1
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
                     waveDelay = 3,
-                    spawnInterval = 0.5f,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 0.5f
                 }
             },
             requireAllEnemiesDefeated = true,
@@ -89,36 +87,19 @@ public class LevelDataCreator : EditorWindow
                 {
                     enemyCount = 2,
                     waveDelay = 2,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.2f
-                    }
+                    spawnInterval = 1
                 },
                 new EnemyWave
                 {
                     enemyCount = 3,
                     waveDelay = 4,
-                    spawnInterval = 0.8f,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.2f,
-                        speedMultiplier = 1.1f,
-                        damageMultiplier = 1.1f
-                    }
+                    spawnInterval = 0.8f
                 },
                 new EnemyWave
                 {
                     enemyCount = 1,
                     waveDelay = 3,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.5f,
-                        speedMultiplier = 1.2f,
-                        damageMultiplier = 1.3f,
-                        fireRateMultiplier = 1.2f
-                    }
+                    spawnInterval = 1
                 }
             },
             requireAllEnemiesDefeated = true,
@@ -147,47 +128,25 @@ public class LevelDataCreator : EditorWindow
                 {
                     enemyCount = 1,
                     waveDelay = 1,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 1
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
                     waveDelay = 2,
-                    spawnInterval = 0.5f,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.3f,
-                        speedMultiplier = 1.1f,
-                        damageMultiplier = 1.2f,
-                        fireRateMultiplier = 1.1f
-                    }
+                    spawnInterval = 0.5f
                 },
                 new EnemyWave
                 {
                     enemyCount = 3,
                     waveDelay = 2,
-                    spawnInterval = 0.3f,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.5f,
-                        speedMultiplier = 1.2f,
-                        damageMultiplier = 1.4f,
-                        fireRateMultiplier = 1.3f
-                    }
+                    spawnInterval = 0.3f
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
                     waveDelay = 1,
-                    spawnInterval = 0.2f,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 2f,
-                        speedMultiplier = 1.3f,
-                        damageMultiplier = 1.6f,
-                        fireRateMultiplier = 1.5f
-                    }
+                    spawnInterval = 0.2f
                 }
             },
             requireAllEnemiesDefeated = false,

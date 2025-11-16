@@ -304,15 +304,13 @@ public class LevelDataAssetFixer : EditorWindow
                 {
                     enemyCount = 1,
                     waveDelay = 0,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 1
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
                     waveDelay = 0,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 1
                 }
             },
             requireAllEnemiesDefeated = true,
@@ -339,34 +337,19 @@ public class LevelDataAssetFixer : EditorWindow
                 {
                     enemyCount = 2,
                     waveDelay = 2,
-                    spawnInterval = 0,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 0
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
                     waveDelay = 1,
-                    spawnInterval = 0,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.1f,
-                        speedMultiplier = 1.1f,
-                        damageMultiplier = 1.1f,
-                        fireRateMultiplier = 1f
-                    }
+                    spawnInterval = 0
                 },
                 new EnemyWave
                 {
                     enemyCount = 1,
                     waveDelay = 1,
-                    spawnInterval = 0,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1f,
-                        speedMultiplier = 1.2f,
-                        damageMultiplier = 1.3f,
-                        fireRateMultiplier = 1.2f
-                    }
+                    spawnInterval = 0
                 }
             },
             requireAllEnemiesDefeated = true,

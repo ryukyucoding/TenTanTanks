@@ -17,47 +17,36 @@ MonoBehaviour:
     levelDescription: "\u5728\u9650\u5B9A\u6642\u9593\u5167\u751F\u5B58\u4E0B\u4F86\uFF0C\u6575\u4EBA\u6703\u8D8A\u4F86\u8D8A\u5F37"
     timeLimit: 120
     enemyWaves:
-    - enemyCount: 1
+    - enemyCount: 2
       enemyPrefab: {fileID: 0}
       waveDelay: 1
-      spawnInterval: 1
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 0
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 1
     - enemyCount: 2
       enemyPrefab: {fileID: 0}
       waveDelay: 2
-      spawnInterval: 0.5
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1.3
-        speedMultiplier: 1.1
-        damageMultiplier: 1.2
-        fireRateMultiplier: 1.1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
+        spawnPointIndex: 2
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+        spawnPointIndex: 3
     - enemyCount: 3
       enemyPrefab: {fileID: 0}
-      waveDelay: 2
-      spawnInterval: 0.3
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1.5
-        speedMultiplier: 1.2
-        damageMultiplier: 1.4
-        fireRateMultiplier: 1.3
-    - enemyCount: 2
-      enemyPrefab: {fileID: 0}
       waveDelay: 1
-      spawnInterval: 0.2
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 2
-        speedMultiplier: 1.3
-        damageMultiplier: 1.6
-        fireRateMultiplier: 1.5
-    requireAllEnemiesDefeated: 0
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 0
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+        spawnPointIndex: 1
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+        spawnPointIndex: 3
+    requireAllEnemiesDefeated: 1
     requireSurviveTime: 1
     survivalTime: 120
     scoreReward: 300

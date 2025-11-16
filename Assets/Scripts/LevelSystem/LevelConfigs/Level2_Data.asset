@@ -18,35 +18,30 @@ MonoBehaviour:
     timeLimit: 180
     enemyWaves:
     - enemyCount: 2
-      enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
-      waveDelay: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
       spawnInterval: 0
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 0
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+        spawnPointIndex: 3
     - enemyCount: 2
-      enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
-      waveDelay: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
       spawnInterval: 0
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 1
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+        spawnPointIndex: 2
     - enemyCount: 1
-      enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
-      waveDelay: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
       spawnInterval: 0
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
+        spawnPointIndex: 3
     requireAllEnemiesDefeated: 1
     requireSurviveTime: 0
     survivalTime: 60

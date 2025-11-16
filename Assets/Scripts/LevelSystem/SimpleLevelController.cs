@@ -5,7 +5,6 @@ public class SimpleLevelController : MonoBehaviour
     [Header("簡化關卡控制")]
     [SerializeField] private LevelDataAsset levelDataAsset;
     [SerializeField] private Transform[] spawnPoints;
-    [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private float waveStartDelay = 2f;
     
     [Header("狀態")]
@@ -82,7 +81,7 @@ public class SimpleLevelController : MonoBehaviour
     {
         for (int i = 0; i < wave.enemyCount; i++)
         {
-            SpawnEnemy();
+            SpawnEnemy(wave, i);
             enemiesSpawnedInWave++;
             
             if (i < wave.enemyCount - 1)
@@ -92,16 +91,23 @@ public class SimpleLevelController : MonoBehaviour
         }
     }
     
-    private void SpawnEnemy()
+    /// <summary>
+    /// 生成單一敵人，支援：
+    /// - 每一隻敵人獨立的 prefab / spawnPoint（使用 EnemyWave.enemyEntries）
+    /// - 整波共用 prefab / spawnPoints
+    /// - 最後退回到 SimpleLevelController 自己的 spawnPoints 或隨機位置
+    /// </summary>
+    private void SpawnEnemy(EnemyWave wave, int indexInWave)
     {
-        if (enemyPrefab == null)
+        GameObject prefabToUse = ResolveEnemyPrefab(wave, indexInWave);
+        if (prefabToUse == null)
         {
-            Debug.LogError("敵人預製體未設定！");
+            Debug.LogError($"敵人預製體未設定！（波數 {currentWaveIndex + 1}, 敵人索引 {indexInWave}）");
             return;
         }
         
-        Vector3 spawnPosition = GetSpawnPosition();
-        GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        Vector3 spawnPosition = ResolveSpawnPosition(wave, indexInWave);
+        GameObject enemy = Instantiate(prefabToUse, spawnPosition, Quaternion.identity);
         enemy.tag = "Enemy";
         
         Debug.Log($"生成敵人: {enemy.name} 在位置 {spawnPosition}");
@@ -113,22 +119,80 @@ public class SimpleLevelController : MonoBehaviour
         }
     }
     
-    private Vector3 GetSpawnPosition()
+    /// <summary>
+    /// 根據 per-enemy / per-wave / 控制器預設決定要用哪個 prefab。
+    /// 優先順序：
+    /// 1. wave.enemyEntries[index].enemyPrefab
+    /// 2. wave.enemyPrefab
+    /// </summary>
+    private GameObject ResolveEnemyPrefab(EnemyWave wave, int indexInWave)
     {
+        // 1. 每一隻敵人獨立設定
+        if (wave.enemyEntries != null &&
+            indexInWave >= 0 &&
+            indexInWave < wave.enemyEntries.Length)
+        {
+            var entry = wave.enemyEntries[indexInWave];
+            if (entry != null && entry.enemyPrefab != null)
+            {
+                return entry.enemyPrefab;
+            }
+        }
+        
+        // 2. 整波共用設定（LevelData / LevelDataNew 裡面設定）
+        if (wave.enemyPrefab != null)
+        {
+            return wave.enemyPrefab;
+        }
+
+        // 如果都沒有設定，就返回 null，讓外層決定是否報錯
+        return null;
+    }
+    
+    /// <summary>
+    /// 根據 per-enemy / 控制器預設決定生成位置。
+    /// 優先順序：
+    /// 1. wave.enemyEntries[index].spawnPointIndex 對應控制器的 spawnPoints
+    /// 2. SimpleLevelController.spawnPoints（如果有，隨機挑一個）
+    /// 3. 最後使用隨機位置
+    /// </summary>
+    private Vector3 ResolveSpawnPosition(EnemyWave wave, int indexInWave)
+    {
+        // 1. 每一隻敵人獨立設定（使用索引對應控制器的 spawnPoints）
+        if (wave.enemyEntries != null &&
+            indexInWave >= 0 &&
+            indexInWave < wave.enemyEntries.Length)
+        {
+            var entry = wave.enemyEntries[indexInWave];
+            if (entry != null && entry.spawnPointIndex >= 0 &&
+                spawnPoints != null &&
+                entry.spawnPointIndex < spawnPoints.Length)
+            {
+                var pointByIndex = spawnPoints[entry.spawnPointIndex];
+                if (pointByIndex != null)
+                {
+                    return pointByIndex.position;
+                }
+            }
+        }
+        
+        // 2. 控制器共用 spawnPoints
         if (spawnPoints != null && spawnPoints.Length > 0)
         {
             int randomIndex = Random.Range(0, spawnPoints.Length);
-            return spawnPoints[randomIndex].position;
+            var point = spawnPoints[randomIndex];
+            if (point != null)
+            {
+                return point.position;
+            }
         }
-        else
-        {
-            // 使用隨機位置
-            return new Vector3(
-                Random.Range(-15f, 15f),
-                0f,
-                Random.Range(-15f, 15f)
-            );
-        }
+        
+        // 3. 完全隨機
+        return new Vector3(
+            Random.Range(-15f, 15f),
+            0f,
+            Random.Range(-15f, 15f)
+        );
     }
     
     public void OnEnemyDestroyed()
@@ -234,9 +298,4 @@ public class SimpleLevelController : MonoBehaviour
         Debug.Log($"設定生成點: {spawnPoints?.Length ?? 0} 個");
     }
 
-    public void SetEnemyPrefab(GameObject enemyPrefab)
-    {
-        this.enemyPrefab = enemyPrefab;
-        Debug.Log($"設定敵人預製體: {enemyPrefab?.name ?? "無"}");
-    }
 }

@@ -10,8 +10,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Spawn Settings")]
     [SerializeField] private GameObject playerTankPrefab;
-    [SerializeField] private GameObject enemyTankPrefab;
-    [SerializeField] private Transform[] spawnPoints; // 生成點
+    [Tooltip("玩家坦克的出生點")]
+    [SerializeField] private Transform playerSpawnPoint; // 專門給玩家用的出生點
 
     [Header("UI References")]
     [SerializeField] private Text healthText;
@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Vector3 spawnPosition = spawnPoints.Length > 0 ? spawnPoints[0].position : Vector3.zero;
+        Vector3 spawnPosition = playerSpawnPoint != null ? playerSpawnPoint.position : Vector3.zero;
         playerTank = Instantiate(playerTankPrefab, spawnPosition, Quaternion.identity);
         playerTank.tag = "Player";
 
@@ -102,37 +102,6 @@ public class GameManager : MonoBehaviour
         if (playerHealth == null)
         {
             playerHealth = playerTank.AddComponent<PlayerHealth>();
-        }
-    }
-
-    private void SpawnEnemies()
-    {
-        if (enemyTankPrefab == null)
-        {
-            Debug.LogError("Enemy tank prefab not assigned!");
-            return;
-        }
-
-        for (int i = 0; i < enemyCount; i++)
-        {
-            Vector3 spawnPosition;
-
-            if (spawnPoints.Length > i + 1)
-            {
-                spawnPosition = spawnPoints[i + 1].position;
-            }
-            else
-            {
-                // 隨機生成位置
-                spawnPosition = new Vector3(
-                    Random.Range(-15f, 15f),
-                    0f,
-                    Random.Range(-15f, 15f)
-                );
-            }
-
-            GameObject enemy = Instantiate(enemyTankPrefab, spawnPosition, Quaternion.identity);
-            enemy.tag = "Enemy";
         }
     }
 
