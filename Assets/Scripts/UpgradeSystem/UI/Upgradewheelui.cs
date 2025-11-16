@@ -1,3 +1,5 @@
+using WheelUpgradeSystem;
+
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -37,10 +39,10 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private float buttonFadeDelay = 0.1f;
 
     private TankUpgradeSystem upgradeSystem;
-    private List<UpgradeButton> tier1Buttons = new List<UpgradeButton>();
-    private List<UpgradeButton> tier2Buttons = new List<UpgradeButton>();
-    private UpgradeOption selectedTier1Option;
-    private UpgradeOption selectedTier2Option;
+    private List<WheelUpgradeButton> tier1Buttons = new List<WheelUpgradeButton>();
+    private List<WheelUpgradeButton> tier2Buttons = new List<WheelUpgradeButton>();
+    private WheelUpgradeOption selectedTier1Option;
+    private WheelUpgradeOption selectedTier2Option;
     private UpgradeState currentState = UpgradeState.SelectingTier1;
 
     // Store original center area properties to preserve them during animation
@@ -226,7 +228,7 @@ public class UpgradeWheelUI : MonoBehaviour
         CreateTier1Buttons(tier1Options);
 
         // Create Tier 2 buttons (6 buttons at 60¢X intervals)
-        var allTier2Options = new List<UpgradeOption>();
+        var allTier2Options = new List<WheelUpgradeOption>();
         foreach (var tier1Option in tier1Options)
         {
             var tier2Options = upgradeSystem.GetAvailableUpgrades(2, tier1Option.upgradeName);
@@ -235,7 +237,7 @@ public class UpgradeWheelUI : MonoBehaviour
         CreateTier2Buttons(allTier2Options);
     }
 
-    private void CreateTier1Buttons(List<UpgradeOption> options)
+    private void CreateTier1Buttons(List<WheelUpgradeOption> options)
     {
         // 3 buttons at 120¢X intervals starting from top
         float angleStep = 120f;
@@ -252,7 +254,7 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    private void CreateTier2Buttons(List<UpgradeOption> options)
+    private void CreateTier2Buttons(List<WheelUpgradeOption> options)
     {
         // 6 buttons at 60¢X intervals starting from top
         float angleStep = 60f;
@@ -277,16 +279,16 @@ public class UpgradeWheelUI : MonoBehaviour
         return new Vector3(x, y, 0f);
     }
 
-    private UpgradeButton CreateUpgradeButton(UpgradeOption option, Transform container, Vector3 position, System.Action<UpgradeOption> onClickCallback, float delay)
+    private WheelUpgradeButton CreateUpgradeButton(WheelUpgradeOption option, Transform container, Vector3 position, System.Action<WheelUpgradeOption> onClickCallback, float delay)
     {
         if (upgradeButtonPrefab == null) return null;
 
         GameObject buttonObj = Instantiate(upgradeButtonPrefab, container);
         buttonObj.transform.localPosition = position;
 
-        var upgradeButton = buttonObj.GetComponent<UpgradeButton>();
+        var upgradeButton = buttonObj.GetComponent<WheelUpgradeButton>();
         if (upgradeButton == null)
-            upgradeButton = buttonObj.AddComponent<UpgradeButton>();
+            upgradeButton = buttonObj.AddComponent<WheelUpgradeButton>();
 
         upgradeButton.Setup(option, () => onClickCallback(option));
 
@@ -296,7 +298,7 @@ public class UpgradeWheelUI : MonoBehaviour
         return upgradeButton;
     }
 
-    private IEnumerator FadeInButton(UpgradeButton button, float delay)
+    private IEnumerator FadeInButton(WheelUpgradeButton button, float delay)
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
@@ -324,11 +326,11 @@ public class UpgradeWheelUI : MonoBehaviour
         {
             if (selectedTier1Option != null && button.GetUpgradeOption().upgradeName == selectedTier1Option.upgradeName)
             {
-                button.SetButtonState(UpgradeButton.ButtonState.Selected);
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Selected);
             }
             else
             {
-                button.SetButtonState(UpgradeButton.ButtonState.Available);
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
             }
         }
 
@@ -339,21 +341,21 @@ public class UpgradeWheelUI : MonoBehaviour
             {
                 if (selectedTier2Option != null && button.GetUpgradeOption().upgradeName == selectedTier2Option.upgradeName)
                 {
-                    button.SetButtonState(UpgradeButton.ButtonState.Selected);
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.Selected);
                 }
                 else
                 {
-                    button.SetButtonState(UpgradeButton.ButtonState.Available);
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
                 }
             }
             else
             {
-                button.SetButtonState(UpgradeButton.ButtonState.Disabled);
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
             }
         }
     }
 
-    private void OnTier1Selected(UpgradeOption option)
+    private void OnTier1Selected(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
         selectedTier2Option = null; // Reset tier 2 selection
@@ -368,7 +370,7 @@ public class UpgradeWheelUI : MonoBehaviour
             confirmButton.gameObject.SetActive(false);
     }
 
-    private void OnTier2Selected(UpgradeOption option)
+    private void OnTier2Selected(WheelUpgradeOption option)
     {
         selectedTier2Option = option;
         currentState = UpgradeState.Confirmed;

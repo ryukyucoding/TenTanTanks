@@ -2,109 +2,118 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using WheelUpgradeSystem;
 
 public class MainMenuManager : MonoBehaviour
 {
     [Header("Main Menu Buttons")]
     [SerializeField] private Button startButton;
-    [SerializeField] private Button upgradeButton;
+    [SerializeField] private Button tankConfigButton;  // For wheel upgrade system
     [SerializeField] private Button quitButton;
 
-    [Header("Upgrade System (Optional)")]
-    [SerializeField] private GameObject upgradePanel;
-    [SerializeField] private TextMeshProUGUI currentTankNameText;
-    [SerializeField] private TextMeshProUGUI currentTankStatsText;
+    [Header("Tank Configuration System (Wheel)")]
+    [SerializeField] private GameObject wheelUpgradePanel;
+    [SerializeField] private TextMeshProUGUI currentTankConfigText;
     [SerializeField] private Button openUpgradeWheelButton;
 
-    [Header("Audio (Optional)")]
+    [Header("In-Game Upgrade Stats Display")]
+    [SerializeField] private GameObject statsPanel;
+    [SerializeField] private TextMeshProUGUI upgradePointsText;
+    [SerializeField] private TextMeshProUGUI tankStatsText;
+
+    [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip buttonClickSound;
 
-    // 升級系統組件（會自動查找）
-    private UpgradeWheelUI upgradeWheel;
-    private TankUpgradeSystem upgradeSystem;
+    // Wheel upgrade system (pre-game tank configuration)
+    private TankUpgradeSystem wheelUpgradeSystem;
+    private UpgradeWheelUI upgradeWheelUI;
+
+    // In-game upgrade system (upgrade points)
+    private TankStats playerTankStats;
 
     void Start()
     {
         SetupButtons();
-        InitializeUpgradeSystem();
-        UpdateTankDisplay();
+        InitializeBothUpgradeSystems();
+        UpdateAllDisplays();
     }
 
     void OnEnable()
     {
-        // 訂閱升級系統事件（如果存在）
-        if (upgradeSystem != null)
+        // Subscribe to wheel upgrade events
+        if (wheelUpgradeSystem != null)
         {
-            TankUpgradeSystem.OnTankUpgraded += OnTankUpgraded;
+            // Note: You'll need to create this event in TankUpgradeSystem if it doesn't exist
+            // TankUpgradeSystem.OnWheelUpgradeChanged += OnWheelConfigurationChanged;
+        }
+
+        // Subscribe to in-game upgrade events
+        if (playerTankStats != null)
+        {
+            playerTankStats.OnUpgradePointsChanged += OnUpgradePointsChanged;
         }
     }
 
     void OnDisable()
     {
-        // 取消訂閱事件
-        if (upgradeSystem != null)
+        // Unsubscribe from events
+        if (wheelUpgradeSystem != null)
         {
-            TankUpgradeSystem.OnTankUpgraded -= OnTankUpgraded;
+            // TankUpgradeSystem.OnWheelUpgradeChanged -= OnWheelConfigurationChanged;
+        }
+
+        if (playerTankStats != null)
+        {
+            playerTankStats.OnUpgradePointsChanged -= OnUpgradePointsChanged;
         }
     }
 
     private void SetupButtons()
     {
-        // 原有按鈕
+        // Main navigation buttons
         if (startButton != null)
             startButton.onClick.AddListener(StartGame);
 
         if (quitButton != null)
             quitButton.onClick.AddListener(QuitGame);
 
-        // 新增按鈕
-        if (upgradeButton != null)
-            upgradeButton.onClick.AddListener(ToggleUpgradePanel);
+        // Tank configuration buttons
+        if (tankConfigButton != null)
+            tankConfigButton.onClick.AddListener(ToggleTankConfiguration);
 
         if (openUpgradeWheelButton != null)
             openUpgradeWheelButton.onClick.AddListener(OpenUpgradeWheel);
     }
 
-    private void InitializeUpgradeSystem()
+    private void InitializeBothUpgradeSystems()
     {
-        // 自動查找升級系統組件
-        upgradeSystem = FindObjectOfType<TankUpgradeSystem>();
-        upgradeWheel = FindObjectOfType<UpgradeWheelUI>();
+        // Initialize wheel upgrade system (pre-game configuration)
+        wheelUpgradeSystem = FindFirstObjectByType<TankUpgradeSystem>();
+        upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
 
-        // 如果找到升級系統，載入保存的配置
-        if (upgradeSystem != null)
-        {
-            LoadUpgradeState();
-            Debug.Log("升級系統已初始化");
-        }
+        // Try to find player tank stats (in-game upgrade system)
+        // This might not exist in main menu, which is fine
+        playerTankStats = FindFirstObjectByType<TankStats>();
 
-        // 根據是否有升級系統來顯示/隱藏相關 UI
-        UpdateUpgradeUI();
+        // Load saved wheel configuration
+        LoadWheelConfiguration();
+
+        Debug.Log($"Initialized upgrade systems:");
+        Debug.Log($"  - Wheel System: {(wheelUpgradeSystem != null ? "✓" : "✗")}");
+        Debug.Log($"  - Stats System: {(playerTankStats != null ? "✓" : "✗")}");
     }
 
-    private void UpdateUpgradeUI()
-    {
-        bool hasUpgradeSystem = (upgradeSystem != null || upgradeWheel != null);
-
-        // 顯示/隱藏升級相關 UI
-        if (upgradeButton != null)
-            upgradeButton.gameObject.SetActive(hasUpgradeSystem);
-
-        if (upgradePanel != null && !hasUpgradeSystem)
-            upgradePanel.SetActive(false);
-    }
-
-    // ========== 原有功能 ==========
+    // ========== MAIN MENU ACTIONS ==========
     public void StartGame()
     {
         PlayButtonSound();
 
-        // Save current upgrade state
-        SaveUpgradeState();
+        // Save current wheel configuration before starting
+        SaveWheelConfiguration();
 
-        // Load transition scene (which will then load Level1)
-        Debug.Log("StartGame 被調用了！");
+        // Load the transition scene (which will apply tank configuration)
+        Debug.Log("Starting game with current tank configuration...");
         SceneManager.LoadScene("Transition");
     }
 
@@ -112,28 +121,29 @@ public class MainMenuManager : MonoBehaviour
     {
         PlayButtonSound();
 
+        Debug.Log("Quitting game...");
         Application.Quit();
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }
 
-    // ========== 新增升級功能 ==========
-    public void ToggleUpgradePanel()
+    // ========== WHEEL UPGRADE SYSTEM (PRE-GAME CONFIGURATION) ==========
+    public void ToggleTankConfiguration()
     {
         PlayButtonSound();
 
-        if (upgradePanel != null)
+        if (wheelUpgradePanel != null)
         {
-            bool isActive = !upgradePanel.activeSelf;
-            upgradePanel.SetActive(isActive);
+            bool isActive = !wheelUpgradePanel.activeSelf;
+            wheelUpgradePanel.SetActive(isActive);
 
             if (isActive)
-                UpdateTankDisplay();
+                UpdateWheelConfigurationDisplay();
         }
         else
         {
-            // 如果沒有升級面板，直接開啟升級輪盤
+            // If no panel, directly open wheel
             OpenUpgradeWheel();
         }
     }
@@ -142,75 +152,114 @@ public class MainMenuManager : MonoBehaviour
     {
         PlayButtonSound();
 
-        if (upgradeWheel != null)
+        if (upgradeWheelUI != null)
         {
-            upgradeWheel.ShowWheel();
+            upgradeWheelUI.ShowWheel();
         }
         else
         {
-            Debug.LogWarning("UpgradeWheelUI 未找到！請確認場景中有升級系統。");
+            Debug.LogWarning("Upgrade Wheel UI not found! Make sure the wheel system is in the scene.");
         }
     }
 
-    public void CloseUpgradePanel()
+    public void CloseTankConfiguration()
     {
         PlayButtonSound();
 
-        if (upgradePanel != null)
-            upgradePanel.SetActive(false);
+        if (wheelUpgradePanel != null)
+            wheelUpgradePanel.SetActive(false);
     }
 
-    private void OnTankUpgraded(TankStats newStats)
+    private void UpdateWheelConfigurationDisplay()
     {
-        UpdateTankDisplay();
-        SaveUpgradeState();
-        Debug.Log("坦克配置已更新！");
-    }
+        if (wheelUpgradeSystem == null) return;
 
-    private void UpdateTankDisplay()
-    {
-        if (upgradeSystem == null) return;
+        string currentConfig = wheelUpgradeSystem.GetCurrentUpgradePath();
 
-        string currentPath = upgradeSystem.GetCurrentUpgradePath();
-        TankStats currentStats = upgradeSystem.GetCurrentStats();
-
-        // 更新坦克名稱顯示
-        if (currentTankNameText != null)
+        // Update tank configuration display
+        if (currentTankConfigText != null)
         {
-            currentTankNameText.text = $"當前配置: {currentPath}";
+            currentTankConfigText.text = $"當前配置: {currentConfig}";
         }
 
-        // 更新屬性顯示
-        if (currentTankStatsText != null && currentStats != null)
-        {
-            string statsText = "";
-            statsText += $"傷害: <color=yellow>{currentStats.damage}</color>\n";
-            statsText += $"射速: <color=cyan>{currentStats.fireRate}/秒</color>\n";
-            statsText += $"子彈大小: <color=orange>{currentStats.bulletSize}</color>\n";
-            statsText += $"移動速度: <color=green>{currentStats.moveSpeed}</color>\n";
-            statsText += $"血量: <color=red>{currentStats.maxHealth}</color>";
+        // You can add more detailed display here if needed
+        Debug.Log($"Current wheel configuration: {currentConfig}");
+    }
 
-            currentTankStatsText.text = statsText;
+    private void OnWheelConfigurationChanged(string newConfiguration)
+    {
+        UpdateWheelConfigurationDisplay();
+        SaveWheelConfiguration();
+        Debug.Log($"Wheel configuration changed to: {newConfiguration}");
+    }
+
+    // ========== IN-GAME UPGRADE SYSTEM (STATS & POINTS) ==========
+    private void UpdateStatsDisplay()
+    {
+        if (playerTankStats == null)
+        {
+            // Hide stats panel if no tank stats available (normal in main menu)
+            if (statsPanel != null)
+                statsPanel.SetActive(false);
+            return;
+        }
+
+        // Show stats panel
+        if (statsPanel != null)
+            statsPanel.SetActive(true);
+
+        // Update upgrade points display
+        if (upgradePointsText != null)
+        {
+            int availablePoints = playerTankStats.GetAvailableUpgradePoints();
+            upgradePointsText.text = $"升級點數: {availablePoints}";
+        }
+
+        // Update tank stats display
+        if (tankStatsText != null)
+        {
+            string statsInfo = "";
+            statsInfo += $"移動速度 Lv.{playerTankStats.GetMoveSpeedLevel()}\n";
+            statsInfo += $"子彈速度 Lv.{playerTankStats.GetBulletSpeedLevel()}\n";
+            statsInfo += $"射擊速度 Lv.{playerTankStats.GetFireRateLevel()}";
+
+            tankStatsText.text = statsInfo;
         }
     }
 
-    private void SaveUpgradeState()
+    private void OnUpgradePointsChanged(int newPoints)
     {
-        if (upgradeSystem != null)
+        UpdateStatsDisplay();
+        Debug.Log($"Upgrade points changed: {newPoints}");
+    }
+
+    // ========== SAVE/LOAD SYSTEM ==========
+    private void SaveWheelConfiguration()
+    {
+        if (wheelUpgradeSystem != null)
         {
-            string currentPath = upgradeSystem.GetCurrentUpgradePath();
-            PlayerPrefs.SetString("CurrentUpgradePath", currentPath);
+            string currentPath = wheelUpgradeSystem.GetCurrentUpgradePath();
+            PlayerPrefs.SetString("WheelUpgradePath", currentPath);
             PlayerPrefs.Save();
+            Debug.Log($"Saved wheel configuration: {currentPath}");
         }
     }
 
-    private void LoadUpgradeState()
+    private void LoadWheelConfiguration()
     {
-        if (upgradeSystem != null)
+        if (wheelUpgradeSystem != null)
         {
-            string savedPath = PlayerPrefs.GetString("CurrentUpgradePath", "Basic");
-            upgradeSystem.ApplyUpgrade(savedPath);
+            string savedPath = PlayerPrefs.GetString("WheelUpgradePath", "Basic");
+            wheelUpgradeSystem.ApplyUpgrade(savedPath);
+            Debug.Log($"Loaded wheel configuration: {savedPath}");
         }
+    }
+
+    // ========== UTILITIES ==========
+    private void UpdateAllDisplays()
+    {
+        UpdateWheelConfigurationDisplay();
+        UpdateStatsDisplay();
     }
 
     private void PlayButtonSound()
@@ -221,51 +270,54 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
-    // ========== Debug 功能 ==========
-    [ContextMenu("重置升級")]
-    public void ResetUpgrades()
+    // ========== DEBUG METHODS ==========
+    [ContextMenu("Reset All Upgrades")]
+    public void ResetAllUpgrades()
     {
-        PlayerPrefs.DeleteKey("CurrentUpgradePath");
-        PlayerPrefs.Save();
+        // Reset wheel configuration
+        PlayerPrefs.DeleteKey("WheelUpgradePath");
 
-        if (upgradeSystem != null)
+        if (wheelUpgradeSystem != null)
         {
-            upgradeSystem.ApplyUpgrade("Basic");
-            UpdateTankDisplay();
+            wheelUpgradeSystem.ApplyUpgrade("Basic");
         }
 
-        Debug.Log("升級已重置為基礎配置");
+        // Reset in-game stats (if available)
+        if (playerTankStats != null)
+        {
+            // You'd need to add a reset method to TankStats
+            Debug.Log("In-game stats reset would need to be implemented in TankStats");
+        }
+
+        PlayerPrefs.Save();
+        UpdateAllDisplays();
+
+        Debug.Log("All upgrades reset to default");
     }
 
-    [ContextMenu("測試升級系統")]
-    public void TestUpgradeSystem()
+    [ContextMenu("Test Both Systems")]
+    public void TestBothSystems()
     {
-        if (upgradeSystem != null)
+        Debug.Log("=== TESTING BOTH UPGRADE SYSTEMS ===");
+
+        // Test wheel system
+        if (wheelUpgradeSystem != null)
         {
-            Debug.Log($"升級系統狀態: {upgradeSystem.GetCurrentUpgradePath()}");
-
-            // 測試一些升級
-            string[] testUpgrades = { "Heavy", "Rapid", "Balanced" };
-            foreach (string upgrade in testUpgrades)
-            {
-                upgradeSystem.ApplyUpgrade(upgrade);
-                Debug.Log($"測試升級: {upgrade}");
-            }
-
-            // 恢復基礎配置
-            upgradeSystem.ApplyUpgrade("Basic");
-            UpdateTankDisplay();
+            Debug.Log($"Wheel System: {wheelUpgradeSystem.GetCurrentUpgradePath()}");
         }
         else
         {
-            Debug.LogWarning("沒有找到升級系統！");
+            Debug.Log("Wheel System: NOT FOUND");
         }
-    }
 
-    // ========== 公開方法供 UI 調用 ==========
-    public void OnUpgradeButtonHover()
-    {
-        // 可以在這裡添加按鈕懸停效果
-        Debug.Log("升級按鈕懸停");
+        // Test stats system
+        if (playerTankStats != null)
+        {
+            Debug.Log($"Stats System: {playerTankStats.GetAvailableUpgradePoints()} points available");
+        }
+        else
+        {
+            Debug.Log("Stats System: NOT FOUND (normal in main menu)");
+        }
     }
 }

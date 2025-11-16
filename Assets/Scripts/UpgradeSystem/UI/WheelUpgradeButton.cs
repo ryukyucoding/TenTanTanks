@@ -1,9 +1,11 @@
+using WheelUpgradeSystem;
+
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
 
-public class UpgradeButton : MonoBehaviour
+public class WheelUpgradeButton : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private Button button;
@@ -24,7 +26,7 @@ public class UpgradeButton : MonoBehaviour
         Disabled     // Cannot be clicked (grayed out)
     }
 
-    private UpgradeOption upgradeOption;
+    private WheelUpgradeOption upgradeOption;
     private Action onClickCallback;
     private ButtonState currentState = ButtonState.Available;
 
@@ -47,7 +49,7 @@ public class UpgradeButton : MonoBehaviour
         }
     }
 
-    public void Setup(UpgradeOption option, Action clickCallback)
+    public void Setup(WheelUpgradeOption option, Action clickCallback)
     {
         upgradeOption = option;
         onClickCallback = clickCallback;
@@ -154,7 +156,7 @@ public class UpgradeButton : MonoBehaviour
         }
     }
 
-    public UpgradeOption GetUpgradeOption()
+    public WheelUpgradeOption GetUpgradeOption()
     {
         return upgradeOption;
     }
