@@ -479,6 +479,54 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &492669106
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 492669108}
+  - component: {fileID: 492669107}
+  m_Layer: 0
+  m_Name: PlayerDataManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &492669107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492669106}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 396219dc4f34fb54f918164eb5e27a97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
+  moveSpeedLevel: 0
+  bulletSpeedLevel: 0
+  fireRateLevel: 0
+  availableUpgradePoints: 0
+--- !u!4 &492669108
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492669106}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &626909683
 GameObject:
   m_ObjectHideFlags: 0
@@ -1927,12 +1975,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuManager
   startButton: {fileID: 0}
-  upgradeButton: {fileID: 0}
+  tankConfigButton: {fileID: 0}
   quitButton: {fileID: 0}
-  upgradePanel: {fileID: 0}
-  currentTankNameText: {fileID: 0}
-  currentTankStatsText: {fileID: 0}
+  wheelUpgradePanel: {fileID: 0}
+  currentTankConfigText: {fileID: 0}
   openUpgradeWheelButton: {fileID: 0}
+  statsPanel: {fileID: 0}
+  upgradePointsText: {fileID: 0}
+  tankStatsText: {fileID: 0}
   audioSource: {fileID: 0}
   buttonClickSound: {fileID: 0}
 --- !u!4 &1528008482
@@ -2818,3 +2868,4 @@ SceneRoots:
   - {fileID: 153110256}
   - {fileID: 1996488441}
   - {fileID: 1792893748}
+  - {fileID: 492669108}

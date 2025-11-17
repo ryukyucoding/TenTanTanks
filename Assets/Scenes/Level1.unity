@@ -3842,7 +3842,7 @@ MonoBehaviour:
   - {fileID: 580951024}
   - {fileID: 1870815557}
   enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
-  waveStartDelay: 2
+  waveStartDelay: 1.5
   currentWaveIndex: 0
   isWaveActive: 1
   enemiesSpawnedInWave: 0
@@ -14075,6 +14075,10 @@ PrefabInstance:
     - target: {fileID: 122771137472030046, guid: 90166595365399f4e961287e558349aa, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 308523504478111602, guid: 90166595365399f4e961287e558349aa, type: 3}
+      propertyPath: fireRate
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 1955046153446535976, guid: 90166595365399f4e961287e558349aa, type: 3}
       propertyPath: m_LocalPosition.x
