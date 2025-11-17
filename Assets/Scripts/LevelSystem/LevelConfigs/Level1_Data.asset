@@ -19,24 +19,20 @@ MonoBehaviour:
     enemyWaves:
     - enemyCount: 1
       enemyPrefab: {fileID: 0}
-      waveDelay: 2
-      spawnInterval: 1
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      waveDelay: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+        spawnPointIndex: 0
     - enemyCount: 2
       enemyPrefab: {fileID: 0}
-      waveDelay: 3
-      spawnInterval: 0.5
-      spawnPoints: []
-      statsModifier:
-        healthMultiplier: 1
-        speedMultiplier: 1
-        damageMultiplier: 1
-        fireRateMultiplier: 1
+      waveDelay: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+        spawnPointIndex: 2
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+        spawnPointIndex: 4
     requireAllEnemiesDefeated: 1
     requireSurviveTime: 0
     survivalTime: 60

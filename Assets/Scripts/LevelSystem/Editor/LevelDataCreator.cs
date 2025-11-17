@@ -41,6 +41,20 @@ public class LevelDataCreator : EditorWindow
     private void CreateLevel1()
     {
         var levelAsset = CreateInstance<LevelDataAsset>();
+        
+        // 加載敵人 prefab（使用 GUID）
+        string guid1 = "90166595365399f4e961287e558349aa";
+        string guid2 = "b38e840a27da14bf39e56459edb46314";
+        GameObject enemyPrefab1 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid1));
+        GameObject enemyPrefab2 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid2));
+        
+        if (enemyPrefab1 == null)
+            Debug.LogWarning($"無法找到 GUID {guid1} 對應的敵人 prefab");
+        if (enemyPrefab2 == null)
+            Debug.LogWarning($"無法找到 GUID {guid2} 對應的敵人 prefab");
+        
         levelAsset.levelData = new LevelData
         {
             levelName = "關卡 1 - 新手訓練",
@@ -51,16 +65,37 @@ public class LevelDataCreator : EditorWindow
                 new EnemyWave
                 {
                     enemyCount = 1,
-                    waveDelay = 2,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    enemyPrefab = null,
+                    waveDelay = 1,
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
+                    {
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 0
+                        }
+                    }
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
-                    waveDelay = 3,
-                    spawnInterval = 0.5f,
-                    statsModifier = new EnemyStatsModifier()
+                    enemyPrefab = null,
+                    waveDelay = 1,
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
+                    {
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 2
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab2,
+                            spawnPointIndex = 4
+                        }
+                    }
                 }
             },
             requireAllEnemiesDefeated = true,
@@ -78,6 +113,26 @@ public class LevelDataCreator : EditorWindow
     private void CreateLevel2()
     {
         var levelAsset = CreateInstance<LevelDataAsset>();
+        
+        // 加載敵人 prefab（使用 GUID）
+        string guid1 = "7dd4d53b6647040aab6329fc125558b8";
+        string guid2 = "90166595365399f4e961287e558349aa";
+        string guid3 = "b38e840a27da14bf39e56459edb46314";
+        string guid4 = "ba39c04b07fc440869d220d7c670b06d";
+        GameObject enemyPrefab1 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid1));
+        GameObject enemyPrefab2 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid2));
+        GameObject enemyPrefab3 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid3));
+        GameObject enemyPrefab4 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid4));
+        
+        if (enemyPrefab1 == null) Debug.LogWarning($"無法找到 GUID {guid1} 對應的敵人 prefab");
+        if (enemyPrefab2 == null) Debug.LogWarning($"無法找到 GUID {guid2} 對應的敵人 prefab");
+        if (enemyPrefab3 == null) Debug.LogWarning($"無法找到 GUID {guid3} 對應的敵人 prefab");
+        if (enemyPrefab4 == null) Debug.LogWarning($"無法找到 GUID {guid4} 對應的敵人 prefab");
+        
         levelAsset.levelData = new LevelData
         {
             levelName = "關卡 2 - 挑戰開始",
@@ -88,36 +143,56 @@ public class LevelDataCreator : EditorWindow
                 new EnemyWave
                 {
                     enemyCount = 2,
-                    waveDelay = 2,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier
+                    enemyPrefab = null,
+                    waveDelay = 1,
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
                     {
-                        healthMultiplier = 1.2f
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 0
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab2,
+                            spawnPointIndex = 3
+                        }
                     }
                 },
                 new EnemyWave
                 {
-                    enemyCount = 3,
-                    waveDelay = 4,
-                    spawnInterval = 0.8f,
-                    statsModifier = new EnemyStatsModifier
+                    enemyCount = 2,
+                    enemyPrefab = null,
+                    waveDelay = 1,
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
                     {
-                        healthMultiplier = 1.2f,
-                        speedMultiplier = 1.1f,
-                        damageMultiplier = 1.1f
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 1
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab3,
+                            spawnPointIndex = 2
+                        }
                     }
                 },
                 new EnemyWave
                 {
                     enemyCount = 1,
-                    waveDelay = 3,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier
+                    enemyPrefab = null,
+                    waveDelay = 1,
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
                     {
-                        healthMultiplier = 1.5f,
-                        speedMultiplier = 1.2f,
-                        damageMultiplier = 1.3f,
-                        fireRateMultiplier = 1.2f
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab4,
+                            spawnPointIndex = 3
+                        }
                     }
                 }
             },
@@ -136,6 +211,26 @@ public class LevelDataCreator : EditorWindow
     private void CreateLevel3()
     {
         var levelAsset = CreateInstance<LevelDataAsset>();
+        
+        // 加載敵人 prefab（使用 GUID）
+        string guid1 = "7dd4d53b6647040aab6329fc125558b8";
+        string guid2 = "ba39c04b07fc440869d220d7c670b06d";
+        string guid3 = "b38e840a27da14bf39e56459edb46314";
+        string guid4 = "90166595365399f4e961287e558349aa";
+        GameObject enemyPrefab1 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid1));
+        GameObject enemyPrefab2 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid2));
+        GameObject enemyPrefab3 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid3));
+        GameObject enemyPrefab4 = AssetDatabase.LoadAssetAtPath<GameObject>(
+            AssetDatabase.GUIDToAssetPath(guid4));
+        
+        if (enemyPrefab1 == null) Debug.LogWarning($"無法找到 GUID {guid1} 對應的敵人 prefab");
+        if (enemyPrefab2 == null) Debug.LogWarning($"無法找到 GUID {guid2} 對應的敵人 prefab");
+        if (enemyPrefab3 == null) Debug.LogWarning($"無法找到 GUID {guid3} 對應的敵人 prefab");
+        if (enemyPrefab4 == null) Debug.LogWarning($"無法找到 GUID {guid4} 對應的敵人 prefab");
+        
         levelAsset.levelData = new LevelData
         {
             levelName = "關卡 3 - 生存挑戰",
@@ -145,52 +240,71 @@ public class LevelDataCreator : EditorWindow
             {
                 new EnemyWave
                 {
-                    enemyCount = 1,
+                    enemyCount = 2,
+                    enemyPrefab = null,
                     waveDelay = 1,
-                    spawnInterval = 1,
-                    statsModifier = new EnemyStatsModifier()
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
+                    {
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 0
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 1
+                        }
+                    }
                 },
                 new EnemyWave
                 {
                     enemyCount = 2,
+                    enemyPrefab = null,
                     waveDelay = 2,
-                    spawnInterval = 0.5f,
-                    statsModifier = new EnemyStatsModifier
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
                     {
-                        healthMultiplier = 1.3f,
-                        speedMultiplier = 1.1f,
-                        damageMultiplier = 1.2f,
-                        fireRateMultiplier = 1.1f
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab2,
+                            spawnPointIndex = 2
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab3,
+                            spawnPointIndex = 3
+                        }
                     }
                 },
                 new EnemyWave
                 {
                     enemyCount = 3,
-                    waveDelay = 2,
-                    spawnInterval = 0.3f,
-                    statsModifier = new EnemyStatsModifier
-                    {
-                        healthMultiplier = 1.5f,
-                        speedMultiplier = 1.2f,
-                        damageMultiplier = 1.4f,
-                        fireRateMultiplier = 1.3f
-                    }
-                },
-                new EnemyWave
-                {
-                    enemyCount = 2,
+                    enemyPrefab = null,
                     waveDelay = 1,
-                    spawnInterval = 0.2f,
-                    statsModifier = new EnemyStatsModifier
+                    spawnInterval = 0,
+                    enemyEntries = new EnemySpawnEntry[]
                     {
-                        healthMultiplier = 2f,
-                        speedMultiplier = 1.3f,
-                        damageMultiplier = 1.6f,
-                        fireRateMultiplier = 1.5f
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab1,
+                            spawnPointIndex = 0
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab3,
+                            spawnPointIndex = 1
+                        },
+                        new EnemySpawnEntry
+                        {
+                            enemyPrefab = enemyPrefab4,
+                            spawnPointIndex = 3
+                        }
                     }
                 }
             },
-            requireAllEnemiesDefeated = false,
+            requireAllEnemiesDefeated = true,
             requireSurviveTime = true,
             survivalTime = 120,
             scoreReward = 300,

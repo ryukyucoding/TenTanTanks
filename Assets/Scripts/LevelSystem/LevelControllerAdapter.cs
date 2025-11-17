@@ -15,9 +15,6 @@ public class LevelControllerAdapter : MonoBehaviour
     [Tooltip("敵人生成點")]
     [SerializeField] private Transform[] spawnPoints;
     
-    [Tooltip("敵人預製體")]
-    [SerializeField] private GameObject enemyPrefab;
-    
     [Header("設定")]
     [Tooltip("自動在 Start 時載入第一個關卡")]
     [SerializeField] private bool autoLoadFirstLevel = true;
@@ -104,17 +101,6 @@ public class LevelControllerAdapter : MonoBehaviour
                 Debug.LogWarning("沒有設置生成點！");
             }
             
-            // 設置敵人預製體
-            if (enemyPrefab != null)
-            {
-                controller.SetEnemyPrefab(enemyPrefab);
-                Debug.Log($"✅ 已設置敵人預製體: {enemyPrefab.name}");
-            }
-            else
-            {
-                Debug.LogWarning("沒有設置敵人預製體！");
-            }
-            
             Debug.Log("=== LevelControllerAdapter 設置完成 ===");
         }
         else
@@ -143,7 +129,6 @@ public class LevelControllerAdapter : MonoBehaviour
         }
         
         Debug.Log($"生成點數量: {(spawnPoints != null ? spawnPoints.Length : 0)}");
-        Debug.Log($"敵人預製體: {(enemyPrefab != null ? enemyPrefab.name : "未設置")}");
         Debug.Log("=== 配置顯示完成 ===");
     }
     

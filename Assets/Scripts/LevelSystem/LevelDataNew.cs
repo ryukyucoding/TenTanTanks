@@ -11,13 +11,6 @@ public class EnemyWaveData
     public GameObject enemyPrefab;
     public float waveDelay = 2f;
     public float spawnInterval = 1f;
-    public Transform[] spawnPoints;
-    
-    [Header("敵人屬性調整")]
-    public float healthMultiplier = 1f;
-    public float speedMultiplier = 1f;
-    public float damageMultiplier = 1f;
-    public float fireRateMultiplier = 1f;
 }
 
 [System.Serializable]
@@ -90,13 +83,6 @@ public class LevelDataNew : ScriptableObject
             legacyWave.enemyPrefab = wave.enemyPrefab;
             legacyWave.waveDelay = wave.waveDelay;
             legacyWave.spawnInterval = wave.spawnInterval;
-            legacyWave.spawnPoints = wave.spawnPoints;
-            
-            legacyWave.statsModifier = new EnemyStatsModifier();
-            legacyWave.statsModifier.healthMultiplier = wave.healthMultiplier;
-            legacyWave.statsModifier.speedMultiplier = wave.speedMultiplier;
-            legacyWave.statsModifier.damageMultiplier = wave.damageMultiplier;
-            legacyWave.statsModifier.fireRateMultiplier = wave.fireRateMultiplier;
             
             legacy.enemyWaves.Add(legacyWave);
         }

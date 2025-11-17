@@ -131,9 +131,9 @@ public class Bullet : MonoBehaviour
 
             // 檢測到牆壁或其他物體
             Debug.Log($"Raycast 偵測到: {hit.collider.name}, 法線: {hit.normal}");
-            
-            // 如果是牆壁層，進行反彈
-            if (IsWall(hit.collider.gameObject))
+
+            // 如果是反彈面，進行反彈
+            if (IsBouncePlane(hit.collider.gameObject))
             {
                 // 檢查是否還有反彈次數
                 if (bounceCount < maxBounces)
@@ -145,6 +145,14 @@ public class Bullet : MonoBehaviour
                     Debug.Log($"反彈次數已達上限 ({maxBounces})，子彈銷毀");
                     DestroyBullet();
                 }
+                return;
+            }
+            // 如果是普通牆壁（不是反彈面），直接穿透或銷毀
+            else if (IsWall(hit.collider.gameObject))
+            {
+                // 碰到非反彈面的牆壁，直接銷毀（不反彈）
+                Debug.Log($"碰到非反彈面牆壁，子彈銷毀: {hit.collider.name}");
+                DestroyBullet();
                 return;
             }
 
@@ -235,8 +243,8 @@ public class Bullet : MonoBehaviour
 
         Debug.Log("擊中目標！");
 
-        // 如果是牆壁層，進行反彈
-        if (IsWall(other.gameObject))
+        // 如果是反彈面，進行反彈
+        if (IsBouncePlane(other.gameObject))
         {
             // 檢查是否還有反彈次數
             if (bounceCount < maxBounces)
@@ -248,6 +256,13 @@ public class Bullet : MonoBehaviour
                 Debug.Log($"反彈次數已達上限 ({maxBounces})，子彈銷毀");
                 DestroyBullet();
             }
+            return;
+        }
+        // 如果是普通牆壁（不是反彈面），直接銷毀
+        else if (IsWall(other.gameObject))
+        {
+            Debug.Log($"碰到非反彈面牆壁，子彈銷毀: {other.name}");
+            DestroyBullet();
             return;
         }
 
@@ -288,33 +303,47 @@ public class Bullet : MonoBehaviour
         return ((1 << obj.layer) & wallLayers) != 0;
     }
 
-    // 判斷是否應該忽略（只忽略發射者本身和其子物件）
+    // 判斷是否為反彈面（優先檢查）
+    private bool IsBouncePlane(GameObject obj)
+    {
+        // 檢查名稱是否包含 "BouncePlane"
+        return obj.name.Contains("BouncePlane");
+    }
+
+    // 判斷是否應該忽略（玩家：只忽略自己；敵人：忽略所有敵人）
     private bool IsFriendly(GameObject obj)
     {
         if (shooter == null) return false;
-        
+
         // 直接檢查是否為發射者本身
-        if (obj == shooter) 
+        if (obj == shooter)
         {
             Debug.Log($"忽略：碰到發射者本身 {obj.name}");
             return true;
         }
-        
+
         // 檢查是否為發射者的子物件
-        if (obj.transform.IsChildOf(shooter.transform)) 
+        if (obj.transform.IsChildOf(shooter.transform))
         {
             Debug.Log($"忽略：碰到發射者的子物件 {obj.name}");
             return true;
         }
-        
+
         // 檢查是否為發射者的父物件（反向檢查）
-        if (shooter.transform.IsChildOf(obj.transform)) 
+        if (shooter.transform.IsChildOf(obj.transform))
         {
             Debug.Log($"忽略：碰到發射者的父物件 {obj.name}");
             return true;
         }
-        
-        // 不再檢查 Tag，這樣敵人之間、玩家之間都可以互相傷害
+
+        // 敵人的子彈不能打到其他敵人
+        if (shooter.CompareTag("Enemy") && obj.CompareTag("Enemy"))
+        {
+            Debug.Log($"忽略：敵人友軍穿透 {obj.name}");
+            return true;
+        }
+
+        // 玩家的子彈可以打到任何目標（已經在上面檢查過自己了）
         return false;
     }
 
@@ -519,6 +548,11 @@ public class Bullet : MonoBehaviour
     public void SetShooter(GameObject newShooter)
     {
         shooter = newShooter;
+    }
+    
+    public GameObject GetShooter()
+    {
+        return shooter;
     }
 
     public void SetHitLayers(LayerMask layers)

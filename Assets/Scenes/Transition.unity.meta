@@ -1,6 +1,11 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scenes/Transition.unity.meta
 guid: 8955a0e02d0f0461fa0d4cb1ce27b45c
 DefaultImporter:
+========
+guid: 9f3c1aedc42724cec8f4eb048a4a92ff
+TextScriptImporter:
+>>>>>>>> EnemyTank:Assets/Scripts/LevelSystem/_Removed_Readme.txt.meta
   externalObjects: {}
   userData: 
   assetBundleName: 

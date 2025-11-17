@@ -16,7 +16,8 @@ public class AStarPathfinder
         new Vector2Int(-1, -1)  // 左上
     };
 
-    public static List<Vector2Int> FindPath(Vector2Int start, Vector2Int end, System.Func<Vector2Int, bool> isWalkable)
+    // 方案3：帶有成本函數的 FindPath（新增參數 getPositionCost）
+    public static List<Vector2Int> FindPath(Vector2Int start, Vector2Int end, System.Func<Vector2Int, bool> isWalkable, System.Func<Vector2Int, float> getPositionCost = null)
     {
         var startNode = new AStarNode(start);
         startNode.gCost = 0;
@@ -30,7 +31,7 @@ public class AStarPathfinder
             var currentNode = openList[0];
             for (int i = 1; i < openList.Count; i++)
             {
-                if (openList[i].fCost < currentNode.fCost || 
+                if (openList[i].fCost < currentNode.fCost ||
                     (openList[i].fCost == currentNode.fCost && openList[i].hCost < currentNode.hCost))
                 {
                     currentNode = openList[i];
@@ -57,8 +58,12 @@ public class AStarPathfinder
                     continue;
 
                 // 對角線移動成本更高
-                float newMovementCostToNeighbor = currentNode.gCost +
-                    (direction.x != 0 && direction.y != 0 ? 1.414f : 1);
+                float baseCost = (direction.x != 0 && direction.y != 0 ? 1.414f : 1);
+
+                // 方案3關鍵：加入位置成本（靠近牆壁的格子成本更高，但仍可通行）
+                float positionCostMultiplier = getPositionCost != null ? getPositionCost(neighborPos) : 1f;
+
+                float newMovementCostToNeighbor = currentNode.gCost + (baseCost * positionCostMultiplier);
 
                 AStarNode existingNeighbor = null;
                 foreach (var node in openList)

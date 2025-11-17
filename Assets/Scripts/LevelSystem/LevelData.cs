@@ -8,7 +8,7 @@ public class EnemyWave
     [Tooltip("敵人數量")]
     public int enemyCount = 1;
     
-    [Tooltip("敵人預製體")]
+    [Tooltip("整波共用的預設敵人預製體（如果 per-enemy 沒有指定時使用）")]
     public GameObject enemyPrefab;
     
     [Tooltip("波數間隔時間（秒）")]
@@ -17,27 +17,19 @@ public class EnemyWave
     [Tooltip("敵人生成間隔時間（秒）")]
     public float spawnInterval = 1f;
     
-    [Tooltip("敵人生成位置（如果為空則使用隨機位置）")]
-    public Transform[] spawnPoints;
-    
-    [Tooltip("敵人屬性調整")]
-    public EnemyStatsModifier statsModifier = new EnemyStatsModifier();
+    [Header("進階：每一隻敵人的個別設定（可選）")]
+    [Tooltip("如果填寫，會依序使用這裡的設定生成每一隻敵人")]
+    public EnemySpawnEntry[] enemyEntries;
 }
 
 [System.Serializable]
-public class EnemyStatsModifier
+public class EnemySpawnEntry
 {
-    [Tooltip("血量倍數")]
-    public float healthMultiplier = 1f;
+    [Tooltip("這一隻敵人的預製體（留空則使用波數的 enemyPrefab）")]
+    public GameObject enemyPrefab;
     
-    [Tooltip("移動速度倍數")]
-    public float speedMultiplier = 1f;
-    
-    [Tooltip("攻擊力倍數")]
-    public float damageMultiplier = 1f;
-    
-    [Tooltip("攻擊速度倍數")]
-    public float fireRateMultiplier = 1f;
+    [Tooltip("這一隻敵人要使用的生成點索引（對應 SimpleLevelController / LevelControllerAdapter 上的 spawnPoints 陣列；-1 表示不指定）")]
+    public int spawnPointIndex = -1;
 }
 
 [System.Serializable]

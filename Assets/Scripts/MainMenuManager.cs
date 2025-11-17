@@ -25,6 +25,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip buttonClickSound;
 
+    [Header("Level Scene")]
+    [SerializeField] private string firstLevelScene = "Level1";  // 第一個關卡場景名稱
+
     // Wheel upgrade system (pre-game tank configuration)
     private TankUpgradeSystem wheelUpgradeSystem;
     private UpgradeWheelUI upgradeWheelUI;
@@ -115,6 +118,9 @@ public class MainMenuManager : MonoBehaviour
         // Load the transition scene (which will apply tank configuration)
         Debug.Log("Starting game with current tank configuration...");
         SceneManager.LoadScene("Transition");
+
+        // 使用 SceneTransitionManager 設置第一個關卡，然後加載 Transition 場景
+        SceneTransitionManager.LoadSceneWithTransition(firstLevelScene);
     }
 
     public void QuitGame()
