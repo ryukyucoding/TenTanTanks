@@ -1413,7 +1413,7 @@ GameObject:
   - component: {fileID: 204476615}
   - component: {fileID: 204476614}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: FireRate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5850,7 +5850,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 926261040}
-  - {fileID: 926261101}
   m_Father: {fileID: 2033086296}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -7986,7 +7985,7 @@ GameObject:
   - component: {fileID: 926261042}
   - component: {fileID: 926261041}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Movespeed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8066,7 +8065,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 2048
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -8122,7 +8121,7 @@ GameObject:
   - component: {fileID: 926261103}
   - component: {fileID: 926261102}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: BulletSpeed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8140,7 +8139,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 685734165}
+  m_Father: {fileID: 1642059081}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -8167,7 +8166,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ' [1] '
+  m_text: ' [2]'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8202,7 +8201,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 2048
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -13657,7 +13656,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 926261101}
   m_Father: {fileID: 2033086296}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -18003,7 +18003,7 @@ MonoBehaviour:
   bulletSpeedButton:
     button: {fileID: 1642059082}
     buttonImage: {fileID: 0}
-    statNameText: {fileID: 0}
+    statNameText: {fileID: 926261102}
     levelText: {fileID: 0}
     valueText: {fileID: 0}
     hotkeyText: {fileID: 0}
