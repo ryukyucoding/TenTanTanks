@@ -60,8 +60,10 @@ public class UpgradeUI : MonoBehaviour
         // 设置按钮点击事件
         SetupButtons();
 
-        // 初始化 UI
-        UpdateUI(0);
+        // 初始化 UI - 使用實際的升級點數
+        int currentPoints = tankStats.GetAvailableUpgradePoints();
+        Debug.Log($"[UpgradeUI] 初始化時玩家擁有 {currentPoints} 個升級點數");
+        UpdateUI(currentPoints);
     }
     
     private void FindPlayerTank()
