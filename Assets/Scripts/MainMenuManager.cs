@@ -3,9 +3,12 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
+    [SerializeField] private string firstLevelScene = "Level1";  // 第一個關卡場景名稱
+    
     public void StartGame()
     {
-        SceneManager.LoadScene("Transition");
+        // 使用 SceneTransitionManager 設置第一個關卡，然後加載 Transition 場景
+        SceneTransitionManager.LoadSceneWithTransition(firstLevelScene);
     }
 
     public void QuitGame()

@@ -258,26 +258,40 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         yield return new WaitForSecondsRealtime(nextSceneDelay);
 
+        // 確定下一個場景名稱
+        string targetScene = null;
+        
         // 如果有指定下一個場景名稱，就用名稱載入
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
-            yield break;
-        }
-
-        // 否則就按照 Build Settings 的順序載入下一個場景
-        int currentIndex = SceneManager.GetActiveScene().buildIndex;
-        int nextIndex = currentIndex + 1;
-
-        if (nextIndex < SceneManager.sceneCountInBuildSettings)
-        {
-            SceneManager.LoadScene(nextIndex);
+            targetScene = nextSceneName;
         }
         else
         {
-            Debug.Log("沒有下一關可以載入（Build Settings 中已是最後一個場景）");
-            // 這裡也可以選擇回主選單，例如：
-            // SceneManager.LoadScene("Menu");
+            // 否則就按照 Build Settings 的順序載入下一個場景
+            int currentIndex = SceneManager.GetActiveScene().buildIndex;
+            int nextIndex = currentIndex + 1;
+
+            if (nextIndex < SceneManager.sceneCountInBuildSettings)
+            {
+                // 通過場景路徑獲取場景名稱
+                string scenePath = SceneUtility.GetScenePathByBuildIndex(nextIndex);
+                targetScene = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+            }
+            else
+            {
+                Debug.Log("沒有下一關可以載入（Build Settings 中已是最後一個場景）");
+                // 這裡也可以選擇回主選單，例如：
+                // targetScene = "Menu";
+                yield break;
+            }
+        }
+        
+        // 通過 Transition 場景進行轉場
+        if (!string.IsNullOrEmpty(targetScene))
+        {
+            Debug.Log($"[GameManager] 準備通過 Transition 加載場景: {targetScene}");
+            SceneTransitionManager.LoadSceneWithTransition(targetScene);
         }
     }
 
