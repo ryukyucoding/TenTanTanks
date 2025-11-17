@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Level2_Data
+  m_EditorClassIdentifier: Assembly-CSharp::LevelDataAsset
+  levelData:
+    levelName: "\u95DC\u5361 2 - \u6311\u6230\u958B\u59CB"
+    levelDescription: "\u9762\u5C0D\u66F4\u591A\u6575\u4EBA\uFF0C\u6E2C\u8A66\u4F60\u7684\u6280\u80FD"
+    timeLimit: 180
+    enemyWaves:
+    - enemyCount: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 0
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+        spawnPointIndex: 3
+    - enemyCount: 2
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+        spawnPointIndex: 1
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+        spawnPointIndex: 2
+    - enemyCount: 1
+      enemyPrefab: {fileID: 0}
+      waveDelay: 1
+      spawnInterval: 0
+      enemyEntries:
+      - enemyPrefab: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
+        spawnPointIndex: 3
+    requireAllEnemiesDefeated: 1
+    requireSurviveTime: 0
+    survivalTime: 60
+    scoreReward: 200
+    experienceReward: 100
+  levelPreview: {fileID: 0}
+  difficulty: 2
+  unlockCondition: "\u5B8C\u6210\u95DC\u5361 1"

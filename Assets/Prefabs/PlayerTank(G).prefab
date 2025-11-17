@@ -607,7 +607,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankStats
   baseMoveSpeed: 2.5
-  baseBulletSpeed: 5
+  baseBulletSpeed: 7
   baseFireRate: 1.2
   moveSpeedIncrement: 0.3
   bulletSpeedIncrement: 0.5

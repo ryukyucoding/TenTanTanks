@@ -36,6 +36,12 @@ public class SimpleLevelController : MonoBehaviour
     
     private void InitializeLevel()
     {
+        // 如果 Inspector 中沒有設定，嘗試自動加載
+        if (levelDataAsset == null)
+        {
+            levelDataAsset = AutoLoadLevelDataAsset();
+        }
+        
         if (levelDataAsset != null)
         {
             currentLevelData = levelDataAsset.levelData;
@@ -52,8 +58,123 @@ public class SimpleLevelController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("沒有設定關卡數據！");
+            Debug.LogError("沒有設定關卡數據，且無法自動加載！");
         }
+    }
+    
+    /// <summary>
+    /// 根據場景名稱自動加載對應的 LevelDataAsset
+    /// 優先順序：
+    /// 1. 使用 Resources 文件夾（運行時可用）
+    /// 2. 使用 AssetDatabase（僅 Editor，更可靠）
+    /// </summary>
+    private LevelDataAsset AutoLoadLevelDataAsset()
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        Debug.Log($"[SimpleLevelController] 嘗試自動加載關卡數據，場景名稱: {sceneName}");
+        
+        // 提取場景編號（Level1 -> 1, Level2 -> 2）
+        int levelNumber = ExtractLevelNumber(sceneName);
+        string expectedAssetName = levelNumber > 0 ? $"Level{levelNumber}_Data" : $"{sceneName}_Data";
+        
+        Debug.Log($"[SimpleLevelController] 預期資源名稱: {expectedAssetName}");
+        
+        // 方法1: 使用 Resources 文件夾（運行時可用）
+        string resourcePath = $"LevelConfigs/{expectedAssetName}";
+        LevelDataAsset asset = Resources.Load<LevelDataAsset>(resourcePath);
+        if (asset != null)
+        {
+            Debug.Log($"[SimpleLevelController] ✓ 從 Resources 加載: {resourcePath}");
+            return asset;
+        }
+        else
+        {
+            Debug.Log($"[SimpleLevelController] Resources 中未找到: {resourcePath}");
+        }
+        
+        // 方法2: 在 Editor 中使用 AssetDatabase（更可靠）
+        #if UNITY_EDITOR
+        // 先嘗試精確匹配文件名
+        string[] allGuids = UnityEditor.AssetDatabase.FindAssets("t:LevelDataAsset");
+        Debug.Log($"[SimpleLevelController] 找到 {allGuids.Length} 個 LevelDataAsset");
+        
+        foreach (string guid in allGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            LevelDataAsset tempAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LevelDataAsset>(path);
+            
+            if (tempAsset != null)
+            {
+                // 方法2a: 精確匹配資源名稱
+                if (tempAsset.name == expectedAssetName)
+                {
+                    Debug.Log($"[SimpleLevelController] ✓ 從 AssetDatabase 精確匹配加載: {path} (名稱: {tempAsset.name})");
+                    return tempAsset;
+                }
+                
+                // 方法2b: 匹配文件名（不含擴展名）
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+                if (fileName == expectedAssetName)
+                {
+                    Debug.Log($"[SimpleLevelController] ✓ 從 AssetDatabase 文件名匹配加載: {path} (文件名: {fileName})");
+                    return tempAsset;
+                }
+                
+                // 方法2c: 如果場景名稱包含數字，嘗試匹配
+                if (levelNumber > 0 && tempAsset.name.Contains($"Level{levelNumber}"))
+                {
+                    Debug.Log($"[SimpleLevelController] ✓ 從 AssetDatabase 數字匹配加載: {path} (名稱: {tempAsset.name})");
+                    return tempAsset;
+                }
+            }
+        }
+        
+        // 方法3: 如果還是找不到，嘗試模糊匹配場景名稱
+        foreach (string guid in allGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains(sceneName))
+            {
+                LevelDataAsset tempAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<LevelDataAsset>(path);
+                if (tempAsset != null)
+                {
+                    Debug.Log($"[SimpleLevelController] ✓ 從 AssetDatabase 路徑匹配加載: {path}");
+                    return tempAsset;
+                }
+            }
+        }
+        #endif
+        
+        Debug.LogWarning($"[SimpleLevelController] ⚠️ 無法自動加載場景 {sceneName} 的關卡數據");
+        Debug.LogWarning($"[SimpleLevelController] 請確保：");
+        Debug.LogWarning($"  1. 使用 Tools > Copy Level Data to Resources 將資源複製到 Resources 文件夾");
+        Debug.LogWarning($"  2. 或在 Inspector 中手動設定 Level Data Asset");
+        return null;
+    }
+    
+    /// <summary>
+    /// 從場景名稱中提取關卡編號
+    /// Level1 -> 1, Level2 -> 2, Level1_Desert -> 1
+    /// </summary>
+    private int ExtractLevelNumber(string sceneName)
+    {
+        // 使用正則表達式或簡單字符串匹配
+        // 匹配 "Level" 後面的數字（1-99）
+        for (int i = 99; i >= 1; i--)  // 從大到小匹配，避免 Level1 匹配到 Level10
+        {
+            string pattern = $"Level{i}";
+            if (sceneName.Contains(pattern))
+            {
+                // 確保不是更大的數字（例如 Level1 不應該匹配到 Level10）
+                if (i < 10 || !sceneName.Contains($"Level{i + 1}"))
+                {
+                    return i;
+                }
+            }
+        }
+        
+        // 如果沒有匹配到，返回 0
+        return 0;
     }
     
     private void InitializeUpgradeManager()
