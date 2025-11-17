@@ -893,6 +893,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1792893748}
     m_Modifications:
+    - target: {fileID: 618302629183550047, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
       propertyPath: tankBase
       value: 
@@ -905,6 +909,18 @@ PrefabInstance:
       propertyPath: mainTurret
       value: 
       objectReference: {fileID: 813881345}
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: tankRenderers.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: 'tankRenderers.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1928905264}
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: 'tankRenderers.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2010101177}
     - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1978.2493
@@ -989,7 +1005,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813881348}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c978c2a34edc9042aa974494d063064, type: 3}
   m_Name: 
@@ -2584,6 +2600,11 @@ Transform:
   - {fileID: 626909684}
   m_Father: {fileID: 951188247}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!137 &1928905264 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 494934731081455781, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1983991979
 GameObject:
   m_ObjectHideFlags: 0
@@ -2853,6 +2874,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1998204718}
   m_CullTransparentMesh: 1
+--- !u!137 &2010101177 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3793855449391419626, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

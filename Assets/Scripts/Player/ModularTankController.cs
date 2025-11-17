@@ -371,28 +371,26 @@ public class ModularTankController : MonoBehaviour
 
     private void ApplyVisualChanges()
     {
-        // 改變坦克顏色
-        foreach (var renderer in tankRenderers)
+        // Don't change colors for Basic configuration - preserve original materials
+        if (currentConfig != null && currentConfig.upgradeName == "Basic")
         {
-            if (renderer != null && renderer.material != null)
-            {
-                renderer.material.color = currentConfig.tankColor;
-            }
+            Debug.Log("Basic config - preserving original tank colors");
+            return;
         }
 
-        // 如果指定，則應用自訂材質
-        if (currentConfig.customMaterial != null)
+        // Only change color for non-basic configurations
+        if (tankRenderers != null && tankRenderers.Length > 0)
         {
             foreach (var renderer in tankRenderers)
             {
-                if (renderer != null)
+                if (renderer != null && renderer.material != null)
                 {
-                    renderer.material = currentConfig.customMaterial;
+                    renderer.material.color = currentConfig.tankColor;
                 }
             }
         }
 
-        Debug.Log($"已應用視覺變化 - 顏色：{currentConfig.tankColor}");
+        Debug.Log($"Applied visual changes - Color: {currentConfig.tankColor}");
     }
 
     private void ApplyTurretConfiguration()
