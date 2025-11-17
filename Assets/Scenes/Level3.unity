@@ -3252,6 +3252,10 @@ MonoBehaviour:
   - {fileID: 1499819322}
   - {fileID: 23755656}
   waveStartDelay: 2
+  enemyTankGreen: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
+  enemyTankGray: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+  enemyTankSoil: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
+  enemyTankPurple: {fileID: 8883446190524244325, guid: ba39c04b07fc440869d220d7c670b06d, type: 3}
   currentWaveIndex: 0
   isWaveActive: 1
   enemiesSpawnedInWave: 0

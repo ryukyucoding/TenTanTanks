@@ -31,7 +31,7 @@ MonoBehaviour:
       enemyEntries:
       - enemyPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
         spawnPointIndex: 2
-      - enemyPrefab: {fileID: 8883446190524244325, guid: 7dd4d53b6647040aab6329fc125558b8, type: 3}
+      - enemyPrefab: {fileID: 8883446190524244325, guid: b38e840a27da14bf39e56459edb46314, type: 3}
         spawnPointIndex: 4
     requireAllEnemiesDefeated: 1
     requireSurviveTime: 0

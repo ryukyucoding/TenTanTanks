@@ -1,64 +1,148 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SimpleLevelController : MonoBehaviour
 {
     [Header("簡化關卡控制")]
-    [SerializeField] private LevelDataAsset levelDataAsset;
+    [SerializeField] private LevelDataAsset levelDataAsset; // 舊系統兼容，可留空
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private float waveStartDelay = 2f;
-    
+
+    [Header("敵人 Prefab 註冊表")]
+    [Tooltip("在 Inspector 中拖拽所有敵人 Prefab")]
+    [SerializeField] private GameObject enemyTankGreen;
+    [SerializeField] private GameObject enemyTankGray;
+    [SerializeField] private GameObject enemyTankSoil;
+    [SerializeField] private GameObject enemyTankPurple;
+
     [Header("狀態")]
     [SerializeField] private int currentWaveIndex = 0;
     [SerializeField] private bool isWaveActive = false;
     [SerializeField] private int enemiesSpawnedInWave = 0;
     [SerializeField] private int enemiesKilledInWave = 0;
-    
+
+    // 新系統：使用 LevelDataConfig
+    private LevelDataConfig currentLevelConfig;
+
+    // 舊系統兼容
     private LevelData currentLevelData;
+
     private int totalWaves = 0;
-    private UpgradePointManager upgradeManager; // 缓存引用
+    private UpgradePointManager upgradeManager;
+
+    // Prefab 查找字典
+    private Dictionary<string, GameObject> enemyPrefabs;
     
     private void Start()
     {
         Debug.Log("=== 簡化關卡控制器啟動 ===");
-        
+
+        // 初始化 Prefab 字典
+        InitializeEnemyPrefabs();
+
         // 清理現有敵人
         ClearAllEnemies();
-        
+
         // 初始化關卡
         InitializeLevel();
-        
+
         // 初始化 UpgradePointManager
         InitializeUpgradeManager();
-        
+
         // 開始第一波
         StartCoroutine(StartFirstWave());
+    }
+
+    /// <summary>
+    /// 初始化敵人 Prefab 查找字典
+    /// </summary>
+    private void InitializeEnemyPrefabs()
+    {
+        enemyPrefabs = new Dictionary<string, GameObject>
+        {
+            { LevelDatabase.ENEMY_GREEN, enemyTankGreen },
+            { LevelDatabase.ENEMY_GRAY, enemyTankGray },
+            { LevelDatabase.ENEMY_SOIL, enemyTankSoil },
+            { LevelDatabase.ENEMY_PURPLE, enemyTankPurple }
+        };
+
+        Debug.Log("[SimpleLevelController] 敵人 Prefab 字典已初始化");
+
+        // 檢查是否有未設定的 Prefab
+        foreach (var kvp in enemyPrefabs)
+        {
+            if (kvp.Value == null)
+            {
+                Debug.LogWarning($"[SimpleLevelController] 警告：{kvp.Key} Prefab 未在 Inspector 中設定！");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 根據字串 key 獲取敵人 Prefab
+    /// </summary>
+    public GameObject GetEnemyPrefab(string key)
+    {
+        if (enemyPrefabs != null && enemyPrefabs.TryGetValue(key, out GameObject prefab))
+        {
+            return prefab;
+        }
+        Debug.LogError($"[SimpleLevelController] 找不到敵人 Prefab: {key}");
+        return null;
     }
     
     private void InitializeLevel()
     {
-        // 如果 Inspector 中沒有設定，嘗試自動加載
-        if (levelDataAsset == null)
+        // 優先使用新系統：從 LevelDatabase 載入
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        int levelNumber = ExtractLevelNumber(sceneName);
+
+        currentLevelConfig = LevelDatabase.GetLevelData(levelNumber);
+
+        if (currentLevelConfig != null)
         {
-            levelDataAsset = AutoLoadLevelDataAsset();
-        }
-        
-        if (levelDataAsset != null)
-        {
-            currentLevelData = levelDataAsset.levelData;
-            totalWaves = currentLevelData.enemyWaves.Count;
-            
-            Debug.Log($"關卡初始化: {currentLevelData.levelName}");
+            // 使用新系統
+            totalWaves = currentLevelConfig.waves.Length;
+
+            Debug.Log($"[SimpleLevelController] 使用新系統載入關卡");
+            Debug.Log($"關卡初始化: {currentLevelConfig.levelName}");
             Debug.Log($"總波數: {totalWaves}");
-            
+
             for (int i = 0; i < totalWaves; i++)
             {
-                var wave = currentLevelData.enemyWaves[i];
-                Debug.Log($"  波數 {i + 1}: {wave.enemyCount} 個敵人");
+                var wave = currentLevelConfig.waves[i];
+                Debug.Log($"  波數 {i + 1}: {wave.enemies.Length} 個敵人");
             }
         }
         else
         {
-            Debug.LogError("沒有設定關卡數據，且無法自動加載！");
+            // 舊系統兼容：嘗試從 ScriptableObject Asset 載入
+            Debug.LogWarning($"[SimpleLevelController] LevelDatabase 中找不到關卡 {levelNumber}，嘗試使用舊系統...");
+
+            if (levelDataAsset == null)
+            {
+                levelDataAsset = AutoLoadLevelDataAsset();
+            }
+
+            if (levelDataAsset != null)
+            {
+                currentLevelData = levelDataAsset.levelData;
+                totalWaves = currentLevelData.enemyWaves.Count;
+
+                Debug.Log($"[SimpleLevelController] 使用舊系統載入關卡");
+                Debug.Log($"關卡初始化: {currentLevelData.levelName}");
+                Debug.Log($"總波數: {totalWaves}");
+
+                for (int i = 0; i < totalWaves; i++)
+                {
+                    var wave = currentLevelData.enemyWaves[i];
+                    Debug.Log($"  波數 {i + 1}: {wave.enemyCount} 個敵人");
+                }
+            }
+            else
+            {
+                Debug.LogError("[SimpleLevelController] 沒有設定關卡數據，且無法自動加載！");
+            }
         }
     }
     
@@ -209,25 +293,107 @@ public class SimpleLevelController : MonoBehaviour
             Debug.Log("所有波數已完成！");
             return;
         }
-        
-        var currentWave = currentLevelData.enemyWaves[currentWaveIndex];
+
         enemiesSpawnedInWave = 0;
         enemiesKilledInWave = 0;
         isWaveActive = true;
-        
-        Debug.Log($"開始第 {currentWaveIndex + 1} 波，敵人數量: {currentWave.enemyCount}");
-        
-        // 開始生成敵人
-        StartCoroutine(SpawnWaveEnemies(currentWave));
+
+        // 根據使用新系統或舊系統來處理
+        if (currentLevelConfig != null)
+        {
+            // 新系統
+            var currentWave = currentLevelConfig.waves[currentWaveIndex];
+            Debug.Log($"開始第 {currentWaveIndex + 1} 波，敵人數量: {currentWave.enemies.Length}");
+            StartCoroutine(SpawnWaveEnemiesNew(currentWave));
+        }
+        else if (currentLevelData != null)
+        {
+            // 舊系統
+            var currentWave = currentLevelData.enemyWaves[currentWaveIndex];
+            Debug.Log($"開始第 {currentWaveIndex + 1} 波，敵人數量: {currentWave.enemyCount}");
+            StartCoroutine(SpawnWaveEnemies(currentWave));
+        }
     }
     
+    /// <summary>
+    /// 新系統：生成波數的所有敵人
+    /// </summary>
+    private System.Collections.IEnumerator SpawnWaveEnemiesNew(WaveConfig wave)
+    {
+        for (int i = 0; i < wave.enemies.Length; i++)
+        {
+            SpawnEnemyNew(wave.enemies[i]);
+            enemiesSpawnedInWave++;
+
+            if (i < wave.enemies.Length - 1)
+            {
+                yield return new WaitForSeconds(wave.spawnInterval);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 新系統：生成單一敵人
+    /// </summary>
+    private void SpawnEnemyNew(EnemyConfig config)
+    {
+        // 根據字串 key 獲取 Prefab
+        GameObject prefab = GetEnemyPrefab(config.prefabKey);
+        if (prefab == null)
+        {
+            Debug.LogError($"[SimpleLevelController] 無法生成敵人，Prefab key: {config.prefabKey}");
+            return;
+        }
+
+        // 獲取生成位置
+        Vector3 spawnPosition = GetSpawnPosition(config.spawnPointIndex);
+
+        // 生成敵人
+        GameObject enemy = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        enemy.tag = "Enemy";
+
+        Debug.Log($"[SimpleLevelController] 生成敵人: {config.prefabKey} 在位置 {spawnPosition}");
+
+        // 通知 GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemySpawned();
+        }
+    }
+
+    /// <summary>
+    /// 根據索引獲取生成位置
+    /// </summary>
+    private Vector3 GetSpawnPosition(int spawnPointIndex)
+    {
+        if (spawnPoints != null && spawnPointIndex >= 0 && spawnPointIndex < spawnPoints.Length)
+        {
+            var point = spawnPoints[spawnPointIndex];
+            if (point != null)
+            {
+                return point.position;
+            }
+        }
+
+        // 如果索引無效，使用隨機位置
+        Debug.LogWarning($"[SimpleLevelController] 生成點索引 {spawnPointIndex} 無效，使用隨機位置");
+        return new Vector3(
+            Random.Range(-15f, 15f),
+            0f,
+            Random.Range(-15f, 15f)
+        );
+    }
+
+    /// <summary>
+    /// 舊系統：生成波數的所有敵人（兼容舊 LevelData）
+    /// </summary>
     private System.Collections.IEnumerator SpawnWaveEnemies(EnemyWave wave)
     {
         for (int i = 0; i < wave.enemyCount; i++)
         {
             SpawnEnemy(wave, i);
             enemiesSpawnedInWave++;
-            
+
             if (i < wave.enemyCount - 1)
             {
                 yield return new WaitForSeconds(wave.spawnInterval);
@@ -370,23 +536,39 @@ public class SimpleLevelController : MonoBehaviour
         }
         
         currentWaveIndex++;
-        
+
         // 檢查是否還有下一波
         if (currentWaveIndex < totalWaves)
         {
-            var nextWave = currentLevelData.enemyWaves[currentWaveIndex];
-            StartCoroutine(WaitForNextWave(nextWave.waveDelay));
+            float nextWaveDelay = GetNextWaveDelay();
+            StartCoroutine(WaitForNextWave(nextWaveDelay));
         }
         else
         {
             Debug.Log("所有波數已完成！");
-            
+
             // 通知 GameManager 關卡完成（全部波數打完）
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.Victory();
             }
         }
+    }
+
+    /// <summary>
+    /// 獲取下一波的延遲時間（支援新舊系統）
+    /// </summary>
+    private float GetNextWaveDelay()
+    {
+        if (currentLevelConfig != null && currentWaveIndex < currentLevelConfig.waves.Length)
+        {
+            return currentLevelConfig.waves[currentWaveIndex].waveDelay;
+        }
+        else if (currentLevelData != null && currentWaveIndex < currentLevelData.enemyWaves.Count)
+        {
+            return currentLevelData.enemyWaves[currentWaveIndex].waveDelay;
+        }
+        return 1f; // 預設延遲
     }
     
     private System.Collections.IEnumerator WaitForNextWave(float delay)
