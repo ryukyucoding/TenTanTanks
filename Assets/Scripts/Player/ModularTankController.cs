@@ -308,28 +308,48 @@ public class ModularTankController : MonoBehaviour
     {
         currentUpgradePath = upgradePath;
 
-        // 為此升級路徑查找配置
+        // Make sure upgradeConfigs is initialized
+        if (upgradeConfigs == null || upgradeConfigs.Length == 0)
+        {
+            SetupUpgradeConfigurations();
+        }
+
+        // Find configuration
         currentConfig = System.Array.Find(upgradeConfigs, config => config.upgradeName == upgradePath);
 
         if (currentConfig == null)
         {
-            Debug.LogWarning($"未找到 {upgradePath} 的配置。使用基本配置。");
-            currentConfig = upgradeConfigs[0]; // 使用基本配置作為後備
+            Debug.LogWarning($"Configuration '{upgradePath}' not found! Available configs:");
+            if (upgradeConfigs != null)
+            {
+                for (int i = 0; i < upgradeConfigs.Length; i++)
+                {
+                    Debug.LogWarning($"  - {upgradeConfigs[i].upgradeName}");
+                }
+            }
+
+            // Use first config as fallback
+            if (upgradeConfigs != null && upgradeConfigs.Length > 0)
+            {
+                currentConfig = upgradeConfigs[0];
+                Debug.LogWarning($"Using fallback config: {currentConfig.upgradeName}");
+            }
+            else
+            {
+                Debug.LogError("No upgrade configurations available!");
+                return;
+            }
         }
 
-        Debug.Log($"應用模組化坦克配置：{upgradePath}");
+        Debug.Log($"Applying configuration: {upgradePath}");
 
-        // 播放變換聲音
+        // Rest of your existing ApplyConfiguration code...
         PlayTransformSound();
-
-        // 應用所有修改
         ApplyScaleModifications();
         ApplyVisualChanges();
         ApplyTurretConfiguration();
         ApplyGameplayStats();
         ApplySpecialEffects();
-
-        Debug.Log($"模組化坦克變換完成：{upgradePath}");
     }
 
     private void ApplyScaleModifications()

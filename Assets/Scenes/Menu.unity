@@ -885,6 +885,124 @@ Transform:
   - {fileID: 1817805816}
   m_Father: {fileID: 245303627}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &813881343
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1792893748}
+    m_Modifications:
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: tankBase
+      value: 
+      objectReference: {fileID: 813881347}
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: firePoint
+      value: 
+      objectReference: {fileID: 813881346}
+    - target: {fileID: 2121425929630104671, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: mainTurret
+      value: 
+      objectReference: {fileID: 813881345}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1978.2493
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -720
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -248.79602
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      propertyPath: m_Name
+      value: PlayerTank(G)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 813881349}
+  m_SourcePrefab: {fileID: 100100000, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+--- !u!4 &813881344 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7686716656358136987, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &813881345 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8177436133700395142, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &813881346 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6952925081572628130, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &813881347 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6611656069306511290, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &813881348 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 813881343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &813881349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813881348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c978c2a34edc9042aa974494d063064, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MultiTurretShooting
+  bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
+  baseBulletSpeed: 5
+  baseFireRate: 1.2
+  bulletLifetime: 5
+  fireAllTurretsSimultaneously: 1
+  turretFireDelay: 0.05
+  enableAutoFire: 0
+  shootSound: {fileID: 0}
+  muzzleFlashPrefab: {fileID: 0}
 --- !u!1 &870062579
 GameObject:
   m_ObjectHideFlags: 0
@@ -1881,6 +1999,7 @@ MonoBehaviour:
   wheelScaleInDuration: 0.3
   buttonFadeInDuration: 0.3
   buttonFadeDelay: 0.1
+  modularTankController: {fileID: 0}
 --- !u!114 &1525623219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1936,6 +2055,7 @@ MonoBehaviour:
   tankStatsText: {fileID: 0}
   audioSource: {fileID: 0}
   buttonClickSound: {fileID: 0}
+  modularTankController: {fileID: 0}
 --- !u!4 &1528008482
 Transform:
   m_ObjectHideFlags: 0
@@ -2122,6 +2242,7 @@ RectTransform:
   m_Children:
   - {fileID: 1870573445}
   - {fileID: 1525623217}
+  - {fileID: 813881344}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

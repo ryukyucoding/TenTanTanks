@@ -459,6 +459,7 @@ GameObject:
   - component: {fileID: 618302629183550047}
   - component: {fileID: -460199179078218526}
   - component: {fileID: 6168854359044807033}
+  - component: {fileID: 2121425929630104671}
   m_Layer: 0
   m_Name: PlayerTank(G)
   m_TagString: Player
@@ -639,6 +640,26 @@ MonoBehaviour:
   explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
   explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
   explosionDuration: 2
+--- !u!114 &2121425929630104671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8621377706946314261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa207c077305f094ab5efd406e07678d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ModularTankController
+  tankBase: {fileID: 0}
+  mainTurret: {fileID: 0}
+  firePoint: {fileID: 0}
+  tankRenderers: []
+  turretPrefab: {fileID: 0}
+  upgradeConfigs: []
+  audioSource: {fileID: 0}
+  transformSound: {fileID: 0}
 --- !u!1001 &5976788805462697681
 PrefabInstance:
   m_ObjectHideFlags: 0
