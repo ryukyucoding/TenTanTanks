@@ -98,7 +98,7 @@ public static class LevelDatabase
                     enemies = new[]
                     {
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 2 },
-                        new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 4 }
+                        new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 1 }
                     },
                     waveDelay = 1f,
                     spawnInterval = 0f
