@@ -152,8 +152,8 @@ public class ModularTankController : MonoBehaviour
             new TankUpgradeConfig
             {
                 upgradeName = "Heavy",
-                baseScale = new Vector3(1.2f, 1.2f, 1.2f),
-                turretScale = new Vector3(1.5f, 1.5f, 1.5f),
+                baseScale = new Vector3(1.5f, 1.5f, 1.5f),
+                turretScale = new Vector3(2f, 2f, 2f),
                 tankColor = new Color(0.5f, 0.5f, 0.5f),
                 turretCount = 1,
                 damageMultiplier = 2f,
@@ -167,7 +167,7 @@ public class ModularTankController : MonoBehaviour
             new TankUpgradeConfig
             {
                 upgradeName = "SuperHeavy",
-                baseScale = new Vector3(1.4f, 1.4f, 1.4f),
+                baseScale = new Vector3(1.5f, 1.5f, 1.5f),
                 turretScale = new Vector3(2f, 2f, 2f),
                 tankColor = new Color(0.3f, 0.3f, 0.3f),
                 turretCount = 1,

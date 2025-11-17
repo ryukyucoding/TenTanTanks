@@ -1,5 +1,4 @@
 using WheelUpgradeSystem;
-
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -41,6 +40,9 @@ public class UpgradeWheelUI : MonoBehaviour
     [Header("Visual Integration")]
     [SerializeField] private ModularTankController modularTankController;
 
+    [Header("Debug")]
+    [SerializeField] private bool enableDebugLogs = true;
+
     private TankUpgradeSystem upgradeSystem;
     private List<WheelUpgradeButton> tier1Buttons = new List<WheelUpgradeButton>();
     private List<WheelUpgradeButton> tier2Buttons = new List<WheelUpgradeButton>();
@@ -63,9 +65,33 @@ public class UpgradeWheelUI : MonoBehaviour
     void Start()
     {
         upgradeSystem = FindObjectOfType<TankUpgradeSystem>();
+        if (upgradeSystem == null)
+        {
+            Debug.LogError("TankUpgradeSystem not found! Make sure it exists in the scene.");
+            return;
+        }
+
         SetupUI();
         StoreCenterProperties();
         HideWheel();
+
+        DebugLog("UpgradeWheelUI initialized successfully");
+    }
+
+    void OnValidate()
+    {
+        // Auto-assign components in editor if not set
+        if (upgradeCanvas == null)
+            upgradeCanvas = GetComponent<Canvas>();
+
+        if (wheelContainer == null)
+            wheelContainer = transform.Find("WheelContainer")?.gameObject;
+    }
+
+    private void DebugLog(string message)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"[UpgradeWheelUI] {message}");
     }
 
     private void StoreCenterProperties()
@@ -75,7 +101,7 @@ public class UpgradeWheelUI : MonoBehaviour
             originalCenterScale = centerPoint.localScale;
             originalCenterPosition = centerPoint.localPosition;
             centerPropertiesStored = true;
-            Debug.Log($"Stored center properties: Position={originalCenterPosition}, Scale={originalCenterScale}");
+            DebugLog($"Stored center properties: Position={originalCenterPosition}, Scale={originalCenterScale}");
         }
     }
 
@@ -106,10 +132,14 @@ public class UpgradeWheelUI : MonoBehaviour
             color.a = 0f;
             blurBackground.color = color;
         }
+
+        DebugLog("UI setup completed");
     }
 
     public void ShowWheel()
     {
+        DebugLog("ShowWheel called");
+
         if (upgradeCanvas != null)
             upgradeCanvas.gameObject.SetActive(true);
 
@@ -130,6 +160,7 @@ public class UpgradeWheelUI : MonoBehaviour
 
     public void HideWheel()
     {
+        DebugLog("HideWheel called");
         StartCoroutine(HideWheelAnimation());
     }
 
@@ -175,6 +206,8 @@ public class UpgradeWheelUI : MonoBehaviour
             // Final restoration to ensure center area is correctly positioned
             RestoreCenterProperties();
         }
+
+        DebugLog("Show animation completed");
     }
 
     private IEnumerator HideWheelAnimation()
@@ -220,14 +253,23 @@ public class UpgradeWheelUI : MonoBehaviour
 
         if (upgradeCanvas != null)
             upgradeCanvas.gameObject.SetActive(false);
+
+        DebugLog("Hide animation completed");
     }
 
     private void CreateAllUpgradeButtons()
     {
-        if (upgradeSystem == null) return;
+        if (upgradeSystem == null)
+        {
+            Debug.LogError("Cannot create buttons: TankUpgradeSystem is null");
+            return;
+        }
+
+        DebugLog("Creating upgrade buttons...");
 
         // Create Tier 1 buttons (3 buttons at 120¢X intervals)
         var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
+        DebugLog($"Found {tier1Options.Count} tier 1 options");
         CreateTier1Buttons(tier1Options);
 
         // Create Tier 2 buttons (6 buttons at 60¢X intervals)
@@ -237,11 +279,20 @@ public class UpgradeWheelUI : MonoBehaviour
             var tier2Options = upgradeSystem.GetAvailableUpgrades(2, tier1Option.upgradeName);
             allTier2Options.AddRange(tier2Options);
         }
+        DebugLog($"Found {allTier2Options.Count} total tier 2 options");
         CreateTier2Buttons(allTier2Options);
+
+        DebugLog($"Button creation completed: {tier1Buttons.Count} tier1, {tier2Buttons.Count} tier2");
     }
 
     private void CreateTier1Buttons(List<WheelUpgradeOption> options)
     {
+        if (tier1Container == null)
+        {
+            Debug.LogError("Tier1Container is null! Cannot create tier 1 buttons.");
+            return;
+        }
+
         // 3 buttons at 120¢X intervals starting from top
         float angleStep = 120f;
         float startAngle = -90f; // Start from top
@@ -253,12 +304,26 @@ public class UpgradeWheelUI : MonoBehaviour
             Vector3 position = GetCirclePosition(angle, tier1Radius);
 
             var button = CreateUpgradeButton(option, tier1Container, position, OnTier1Selected, i * buttonFadeDelay);
-            tier1Buttons.Add(button);
+            if (button != null)
+            {
+                tier1Buttons.Add(button);
+                DebugLog($"Created tier 1 button: {option.upgradeName} at position {position}");
+            }
+            else
+            {
+                Debug.LogError($"Failed to create tier 1 button for {option.upgradeName}");
+            }
         }
     }
 
     private void CreateTier2Buttons(List<WheelUpgradeOption> options)
     {
+        if (tier2Container == null)
+        {
+            Debug.LogError("Tier2Container is null! Cannot create tier 2 buttons.");
+            return;
+        }
+
         // 6 buttons at 60¢X intervals starting from top
         float angleStep = 60f;
         float startAngle = -120f; // Start from top
@@ -270,7 +335,15 @@ public class UpgradeWheelUI : MonoBehaviour
             Vector3 position = GetCirclePosition(angle, tier2Radius);
 
             var button = CreateUpgradeButton(option, tier2Container, position, OnTier2Selected, i * buttonFadeDelay);
-            tier2Buttons.Add(button);
+            if (button != null)
+            {
+                tier2Buttons.Add(button);
+                DebugLog($"Created tier 2 button: {option.upgradeName} at position {position}");
+            }
+            else
+            {
+                Debug.LogError($"Failed to create tier 2 button for {option.upgradeName}");
+            }
         }
     }
 
@@ -284,15 +357,38 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private WheelUpgradeButton CreateUpgradeButton(WheelUpgradeOption option, Transform container, Vector3 position, System.Action<WheelUpgradeOption> onClickCallback, float delay)
     {
-        if (upgradeButtonPrefab == null) return null;
+        if (upgradeButtonPrefab == null)
+        {
+            Debug.LogError("upgradeButtonPrefab is null! Cannot create buttons. Please assign the prefab in the inspector.");
+            return null;
+        }
 
+        if (container == null)
+        {
+            Debug.LogError($"Container is null for {option.upgradeName}! Cannot create button.");
+            return null;
+        }
+
+        // Create the button GameObject
         GameObject buttonObj = Instantiate(upgradeButtonPrefab, container);
-        buttonObj.transform.localPosition = position;
+        if (buttonObj == null)
+        {
+            Debug.LogError($"Failed to instantiate button prefab for {option.upgradeName}");
+            return null;
+        }
 
+        buttonObj.transform.localPosition = position;
+        buttonObj.name = $"UpgradeButton_{option.upgradeName}";
+
+        // Get or add WheelUpgradeButton component
         var upgradeButton = buttonObj.GetComponent<WheelUpgradeButton>();
         if (upgradeButton == null)
+        {
             upgradeButton = buttonObj.AddComponent<WheelUpgradeButton>();
+            DebugLog($"Added WheelUpgradeButton component to {option.upgradeName}");
+        }
 
+        // Setup the button
         upgradeButton.Setup(option, () => onClickCallback(option));
 
         // ²H¤J°Êµe
@@ -327,6 +423,8 @@ public class UpgradeWheelUI : MonoBehaviour
         // Update Tier 1 buttons
         foreach (var button in tier1Buttons)
         {
+            if (button == null) continue;
+
             if (selectedTier1Option != null && button.GetUpgradeOption().upgradeName == selectedTier1Option.upgradeName)
             {
                 button.SetButtonState(WheelUpgradeButton.ButtonState.Selected);
@@ -340,6 +438,8 @@ public class UpgradeWheelUI : MonoBehaviour
         // Update Tier 2 buttons
         foreach (var button in tier2Buttons)
         {
+            if (button == null) continue;
+
             if (selectedTier1Option != null && button.GetUpgradeOption().parentUpgradeName == selectedTier1Option.upgradeName)
             {
                 if (selectedTier2Option != null && button.GetUpgradeOption().upgradeName == selectedTier2Option.upgradeName)
@@ -368,13 +468,14 @@ public class UpgradeWheelUI : MonoBehaviour
         if (modularTankController != null)
         {
             modularTankController.ApplyConfiguration(upgradeName);
-            Debug.Log($"Applied visual transformation: {upgradeName}");
+            DebugLog($"Applied visual transformation: {upgradeName}");
         }
         else
         {
-            Debug.LogWarning("ModularTankController not found! Visual transformation skipped.");
+            DebugLog("ModularTankController not found! Visual transformation skipped.");
         }
     }
+
     private void OnTier1Selected(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
@@ -391,6 +492,8 @@ public class UpgradeWheelUI : MonoBehaviour
         // Hide confirm button until tier 2 is selected
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(false);
+
+        DebugLog($"Tier 1 selected: {option.upgradeName}");
     }
 
     private void OnTier2Selected(WheelUpgradeOption option)
@@ -408,6 +511,8 @@ public class UpgradeWheelUI : MonoBehaviour
         // Show confirm button
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(true);
+
+        DebugLog($"Tier 2 selected: {option.upgradeName}");
     }
 
     private void ConfirmUpgrade()
@@ -422,7 +527,11 @@ public class UpgradeWheelUI : MonoBehaviour
 
             HideWheel();
 
-            Debug.Log($"Upgrade confirmed and saved: {selectedTier2Option.upgradeName}");
+            DebugLog($"Upgrade confirmed and saved: {selectedTier2Option.upgradeName}");
+        }
+        else
+        {
+            Debug.LogError("Cannot confirm upgrade: selectedTier2Option or upgradeSystem is null");
         }
     }
 
@@ -441,6 +550,8 @@ public class UpgradeWheelUI : MonoBehaviour
                 Destroy(button.gameObject);
         }
         tier2Buttons.Clear();
+
+        DebugLog("All buttons cleared");
     }
 
     private void UpdateTitle(string title)
@@ -470,6 +581,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(false);
+
+        DebugLog("Back to tier 1 selection");
     }
 
     // Debug method to manually fix center area positioning
@@ -481,6 +594,27 @@ public class UpgradeWheelUI : MonoBehaviour
             centerPoint.localPosition = Vector3.zero;
             centerPoint.localScale = Vector3.one;
             Debug.Log("Center area position manually fixed");
+        }
+    }
+
+    // Debug method to test button creation
+    [ContextMenu("Test Button Creation")]
+    public void TestButtonCreation()
+    {
+        DebugLog("=== Testing Button Creation ===");
+        DebugLog($"UpgradeButtonPrefab: {(upgradeButtonPrefab != null ? "Y" : "N")}");
+        DebugLog($"Tier1Container: {(tier1Container != null ? "Y" : "N")}");
+        DebugLog($"Tier2Container: {(tier2Container != null ? "Y" : "N")}");
+        DebugLog($"UpgradeSystem: {(upgradeSystem != null ? "Y" : "N")}");
+
+        if (upgradeSystem != null)
+        {
+            var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
+            DebugLog($"Available tier 1 upgrades: {tier1Options.Count}");
+            foreach (var option in tier1Options)
+            {
+                DebugLog($"  - {option.upgradeName}: {option.description}");
+            }
         }
     }
 }

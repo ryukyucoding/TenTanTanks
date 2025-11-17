@@ -299,10 +299,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         Debug.Log("=== WheelUpgradeButton Component Check ===");
         Debug.Log($"GameObject: {gameObject.name}");
-        Debug.Log($"Button: {(button != null ? "?" : "?")}");
-        Debug.Log($"NameText: {(nameText != null ? "?" : "?")}");
-        Debug.Log($"BackgroundImage: {(backgroundImage != null ? "?" : "?")}");
-        Debug.Log($"IconImage: {(iconImage != null ? "?" : "?")}");
+        Debug.Log($"Button: {(button != null ? "Y" : "N")}");
+        Debug.Log($"NameText: {(nameText != null ? "Y" : "N")}");
+        Debug.Log($"BackgroundImage: {(backgroundImage != null ? "Y" : "N")}");
+        Debug.Log($"IconImage: {(iconImage != null ? "Y" : "N")}");
         Debug.Log($"UpgradeOption: {(upgradeOption != null ? upgradeOption.upgradeName : "null")}");
         Debug.Log($"Current State: {currentState}");
     }
