@@ -542,7 +542,7 @@ MonoBehaviour:
   moveSpeed: 25
   rotationSpeed: 150
   detectionRange: 30
-  shootingRange: 4
+  shootingRange: 7
   stopDistance: 2
   pathfindingCheckRadius: 0.8
   obstacleLayerMask:
@@ -556,7 +556,7 @@ MonoBehaviour:
   firePoint: {fileID: 4448625178629235575}
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
   bulletSpeed: 15
-  fireRate: 0.5
+  fireRate: 0.8
   maxHealth: 1
   explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
   explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}

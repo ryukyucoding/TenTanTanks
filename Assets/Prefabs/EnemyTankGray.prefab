@@ -542,7 +542,7 @@ MonoBehaviour:
   moveSpeed: 10
   rotationSpeed: 150
   detectionRange: 10
-  shootingRange: 4
+  shootingRange: 6
   stopDistance: 2
   pathfindingCheckRadius: 0.8
   obstacleLayerMask:
