@@ -25,7 +25,7 @@ public class Bullet : MonoBehaviour
     private bool hasHit = false;
     private float spawnTime;
     private float lastBounceTime = -1f;  // 上次反彈時間
-    private const float BOUNCE_COOLDOWN = 0.3f;  // 反彈冷卻時間，這段時間都不會反彈   
+    private const float BOUNCE_COOLDOWN = 0.1f;  // 反彈冷卻時間，這段時間都不會反彈   
     private int bounceCount = 0;  // 目前已反彈次數
 
     // 子彈發射者（避免自傷）
