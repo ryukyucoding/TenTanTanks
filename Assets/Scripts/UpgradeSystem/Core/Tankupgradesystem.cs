@@ -1,329 +1,265 @@
-using WheelUpgradeSystem;
-
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-[System.Serializable]
-public class WheelTankStats
+namespace WheelUpgradeSystem
 {
-    [Header("Combat Stats")]
-    public float damage = 1f;           // 傷害值
-    public float fireRate = 1f;         // 發射頻率（每秒幾發）
-    public float bulletSize = 1f;       // 子彈大小
-    public float bulletSpeed = 10f;     // 子彈飛行速度
-    public float reloadTime = 1f;       // 重裝填時間
-
-    [Header("Movement Stats")]
-    public float moveSpeed = 5f;        // 移動速度
-    public float rotationSpeed = 180f;  // 旋轉速度
-
-    [Header("Defense Stats")]
-    public float maxHealth = 100f;      // 最大血量
-    public float armor = 0f;            // 護甲值
-
-    [Header("Visual")]
-    public string barrelPrefabName;     // 砲管預製體名稱
-    public Color tankColor = Color.white; // 坦克顏色
-}
-
-[System.Serializable]
-public class WheelUpgradeOption
-{
-    [Header("Basic Info")]
-    public string upgradeName;          // 升級名稱
-    public string description;          // 描述
-    public Sprite icon;                 // 圖標
-
-    [Header("Stats Modification")]
-    public WheelTankStats stats;             // 該升級的屬性
-
-    [Header("Unlock Requirements")]
-    public int tierLevel;               // 層級 (1=第二層, 2=第三層)
-    public string parentUpgradeName;    // 父級升級名稱（第三層需要）
-}
-
-public class TankUpgradeSystem : MonoBehaviour
-{
-    [Header("Upgrade Configuration")]
-    [SerializeField] private List<WheelUpgradeOption> availableUpgrades = new List<WheelUpgradeOption>();
-
-    [Header("Current Tank State")]
-    [SerializeField] private WheelTankStats currentStats = new WheelTankStats();
-    [SerializeField] private string currentUpgradePath = "Basic"; // 當前升級路徑
-
-    // 升級事件
-    public static event Action<WheelTankStats> OnTankUpgraded;
-    public static event Action<string> OnUpgradePathChanged;
-    private void Start()
+    public class TankUpgradeSystem : MonoBehaviour
     {
-        InitializeDefaultUpgrades();
-        ApplyCurrentStats();
-    }
+        [Header("Upgrade Configuration")]
+        [SerializeField] private List<WheelUpgradeOption> availableUpgrades = new List<WheelUpgradeOption>();
 
-    private void InitializeDefaultUpgrades()
-    {
-        // 清空現有升級選項
-        availableUpgrades.Clear();
+        [Header("Current Tank State")]
+        [SerializeField] private string currentUpgradePath = "Basic"; // Current upgrade path
+        [SerializeField] private WheelUpgradeOption currentUpgradeOption;
 
-        // 基礎坦克
-        var basicTank = new WheelUpgradeOption
+        // Upgrade events
+        public static event Action<WheelUpgradeOption> OnTankUpgraded;
+        public static event Action<string> OnUpgradePathChanged;
+
+        private void Start()
         {
-            upgradeName = "Basic",
-            description = "標準坦克配置",
-            tierLevel = 0,
-            stats = new WheelTankStats
-            {
-                damage = 25f,
-                fireRate = 1f,
-                bulletSize = 1f,
-                bulletSpeed = 10f,
-                reloadTime = 1f,
-                moveSpeed = 5f,
-                rotationSpeed = 180f,
-                maxHealth = 100f,
-                barrelPrefabName = "BasicBarrel"
-            }
-        };
-
-        // 第二層升級選項
-        var heavyOption = new WheelUpgradeOption
-        {
-            upgradeName = "Heavy",
-            description = "重型砲管 - 大傷害，慢射速",
-            tierLevel = 1,
-            stats = new WheelTankStats
-            {
-                damage = 50f,           // 大傷害
-                fireRate = 0.5f,        // 慢射速
-                bulletSize = 1.5f,      // 大子彈
-                bulletSpeed = 8f,       // 稍慢子彈
-                reloadTime = 2f,        // 慢重裝填
-                moveSpeed = 4f,         // 稍慢移動
-                rotationSpeed = 150f,
-                maxHealth = 120f,       // 更多血量
-                barrelPrefabName = "HeavyBarrel"
-            }
-        };
-
-        var rapidOption = new WheelUpgradeOption
-        {
-            upgradeName = "Rapid",
-            description = "快速砲管 - 高射速，小傷害",
-            tierLevel = 1,
-            stats = new WheelTankStats
-            {
-                damage = 15f,           // 小傷害
-                fireRate = 3f,          // 快射速
-                bulletSize = 0.7f,      // 小子彈
-                bulletSpeed = 12f,      // 快子彈
-                reloadTime = 0.3f,      // 快重裝填
-                moveSpeed = 6f,         // 快移動
-                rotationSpeed = 200f,
-                maxHealth = 80f,        // 少血量
-                barrelPrefabName = "RapidBarrel"
-            }
-        };
-
-        var balancedOption = new WheelUpgradeOption
-        {
-            upgradeName = "Balanced",
-            description = "平衡砲管 - 中等屬性",
-            tierLevel = 1,
-            stats = new WheelTankStats
-            {
-                damage = 30f,           // 中等傷害
-                fireRate = 1.5f,        // 中等射速
-                bulletSize = 1f,        // 標準子彈
-                bulletSpeed = 10f,      // 標準速度
-                reloadTime = 0.8f,      // 中等重裝填
-                moveSpeed = 5.5f,       // 稍快移動
-                rotationSpeed = 180f,
-                maxHealth = 100f,
-                barrelPrefabName = "BalancedBarrel"
-            }
-        };
-
-        // 第三層升級選項（Heavy的變體）
-        var superHeavy = new WheelUpgradeOption
-        {
-            upgradeName = "SuperHeavy",
-            description = "超重型砲管 - 極大傷害",
-            tierLevel = 2,
-            parentUpgradeName = "Heavy",
-            stats = new WheelTankStats
-            {
-                damage = 80f,
-                fireRate = 0.3f,
-                bulletSize = 2f,
-                bulletSpeed = 6f,
-                reloadTime = 3f,
-                moveSpeed = 3f,
-                rotationSpeed = 120f,
-                maxHealth = 150f,
-                barrelPrefabName = "SuperHeavyBarrel"
-            }
-        };
-
-        var armorPiercing = new WheelUpgradeOption
-        {
-            upgradeName = "ArmorPiercing",
-            description = "穿甲砲管 - 穿透護甲",
-            tierLevel = 2,
-            parentUpgradeName = "Heavy",
-            stats = new WheelTankStats
-            {
-                damage = 40f,
-                fireRate = 0.8f,
-                bulletSize = 1.2f,
-                bulletSpeed = 15f,      // 快速穿甲彈
-                reloadTime = 1.5f,
-                moveSpeed = 4.5f,
-                rotationSpeed = 160f,
-                maxHealth = 110f,
-                barrelPrefabName = "ArmorPiercingBarrel"
-            }
-        };
-
-        // Rapid的變體
-        var machineGun = new WheelUpgradeOption
-        {
-            upgradeName = "MachineGun",
-            description = "機槍砲管 - 極高射速",
-            tierLevel = 2,
-            parentUpgradeName = "Rapid",
-            stats = new WheelTankStats
-            {
-                damage = 8f,
-                fireRate = 5f,          // 極高射速
-                bulletSize = 0.5f,
-                bulletSpeed = 15f,
-                reloadTime = 0.1f,
-                moveSpeed = 7f,
-                rotationSpeed = 220f,
-                maxHealth = 60f,
-                barrelPrefabName = "MachineGunBarrel"
-            }
-        };
-
-        var burst = new WheelUpgradeOption
-        {
-            upgradeName = "Burst",
-            description = "爆發砲管 - 三連發",
-            tierLevel = 2,
-            parentUpgradeName = "Rapid",
-            stats = new WheelTankStats
-            {
-                damage = 12f,
-                fireRate = 2f,
-                bulletSize = 0.8f,
-                bulletSpeed = 12f,
-                reloadTime = 0.5f,
-                moveSpeed = 5.5f,
-                rotationSpeed = 190f,
-                maxHealth = 90f,
-                barrelPrefabName = "BurstBarrel"
-            }
-        };
-
-        // Balanced的變體
-        var versatile = new WheelUpgradeOption
-        {
-            upgradeName = "Versatile",
-            description = "萬能砲管 - 全能提升",
-            tierLevel = 2,
-            parentUpgradeName = "Balanced",
-            stats = new WheelTankStats
-            {
-                damage = 35f,
-                fireRate = 1.8f,
-                bulletSize = 1.1f,
-                bulletSpeed = 11f,
-                reloadTime = 0.7f,
-                moveSpeed = 6f,
-                rotationSpeed = 200f,
-                maxHealth = 110f,
-                barrelPrefabName = "VersatileBarrel"
-            }
-        };
-
-        var tactical = new WheelUpgradeOption
-        {
-            upgradeName = "Tactical",
-            description = "戰術砲管 - 精準射擊",
-            tierLevel = 2,
-            parentUpgradeName = "Balanced",
-            stats = new WheelTankStats
-            {
-                damage = 40f,
-                fireRate = 1.2f,
-                bulletSize = 0.9f,
-                bulletSpeed = 14f,      // 高精度子彈
-                reloadTime = 1f,
-                moveSpeed = 5f,
-                rotationSpeed = 160f,
-                maxHealth = 95f,
-                barrelPrefabName = "TacticalBarrel"
-            }
-        };
-
-        // 添加所有升級選項
-        availableUpgrades.AddRange(new[] {
-            basicTank, heavyOption, rapidOption, balancedOption,
-            superHeavy, armorPiercing, machineGun, burst, versatile, tactical
-        });
-    }
-
-    public void ApplyUpgrade(string upgradeName)
-    {
-        var upgrade = availableUpgrades.Find(u => u.upgradeName == upgradeName);
-        if (upgrade != null)
-        {
-            currentStats = upgrade.stats;
-            currentUpgradePath = upgradeName;
-
-            Debug.Log($"Applied upgrade: {upgradeName}");
-            Debug.Log($"New stats - Damage: {currentStats.damage}, Fire Rate: {currentStats.fireRate}");
-
-            // 觸發事件
-            OnTankUpgraded?.Invoke(currentStats);
-            OnUpgradePathChanged?.Invoke(currentUpgradePath);
-
-            ApplyCurrentStats();
+            InitializeDefaultUpgrades();
+            ApplyUpgrade("Basic"); // Start with basic configuration
         }
-    }
 
-    private void ApplyCurrentStats()
-    {
-        // 這裡可以實際應用屬性到玩家坦克
-        // 之後會整合到TankController和TankShooting
-        Debug.Log($"Current tank stats applied: {currentUpgradePath}");
-    }
-
-    public List<WheelUpgradeOption> GetAvailableUpgrades(int tierLevel, string parentName = "")
-    {
-        var available = new List<WheelUpgradeOption>();
-
-        foreach (var upgrade in availableUpgrades)
+        private void InitializeDefaultUpgrades()
         {
-            if (upgrade.tierLevel == tierLevel)
+            availableUpgrades.Clear();
+
+            // Basic tank (Tier 0)
+            var basicTank = new WheelUpgradeOption
             {
-                // 第二層或無父級要求
-                if (tierLevel == 1 || string.IsNullOrEmpty(parentName))
-                {
-                    available.Add(upgrade);
-                }
-                // 第三層需要檢查父級
-                else if (tierLevel == 2 && upgrade.parentUpgradeName == parentName)
-                {
-                    available.Add(upgrade);
-                }
+                upgradeName = "Basic",
+                description = "標準坦克配置",
+                tier = 0,
+                damageMultiplier = 1f,
+                fireRateMultiplier = 1f,
+                bulletSizeMultiplier = 1f,
+                moveSpeedMultiplier = 1f,
+                healthBonus = 0,
+                barrelPrefabName = "BasicBarrel",
+                tankColor = Color.white
+            };
+
+            // Tier 1 upgrades
+            var heavyOption = new WheelUpgradeOption
+            {
+                upgradeName = "Heavy",
+                description = "重型砲管 - 大傷害，慢射速",
+                tier = 1,
+                damageMultiplier = 2f,
+                fireRateMultiplier = 0.5f,
+                bulletSizeMultiplier = 1.5f,
+                moveSpeedMultiplier = 0.8f,
+                healthBonus = 20,
+                barrelPrefabName = "HeavyBarrel",
+                tankColor = new Color(0.8f, 0.4f, 0.4f) // Reddish
+            };
+
+            var rapidOption = new WheelUpgradeOption
+            {
+                upgradeName = "Rapid",
+                description = "快速砲管 - 高射速，小傷害",
+                tier = 1,
+                damageMultiplier = 0.6f,
+                fireRateMultiplier = 3f,
+                bulletSizeMultiplier = 0.7f,
+                moveSpeedMultiplier = 1.2f,
+                healthBonus = -20,
+                barrelPrefabName = "RapidBarrel",
+                tankColor = new Color(0.4f, 0.8f, 0.4f) // Greenish
+            };
+
+            var balancedOption = new WheelUpgradeOption
+            {
+                upgradeName = "Balanced",
+                description = "平衡砲管 - 中等屬性",
+                tier = 1,
+                damageMultiplier = 1.2f,
+                fireRateMultiplier = 1.5f,
+                bulletSizeMultiplier = 1f,
+                moveSpeedMultiplier = 1.1f,
+                healthBonus = 0,
+                barrelPrefabName = "BalancedBarrel",
+                tankColor = new Color(0.4f, 0.4f, 0.8f) // Bluish
+            };
+
+            // Tier 2 upgrades - Heavy variants
+            var superHeavy = new WheelUpgradeOption
+            {
+                upgradeName = "SuperHeavy",
+                description = "超重型砲管 - 極大傷害",
+                tier = 2,
+                parentUpgradeName = "Heavy",
+                damageMultiplier = 3f,
+                fireRateMultiplier = 0.3f,
+                bulletSizeMultiplier = 2f,
+                moveSpeedMultiplier = 0.6f,
+                healthBonus = 50,
+                barrelPrefabName = "SuperHeavyBarrel",
+                tankColor = new Color(0.9f, 0.2f, 0.2f),
+                scaleMultiplier = new Vector3(1.2f, 1.2f, 1.2f)
+            };
+
+            var armorPiercing = new WheelUpgradeOption
+            {
+                upgradeName = "ArmorPiercing",
+                description = "穿甲砲管 - 穿透護甲",
+                tier = 2,
+                parentUpgradeName = "Heavy",
+                damageMultiplier = 1.6f,
+                fireRateMultiplier = 0.8f,
+                bulletSizeMultiplier = 1.2f,
+                moveSpeedMultiplier = 0.9f,
+                healthBonus = 10,
+                barrelPrefabName = "ArmorPiercingBarrel",
+                tankColor = new Color(0.7f, 0.3f, 0.3f)
+            };
+
+            // Tier 2 upgrades - Rapid variants
+            var machineGun = new WheelUpgradeOption
+            {
+                upgradeName = "MachineGun",
+                description = "機槍砲管 - 極高射速",
+                tier = 2,
+                parentUpgradeName = "Rapid",
+                damageMultiplier = 0.3f,
+                fireRateMultiplier = 5f,
+                bulletSizeMultiplier = 0.5f,
+                moveSpeedMultiplier = 1.4f,
+                healthBonus = -40,
+                barrelPrefabName = "MachineGunBarrel",
+                tankColor = new Color(0.2f, 0.9f, 0.2f),
+                scaleMultiplier = new Vector3(0.9f, 0.9f, 0.9f)
+            };
+
+            var burst = new WheelUpgradeOption
+            {
+                upgradeName = "Burst",
+                description = "爆發砲管 - 三連發",
+                tier = 2,
+                parentUpgradeName = "Rapid",
+                damageMultiplier = 0.8f,
+                fireRateMultiplier = 2f,
+                bulletSizeMultiplier = 0.8f,
+                moveSpeedMultiplier = 1.1f,
+                healthBonus = -10,
+                barrelPrefabName = "BurstBarrel",
+                tankColor = new Color(0.3f, 0.7f, 0.3f)
+            };
+
+            // Tier 2 upgrades - Balanced variants
+            var versatile = new WheelUpgradeOption
+            {
+                upgradeName = "Versatile",
+                description = "萬能砲管 - 全能提升",
+                tier = 2,
+                parentUpgradeName = "Balanced",
+                damageMultiplier = 1.4f,
+                fireRateMultiplier = 1.8f,
+                bulletSizeMultiplier = 1.1f,
+                moveSpeedMultiplier = 1.2f,
+                healthBonus = 10,
+                barrelPrefabName = "VersatileBarrel",
+                tankColor = new Color(0.5f, 0.5f, 0.9f)
+            };
+
+            var tactical = new WheelUpgradeOption
+            {
+                upgradeName = "Tactical",
+                description = "戰術砲管 - 精準射擊",
+                tier = 2,
+                parentUpgradeName = "Balanced",
+                damageMultiplier = 1.6f,
+                fireRateMultiplier = 1.2f,
+                bulletSizeMultiplier = 0.9f,
+                moveSpeedMultiplier = 1f,
+                healthBonus = -5,
+                barrelPrefabName = "TacticalBarrel",
+                tankColor = new Color(0.3f, 0.3f, 0.7f)
+            };
+
+            // Add all upgrades to the list
+            availableUpgrades.AddRange(new[] {
+                basicTank, heavyOption, rapidOption, balancedOption,
+                superHeavy, armorPiercing, machineGun, burst, versatile, tactical
+            });
+
+            Debug.Log($"Initialized {availableUpgrades.Count} upgrade options");
+        }
+
+        public void ApplyUpgrade(string upgradeName)
+        {
+            var upgrade = availableUpgrades.Find(u => u.upgradeName == upgradeName);
+            if (upgrade != null)
+            {
+                currentUpgradeOption = upgrade;
+                currentUpgradePath = upgradeName;
+
+                Debug.Log($"Applied upgrade: {upgradeName}");
+                Debug.Log($"New multipliers - Damage: {upgrade.damageMultiplier}x, Fire Rate: {upgrade.fireRateMultiplier}x");
+
+                // Trigger events
+                OnTankUpgraded?.Invoke(currentUpgradeOption);
+                OnUpgradePathChanged?.Invoke(currentUpgradePath);
+            }
+            else
+            {
+                Debug.LogError($"Upgrade option '{upgradeName}' not found!");
             }
         }
 
-        return available;
-    }
+        public List<WheelUpgradeOption> GetAvailableUpgrades(int tier, string parentName = "")
+        {
+            var available = new List<WheelUpgradeOption>();
 
-    public WheelTankStats GetCurrentStats() => currentStats;
-    public string GetCurrentUpgradePath() => currentUpgradePath;
+            foreach (var upgrade in availableUpgrades)
+            {
+                if (upgrade.tier == tier)
+                {
+                    // Tier 1 or no parent requirement
+                    if (tier == 1 || string.IsNullOrEmpty(parentName))
+                    {
+                        available.Add(upgrade);
+                    }
+                    // Tier 2 needs to check parent
+                    else if (tier == 2 && upgrade.parentUpgradeName == parentName)
+                    {
+                        available.Add(upgrade);
+                    }
+                }
+            }
+
+            Debug.Log($"Found {available.Count} available upgrades for tier {tier}" +
+                      (string.IsNullOrEmpty(parentName) ? "" : $" with parent {parentName}"));
+
+            return available;
+        }
+
+        public WheelUpgradeOption GetCurrentUpgradeOption() => currentUpgradeOption;
+        public string GetCurrentUpgradePath() => currentUpgradePath;
+
+        // Get all available upgrades (for debugging)
+        public List<WheelUpgradeOption> GetAllUpgrades() => availableUpgrades;
+
+        // Reset to basic configuration
+        [ContextMenu("Reset to Basic")]
+        public void ResetToBasic()
+        {
+            ApplyUpgrade("Basic");
+        }
+
+        // Debug method to list all upgrades
+        [ContextMenu("List All Upgrades")]
+        public void ListAllUpgrades()
+        {
+            Debug.Log("=== ALL UPGRADE OPTIONS ===");
+            foreach (var upgrade in availableUpgrades)
+            {
+                Debug.Log($"Tier {upgrade.tier}: {upgrade.upgradeName}" +
+                         (string.IsNullOrEmpty(upgrade.parentUpgradeName) ? "" : $" (parent: {upgrade.parentUpgradeName})"));
+            }
+        }
+    }
 }
