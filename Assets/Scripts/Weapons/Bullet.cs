@@ -237,7 +237,7 @@ public class Bullet : MonoBehaviour
         // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
         if (Time.time - spawnTime < 0.05f)
         {
-            Debug.Log("子彈剛發射，暫時忽略碰撞");
+            // Debug.Log("子彈剛發射，暫時忽略碰撞");
             return;
         }
 

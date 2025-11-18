@@ -35,7 +35,7 @@ public class UpgradeUI : MonoBehaviour
     
     private System.Collections.IEnumerator InitializeDelayed()
     {
-        // 等待 0.5 秒让 GameManager 先生成玩家
+        // wate 0.5sec to ensure player tank is spawned
         yield return new WaitForSeconds(0.5f);
         
         FindPlayerTank();
@@ -198,7 +198,7 @@ public class UpgradeUI : MonoBehaviour
         UpdateButton(bulletSpeedButton, TankStats.StatType.BulletSpeed);
         UpdateButton(fireRateButton, TankStats.StatType.FireRate);
 
-        // 顯示/隱藏面板
+        // show upgrade panel
         if (upgradePanel != null)
         {
             bool shouldShow = availablePoints > 0;
