@@ -37,9 +37,6 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private float buttonFadeInDuration = 0.3f;
     [SerializeField] private float buttonFadeDelay = 0.1f;
 
-    [Header("Visual Integration")]
-    [SerializeField] private ModularTankController modularTankController;
-
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
@@ -76,16 +73,6 @@ public class UpgradeWheelUI : MonoBehaviour
         HideWheel();
 
         DebugLog("UpgradeWheelUI initialized successfully");
-    }
-
-    void OnValidate()
-    {
-        // Auto-assign components in editor if not set
-        if (upgradeCanvas == null)
-            upgradeCanvas = GetComponent<Canvas>();
-
-        if (wheelContainer == null)
-            wheelContainer = transform.Find("WheelContainer")?.gameObject;
     }
 
     private void DebugLog(string message)
@@ -458,32 +445,11 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    private void ApplyVisualTransformation(string upgradeName)
-    {
-        // Find modular tank controller if not assigned
-        if (modularTankController == null)
-            modularTankController = FindFirstObjectByType<ModularTankController>();
-
-        // Apply visual transformation
-        if (modularTankController != null)
-        {
-            modularTankController.ApplyConfiguration(upgradeName);
-            DebugLog($"Applied visual transformation: {upgradeName}");
-        }
-        else
-        {
-            DebugLog("ModularTankController not found! Visual transformation skipped.");
-        }
-    }
-
     private void OnTier1Selected(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
         selectedTier2Option = null; // Reset tier 2 selection
         currentState = UpgradeState.SelectingTier2;
-
-        // Apply visual transformation immediately for tier 1
-        ApplyVisualTransformation(option.upgradeName);
 
         UpdateButtonStates();
         UpdateTitle($"選擇 {option.upgradeName} 的變體");
@@ -501,9 +467,6 @@ public class UpgradeWheelUI : MonoBehaviour
         selectedTier2Option = option;
         currentState = UpgradeState.Confirmed;
 
-        // Apply visual transformation immediately for tier 2
-        ApplyVisualTransformation(option.upgradeName);
-
         UpdateButtonStates();
         UpdateTitle($"確認選擇: {option.upgradeName}");
         UpdateDescription(option.description);
@@ -520,14 +483,9 @@ public class UpgradeWheelUI : MonoBehaviour
         if (selectedTier2Option != null && upgradeSystem != null)
         {
             upgradeSystem.ApplyUpgrade(selectedTier2Option.upgradeName);
-
-            // Save the selection
-            PlayerPrefs.SetString("WheelUpgradePath", selectedTier2Option.upgradeName);
-            PlayerPrefs.Save();
-
             HideWheel();
 
-            DebugLog($"Upgrade confirmed and saved: {selectedTier2Option.upgradeName}");
+            DebugLog($"Upgrade confirmed: {selectedTier2Option.upgradeName}");
         }
         else
         {
@@ -572,9 +530,6 @@ public class UpgradeWheelUI : MonoBehaviour
         selectedTier2Option = null;
         currentState = UpgradeState.SelectingTier1;
 
-        // Reset to basic configuration
-        ApplyVisualTransformation("Basic");
-
         UpdateButtonStates();
         UpdateTitle("選擇升級方向");
         UpdateDescription("選擇你想要的坦克升級路線");
@@ -602,10 +557,10 @@ public class UpgradeWheelUI : MonoBehaviour
     public void TestButtonCreation()
     {
         DebugLog("=== Testing Button Creation ===");
-        DebugLog($"UpgradeButtonPrefab: {(upgradeButtonPrefab != null ? "Y" : "N")}");
-        DebugLog($"Tier1Container: {(tier1Container != null ? "Y" : "N")}");
-        DebugLog($"Tier2Container: {(tier2Container != null ? "Y" : "N")}");
-        DebugLog($"UpgradeSystem: {(upgradeSystem != null ? "Y" : "N")}");
+        DebugLog($"UpgradeButtonPrefab: {(upgradeButtonPrefab != null ? "y" : "n")}");
+        DebugLog($"Tier1Container: {(tier1Container != null ? "y" : "n")}");
+        DebugLog($"Tier2Container: {(tier2Container != null ? "y" : "n")}");
+        DebugLog($"UpgradeSystem: {(upgradeSystem != null ? "y" : "n")}");
 
         if (upgradeSystem != null)
         {

@@ -477,7 +477,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6611656069306511290}
@@ -492,7 +492,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8621377706946314261}
   serializedVersion: 5
-  m_Mass: 10
+  m_Mass: 1
   m_LinearDamping: 1
   m_AngularDamping: 5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -510,7 +510,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 84
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!65 &4810188682813525784
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -530,7 +530,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 0.7, y: 1, z: 0.7}
   m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &874888524644429295
 MonoBehaviour:
@@ -608,11 +608,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankStats
   baseMoveSpeed: 2.5
-  baseBulletSpeed: 5
+  baseBulletSpeed: 7
   baseFireRate: 1.2
   moveSpeedIncrement: 0.3
   bulletSpeedIncrement: 0.5
-  fireRateIncrement: 0.3
+  fireRateIncrement: 0.2
   maxMoveSpeedLevel: 100
   maxBulletSpeedLevel: 100
   maxFireRateLevel: 100

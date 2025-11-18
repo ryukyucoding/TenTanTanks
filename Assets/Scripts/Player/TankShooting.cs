@@ -91,7 +91,12 @@ public class TankShooting : MonoBehaviour
         {
             shouldShoot = true;
         }
-        // 情況 2: 自動射擊模式開啟
+        // 情況 2: 按空白鍵射擊
+        else if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed)
+        {
+            shouldShoot = true;
+        }
+        // 情況 3: 自動射擊模式開啟
         else if (isAutoFireEnabled)
         {
             shouldShoot = true;
