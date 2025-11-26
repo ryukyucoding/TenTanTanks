@@ -341,8 +341,8 @@ public class Bullet : MonoBehaviour
     // 判斷是否為反彈面（優先檢查）
     private bool IsBouncePlane(GameObject obj)
     {
-        // 檢查名稱是否包含 "BouncePlane"
-        return obj.name.Contains("BouncePlane");
+        // 檢查名稱是否包含 "BouncePlane" 或 "InnerCube"
+        return obj.name.Contains("BouncePlane") || obj.name.Contains("InnerCube");
     }
 
     // 判斷是否應該忽略（玩家：只忽略自己；敵人：忽略所有敵人）
