@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health Settings")]
-    [SerializeField] private int maxHealth = 5;         // �̤j��q�I��
+    [SerializeField] private int maxHealth = 3;         // �̤j��q�I��
     [SerializeField] private int currentHealth;         // ���e��q�I��
 
     [Header("Damage Effects")]

@@ -628,7 +628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aec0fecb9837ac4dbb4c116fe837e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 5
+  maxHealth: 3
   currentHealth: 0
   invulnerabilityTime: 1
   damageEffect: {fileID: 0}
