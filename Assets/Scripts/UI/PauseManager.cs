@@ -5,10 +5,16 @@ public class PauseManager : MonoBehaviour
 {
     [SerializeField] GameObject pausePanel;
     bool isPaused;
+    
+    // 升級 UI 引用
+    private UpgradeUI upgradeUI;
 
     void Awake()
     {
         if (pausePanel != null) pausePanel.SetActive(false);
+        
+        // 尋找升級 UI
+        upgradeUI = FindFirstObjectByType<UpgradeUI>();
     }
 
     public void TogglePause()
@@ -20,17 +26,45 @@ public class PauseManager : MonoBehaviour
     public void PauseGame()
     {
         if (isPaused) return;
+        
+        if (pausePanel == null)
+        {
+            Debug.LogError("[PauseManager] pausePanel 未設置！請在 Inspector 中賦值。");
+            return;
+        }
+        
         Time.timeScale = 0f;
         pausePanel.SetActive(true);
         isPaused = true;
+        
+        // 暫停時顯示升級 UI
+        if (upgradeUI != null)
+        {
+            upgradeUI.ShowUpgradeUI();
+            Debug.Log("[PauseManager] 遊戲暫停，顯示升級 UI");
+        }
     }
 
     public void ResumeGame()
     {
         if (!isPaused) return;
+        
+        if (pausePanel == null)
+        {
+            Debug.LogError("[PauseManager] pausePanel 未設置！請在 Inspector 中賦值。");
+            return;
+        }
+        
         Time.timeScale = 1f;
         pausePanel.SetActive(false);
         isPaused = false;
+        
+        // 恢復時隱藏升級 UI（如果不是手動開啟的）
+        if (upgradeUI != null)
+        {
+            upgradeUI.HideUpgradeUI();
+            Debug.Log("[PauseManager] 遊戲恢復");
+        }
     }
 
     public void QuitToMenu()
