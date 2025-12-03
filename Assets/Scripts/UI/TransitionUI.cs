@@ -12,6 +12,9 @@ public class TransitionUI : MonoBehaviour
     [Header("關卡顯示")]
     [SerializeField] private TextMeshProUGUI leftLevelText;   // 坦克左側的關卡數字（剛破完的關卡）
     [SerializeField] private TextMeshProUGUI rightLevelText;  // 坦克右側的關卡數字（即將前往的關卡）
+    [SerializeField] private TMP_FontAsset fontAsset;         // 字體資源（可選，不設定則使用預設字體）
+    [SerializeField] private float fontSize = 36f;            // 字體大小
+    [SerializeField] private Color textColor = Color.white;   // 文字顏色
 
     [Header("生命值顯示")]
     [SerializeField] private Transform heartsContainer;       // 愛心容器
@@ -25,9 +28,16 @@ public class TransitionUI : MonoBehaviour
     [SerializeField] private float scaleAnimationDuration = 0.5f;  // 縮放動畫時長
     [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);  // 縮放曲線
 
-    [Header("坦克參考")]
-    [SerializeField] private Transform tankTransform;         // 坦克物件的 Transform
-    [SerializeField] private Vector3 levelTextOffset = new Vector3(0, 2f, 0);  // 關卡文字相對坦克的偏移
+    [Header("關卡文字位置設定")]
+    [SerializeField] private bool followTank = false;         // 是否跟隨坦克移動
+    [SerializeField] private Transform tankTransform;         // 坦克物件的 Transform（只在 followTank = true 時需要）
+    [SerializeField] private Vector3 leftLevelTextOffset = new Vector3(0, 2f, 0);   // 左側關卡文字相對坦克的偏移
+    [SerializeField] private Vector3 rightLevelTextOffset = new Vector3(0, 2f, 0);  // 右側關卡文字相對坦克的偏移
+
+    [Header("固定位置設定（不跟隨坦克時使用）")]
+    [SerializeField] private Vector2 leftTextScreenPosition = new Vector2(200, 400);   // 左側文字螢幕座標
+    [SerializeField] private Vector2 rightTextScreenPosition = new Vector2(600, 400);  // 右側文字螢幕座標
+    [SerializeField] private float displayDuration = 2f;      // 每個文字顯示的時間（秒）
 
     private int currentLevel;
     private int nextLevel;
@@ -38,6 +48,9 @@ public class TransitionUI : MonoBehaviour
     void Start()
     {
         Debug.Log("[TransitionUI] 初始化開始");
+
+        // 設置愛心容器位置
+        SetupHeartsContainerPosition();
 
         // 獲取關卡資訊
         GetLevelInfo();
@@ -56,10 +69,66 @@ public class TransitionUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 設置愛心容器位置（畫面下方 2/3）
+    /// </summary>
+    private void SetupHeartsContainerPosition()
+    {
+        Debug.Log($"[TransitionUI] SetupHeartsContainerPosition 被調用");
+
+        // 如果容器為 null 或不是 RectTransform，自動創建
+        RectTransform containerRect = null;
+
+        if (heartsContainer != null)
+        {
+            containerRect = heartsContainer.GetComponent<RectTransform>();
+        }
+
+        if (containerRect == null)
+        {
+            Debug.LogWarning("[TransitionUI] heartsContainer 不是有效的 UI 元素，自動創建新的容器");
+
+            // 找到 Canvas
+            Canvas canvas = FindFirstObjectByType<Canvas>();
+            if (canvas == null)
+            {
+                Debug.LogError("[TransitionUI] 場景中沒有 Canvas，無法創建愛心容器");
+                return;
+            }
+
+            // 創建新的 UI 容器
+            GameObject containerObj = new GameObject("HeartsContainer");
+            containerObj.transform.SetParent(canvas.transform, false);
+            containerRect = containerObj.AddComponent<RectTransform>();
+            heartsContainer = containerObj.transform;
+
+            Debug.Log("[TransitionUI] 已自動創建 HeartsContainer");
+        }
+
+        // 設置錨點為畫面下方中心
+        containerRect.anchorMin = new Vector2(0.5f, 0f);
+        containerRect.anchorMax = new Vector2(0.5f, 0f);
+        containerRect.pivot = new Vector2(0.5f, 0.5f);
+
+        // 設置位置：從底部往上 1/3 的位置
+        // 假設畫面高度為 Screen.height，2/3 處就是 Screen.height * (1/3)
+        float yPosition = Screen.height * (1f / 3f);
+        containerRect.anchoredPosition = new Vector2(0, yPosition);
+
+        Debug.Log($"[TransitionUI] 愛心容器位置設定為畫面下方 2/3，Y: {yPosition}");
+    }
+
     void Update()
     {
-        // 更新左右兩側的關卡文字位置（跟隨坦克）
-        UpdateLevelTextPositions();
+        // 更新關卡文字位置
+        if (followTank)
+        {
+            UpdateLevelTextPositions();  // 跟隨坦克
+        }
+        else
+        {
+            UpdateFixedTextPositions();  // 固定位置
+        }
     }
 
     /// <summary>
@@ -123,14 +192,101 @@ public class TransitionUI : MonoBehaviour
     {
         if (leftLevelText != null)
         {
-            leftLevelText.text = $"關卡 {currentLevel}";
-            leftLevelText.gameObject.SetActive(false);  // 初始隱藏，等坦克到達左側時顯示
+            leftLevelText.text = $"Level {currentLevel}";
+            ApplyTextStyle(leftLevelText);
+            // 如果不跟隨坦克，開始時顯示左側文字
+            if (!followTank)
+            {
+                leftLevelText.gameObject.SetActive(true);
+                StartCoroutine(ShowTextSequence());
+            }
+            else
+            {
+                leftLevelText.gameObject.SetActive(tankTransform == null);
+            }
         }
 
         if (rightLevelText != null)
         {
-            rightLevelText.text = $"關卡 {nextLevel}";
-            rightLevelText.gameObject.SetActive(false);  // 初始隱藏，等坦克接近右側時顯示
+            rightLevelText.text = $"Level {nextLevel}";
+            ApplyTextStyle(rightLevelText);
+            // 如果不跟隨坦克，初始隱藏右側文字
+            if (!followTank)
+            {
+                rightLevelText.gameObject.SetActive(false);
+            }
+            else
+            {
+                rightLevelText.gameObject.SetActive(tankTransform == null);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 顯示文字序列（固定位置模式）
+    /// </summary>
+    private IEnumerator ShowTextSequence()
+    {
+        // 先顯示左側文字
+        yield return new WaitForSeconds(displayDuration);
+
+        // 切換到右側文字
+        if (leftLevelText != null) leftLevelText.gameObject.SetActive(false);
+        if (rightLevelText != null) rightLevelText.gameObject.SetActive(true);
+
+        Debug.Log("[TransitionUI] 切換到右側關卡文字");
+    }
+
+    /// <summary>
+    /// 應用文字樣式（字體、大小、顏色）
+    /// </summary>
+    private void ApplyTextStyle(TextMeshProUGUI textComponent)
+    {
+        if (textComponent == null) return;
+
+        // 設定字體（如果有指定）
+        if (fontAsset != null)
+        {
+            textComponent.font = fontAsset;
+        }
+
+        // 設定字體大小
+        textComponent.fontSize = fontSize;
+
+        // 設定文字顏色
+        textComponent.color = textColor;
+
+        // 設定文字框大小，避免文字被裁切
+        RectTransform rectTransform = textComponent.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            // 設置足夠大的文字框，避免換行或裁切
+            rectTransform.sizeDelta = new Vector2(500, 200);  // 寬度500，高度200
+        }
+
+        // 禁用自動換行
+        textComponent.enableWordWrapping = false;
+
+        // 設定溢出模式為 Overflow（讓文字可以超出邊界）
+        textComponent.overflowMode = TMPro.TextOverflowModes.Overflow;
+
+        // 設定對齊方式為中心
+        textComponent.alignment = TMPro.TextAlignmentOptions.Center;
+    }
+
+    /// <summary>
+    /// 更新固定位置的文字
+    /// </summary>
+    private void UpdateFixedTextPositions()
+    {
+        if (leftLevelText != null && leftLevelText.gameObject.activeSelf)
+        {
+            leftLevelText.transform.position = leftTextScreenPosition;
+        }
+
+        if (rightLevelText != null && rightLevelText.gameObject.activeSelf)
+        {
+            rightLevelText.transform.position = rightTextScreenPosition;
         }
     }
 
@@ -143,32 +299,55 @@ public class TransitionUI : MonoBehaviour
 
         Vector3 tankPos = tankTransform.position;
 
-        // 左側文字：坦克在左半邊時顯示
+        // 每秒記錄一次坦克位置
+        if (Time.frameCount % 60 == 0)  // 假設 60 FPS
+        {
+            Debug.Log($"[TransitionUI] 坦克當前座標: X={tankPos.x:F2}, Y={tankPos.y:F2}, Z={tankPos.z:F2}");
+        }
+
+        // 左側文字：坦克在螢幕左半邊時顯示（X < 6，假設中點是 6）
         if (leftLevelText != null)
         {
+            // 坦克 X 座標 < 6 時顯示左側文字
             if (tankPos.x < 0 && !leftLevelText.gameObject.activeSelf)
             {
                 leftLevelText.gameObject.SetActive(true);
+                Debug.Log($"[TransitionUI] 顯示左側關卡文字，坦克位置: {tankPos.x}");
+            }
+
+            // 當坦克移動到右半邊時，隱藏左側文字
+            if (tankPos.x >= 0 && leftLevelText.gameObject.activeSelf)
+            {
+                leftLevelText.gameObject.SetActive(false);
+                Debug.Log($"[TransitionUI] 隱藏左側關卡文字，坦克位置: {tankPos.x}");
             }
 
             if (leftLevelText.gameObject.activeSelf)
             {
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(tankPos + levelTextOffset);
+                Vector3 screenPos = Camera.main.WorldToScreenPoint(tankPos + leftLevelTextOffset);
                 leftLevelText.transform.position = screenPos;
             }
         }
 
-        // 右側文字：坦克在右半邊時顯示
+        // 右側文字：坦克在螢幕右半邊時顯示（X >= 6）
         if (rightLevelText != null)
         {
-            if (tankPos.x > 0 && !rightLevelText.gameObject.activeSelf)
+            if (tankPos.x >= 0 && !rightLevelText.gameObject.activeSelf)
             {
                 rightLevelText.gameObject.SetActive(true);
+                Debug.Log($"[TransitionUI] 顯示右側關卡文字，坦克位置: {tankPos.x}");
+            }
+
+            // 當坦克在左半邊時，隱藏右側文字
+            if (tankPos.x < 0 && rightLevelText.gameObject.activeSelf)
+            {
+                rightLevelText.gameObject.SetActive(false);
+                Debug.Log($"[TransitionUI] 隱藏右側關卡文字，坦克位置: {tankPos.x}");
             }
 
             if (rightLevelText.gameObject.activeSelf)
             {
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(tankPos + levelTextOffset);
+                Vector3 screenPos = Camera.main.WorldToScreenPoint(tankPos + rightLevelTextOffset);
                 rightLevelText.transform.position = screenPos;
             }
         }
