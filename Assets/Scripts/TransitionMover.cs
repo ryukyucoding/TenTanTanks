@@ -7,8 +7,18 @@ public class TransitionMover : MonoBehaviour
     [SerializeField] float targetX = 12;     // 目標 X 座標
     [SerializeField] string nextScene = "Level1";  // 預設場景（如果沒有通過 SceneTransitionManager 設置）
 
+    [Header("調試選項")]
+    [SerializeField] private bool pauseOnStart = false;  // 開始時暫停遊戲（用於調整 UI 位置）
+
     void Start()
     {
+        // 如果啟用暫停模式，暫停遊戲
+        if (pauseOnStart)
+        {
+            Time.timeScale = 0f;
+            Debug.Log("[TransitionMover] 遊戲已暫停，按空白鍵繼續");
+        }
+
         // 優先使用 SceneTransitionManager 設置的場景
         string transitionScene = SceneTransitionManager.GetNextSceneName();
         if (!string.IsNullOrEmpty(transitionScene))
@@ -72,6 +82,13 @@ public class TransitionMover : MonoBehaviour
 
     void Update()
     {
+        // 按空白鍵恢復遊戲
+        if (pauseOnStart && Time.timeScale == 0f && Input.GetKeyDown(KeyCode.Space))
+        {
+            Time.timeScale = 1f;
+            Debug.Log("[TransitionMover] 遊戲繼續");
+        }
+
         Vector3 pos = transform.position;
 
         if (pos.x < targetX)
