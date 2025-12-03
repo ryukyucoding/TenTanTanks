@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
-using WheelUpgradeSystem;
 using TMPro;
 
 /// <summary>
-/// Simple Transition Upgrade - Simplified version for quick testing
+/// Simple Transition Upgrade - Fully standalone version for quick testing
 /// Uses basic button UI instead of complex wheel interface
+/// No external dependencies - works immediately
 /// </summary>
 public class SimpleTransitionUpgrade : MonoBehaviour
 {
@@ -35,7 +35,7 @@ public class SimpleTransitionUpgrade : MonoBehaviour
     [SerializeField] private GameObject smallModel;
 
     private EnhancedTransitionMover transitionMover;
-    private WheelUpgradeOption selectedUpgrade;
+    private string selectedUpgradeName;
     private string currentTransitionType;
 
     void Start()
@@ -165,50 +165,135 @@ public class SimpleTransitionUpgrade : MonoBehaviour
     /// </summary>
     private void SelectUpgrade(string upgradeName)
     {
-        // Create upgrade option based on name
-        selectedUpgrade = CreateUpgradeOption(upgradeName);
+        selectedUpgradeName = upgradeName;
 
         Debug.Log("[SimpleTransitionUpgrade] Selected upgrade: " + upgradeName);
 
         // Show confirmation dialog
-        ShowConfirmationDialog(selectedUpgrade);
+        ShowConfirmationDialog(upgradeName);
     }
 
     /// <summary>
-    /// Create upgrade option based on upgrade name
+    /// Show confirmation dialog
     /// </summary>
-    private WheelUpgradeOption CreateUpgradeOption(string upgradeName)
+    private void ShowConfirmationDialog(string upgradeName)
     {
-        WheelUpgradeOption option = new WheelUpgradeOption();
-        option.upgradeName = upgradeName;
-        option.description = GetUpgradeDescription(upgradeName);
+        if (confirmDialog != null)
+        {
+            confirmDialog.SetActive(true);
 
-        // Set basic multipliers (can be refined later)
+            if (confirmText != null)
+            {
+                string displayName = GetSimpleDisplayName(upgradeName);
+                string description = GetUpgradeDescription(upgradeName);
+                confirmText.text = "Confirm upgrade to " + displayName + "?\n\n" + description;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Confirm the upgrade
+    /// </summary>
+    public void ConfirmUpgrade()
+    {
+        if (string.IsNullOrEmpty(selectedUpgradeName)) return;
+
+        Debug.Log("[SimpleTransitionUpgrade] Confirming upgrade: " + selectedUpgradeName);
+
+        // Apply tank model transformation
+        ApplyTankModel(selectedUpgradeName);
+
+        // Hide all UI
+        HideAllUI();
+
+        // Resume transition movement
+        if (transitionMover != null)
+            transitionMover.ResumeMovement();
+    }
+
+    /// <summary>
+    /// Cancel the upgrade
+    /// </summary>
+    public void CancelUpgrade()
+    {
+        selectedUpgradeName = "";
+
+        if (confirmDialog != null)
+            confirmDialog.SetActive(false);
+
+        Debug.Log("[SimpleTransitionUpgrade] Upgrade canceled");
+    }
+
+    /// <summary>
+    /// Apply tank model transformation
+    /// </summary>
+    private void ApplyTankModel(string upgradeName)
+    {
+        // Hide all models first
+        HideAllTankModels();
+
+        // Show appropriate model
         switch (upgradeName.ToLower())
         {
             case "doublehead":
-                option.damageMultiplier = 1.2f;
-                option.fireRateMultiplier = 1.1f;
-                option.moveSpeedMultiplier = 0.95f;
+            case "fourhead_front_back":
+            case "fourhead_cross":
+                if (fourheadModel != null)
+                {
+                    fourheadModel.SetActive(true);
+                    Debug.Log("[SimpleTransitionUpgrade] Switched to fourhead model");
+                }
+                else if (doubleheadModel != null)
+                {
+                    doubleheadModel.SetActive(true);
+                    Debug.Log("[SimpleTransitionUpgrade] Switched to doublehead model");
+                }
                 break;
+
             case "huge":
-                option.damageMultiplier = 1.8f;
-                option.fireRateMultiplier = 0.7f;
-                option.moveSpeedMultiplier = 0.8f;
+            case "huge_triple_front":
+            case "huge_triple_120":
+                if (hugeModel != null)
+                {
+                    hugeModel.SetActive(true);
+                    Debug.Log("[SimpleTransitionUpgrade] Switched to HUGE model");
+                }
                 break;
+
             case "small":
-                option.damageMultiplier = 0.8f;
-                option.fireRateMultiplier = 1.4f;
-                option.moveSpeedMultiplier = 1.3f;
+            case "small_triple_front":
+            case "small_triple_120":
+                if (smallModel != null)
+                {
+                    smallModel.SetActive(true);
+                    Debug.Log("[SimpleTransitionUpgrade] Switched to SMALL model");
+                }
                 break;
+
             default:
-                option.damageMultiplier = 1.0f;
-                option.fireRateMultiplier = 1.0f;
-                option.moveSpeedMultiplier = 1.0f;
+                Debug.LogWarning("[SimpleTransitionUpgrade] Unknown upgrade: " + upgradeName);
                 break;
         }
+    }
 
-        return option;
+    /// <summary>
+    /// Hide all tank models
+    /// </summary>
+    private void HideAllTankModels()
+    {
+        if (doubleheadModel != null) doubleheadModel.SetActive(false);
+        if (fourheadModel != null) fourheadModel.SetActive(false);
+        if (hugeModel != null) hugeModel.SetActive(false);
+        if (smallModel != null) smallModel.SetActive(false);
+    }
+
+    /// <summary>
+    /// Hide all UI elements
+    /// </summary>
+    private void HideAllUI()
+    {
+        if (upgradePanel != null) upgradePanel.SetActive(false);
+        if (confirmDialog != null) confirmDialog.SetActive(false);
     }
 
     /// <summary>
@@ -242,120 +327,23 @@ public class SimpleTransitionUpgrade : MonoBehaviour
     }
 
     /// <summary>
-    /// Show confirmation dialog
+    /// Get simple display name for upgrade
     /// </summary>
-    private void ShowConfirmationDialog(WheelUpgradeOption upgrade)
+    private string GetSimpleDisplayName(string upgradeName)
     {
-        if (confirmDialog != null)
-        {
-            confirmDialog.SetActive(true);
-
-            if (confirmText != null)
-            {
-                confirmText.text = "Confirm upgrade to " + TransitionUpgradeConfigs.GetDisplayName(upgrade.upgradeName) + "?\n\n" + upgrade.description;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Confirm the upgrade
-    /// </summary>
-    public void ConfirmUpgrade()
-    {
-        if (selectedUpgrade == null) return;
-
-        Debug.Log("[SimpleTransitionUpgrade] Confirming upgrade: " + selectedUpgrade.upgradeName);
-
-        // Apply tank model transformation
-        ApplyTankModel(selectedUpgrade.upgradeName);
-
-        // Hide all UI
-        HideAllUI();
-
-        // Resume transition movement
-        if (transitionMover != null)
-            transitionMover.ResumeMovement();
-    }
-
-    /// <summary>
-    /// Cancel the upgrade
-    /// </summary>
-    public void CancelUpgrade()
-    {
-        selectedUpgrade = null;
-
-        if (confirmDialog != null)
-            confirmDialog.SetActive(false);
-
-        Debug.Log("[SimpleTransitionUpgrade] Upgrade canceled");
-    }
-
-    /// <summary>
-    /// Apply tank model transformation
-    /// </summary>
-    private void ApplyTankModel(string upgradeName)
-    {
-        // Hide all models first
-        HideAllTankModels();
-
-        // Show appropriate model
         switch (upgradeName.ToLower())
         {
-            case "doublehead":
-            case "fourhead_front_back":
-            case "fourhead_cross":
-                if (doubleheadModel != null || fourheadModel != null)
-                {
-                    // Use fourhead if available, otherwise doublehead
-                    GameObject modelToShow = fourheadModel != null ? fourheadModel : doubleheadModel;
-                    if (modelToShow != null)
-                    {
-                        modelToShow.SetActive(true);
-                        Debug.Log("[SimpleTransitionUpgrade] Switched to " + modelToShow.name + " model");
-                    }
-                }
-                break;
-
-            case "huge":
-            case "huge_triple_front":
-            case "huge_triple_120":
-                if (hugeModel != null)
-                {
-                    hugeModel.SetActive(true);
-                    Debug.Log("[SimpleTransitionUpgrade] Switched to HUGE model");
-                }
-                break;
-
-            case "small":
-            case "small_triple_front":
-            case "small_triple_120":
-                if (smallModel != null)
-                {
-                    smallModel.SetActive(true);
-                    Debug.Log("[SimpleTransitionUpgrade] Switched to SMALL model");
-                }
-                break;
+            case "doublehead": return "Dual Cannon";
+            case "huge": return "Heavy Tank";
+            case "small": return "Light Tank";
+            case "fourhead_front_back": return "Quad Front-Back";
+            case "fourhead_cross": return "Cross Fire";
+            case "huge_triple_front": return "Triple Heavy";
+            case "huge_triple_120": return "Heavy Triangle";
+            case "small_triple_front": return "Triple Rapid";
+            case "small_triple_120": return "Rapid Triangle";
+            default: return upgradeName;
         }
-    }
-
-    /// <summary>
-    /// Hide all tank models
-    /// </summary>
-    private void HideAllTankModels()
-    {
-        if (doubleheadModel != null) doubleheadModel.SetActive(false);
-        if (fourheadModel != null) fourheadModel.SetActive(false);
-        if (hugeModel != null) hugeModel.SetActive(false);
-        if (smallModel != null) smallModel.SetActive(false);
-    }
-
-    /// <summary>
-    /// Hide all UI elements
-    /// </summary>
-    private void HideAllUI()
-    {
-        if (upgradePanel != null) upgradePanel.SetActive(false);
-        if (confirmDialog != null) confirmDialog.SetActive(false);
     }
 
     // Debug methods
@@ -381,5 +369,10 @@ public class SimpleTransitionUpgrade : MonoBehaviour
         Debug.Log("SMALL Button: " + (smallButton != null ? "OK" : "MISSING"));
         Debug.Log("Confirm Dialog: " + (confirmDialog != null ? "OK" : "MISSING"));
         Debug.Log("Transition Mover: " + (transitionMover != null ? "FOUND" : "NOT FOUND"));
+        Debug.Log("Tank Models:");
+        Debug.Log("  - Doublehead: " + (doubleheadModel != null ? "OK" : "MISSING"));
+        Debug.Log("  - Fourhead: " + (fourheadModel != null ? "OK" : "MISSING"));
+        Debug.Log("  - HUGE: " + (hugeModel != null ? "OK" : "MISSING"));
+        Debug.Log("  - SMALL: " + (smallModel != null ? "OK" : "MISSING"));
     }
 }
