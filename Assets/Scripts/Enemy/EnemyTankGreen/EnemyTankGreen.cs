@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
@@ -40,8 +41,14 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
     [SerializeField] private AudioClip explosionSound;
     [SerializeField] private float explosionDuration = 2f;
 
+    [Header("Spawn Effects")]
+    [SerializeField] private GameObject spawnEffectPrefab;  // 生成特效（FX_Green.prefab）
+    [SerializeField] private float spawnDuration = 2f;     // 生成持续时间（秒）
+    [SerializeField] private float effectBrightness = 0.5f;  // 特效亮度（0-1，越小越暗）
+
     private enum AIState
     {
+        Spawning,  // 生成中
         Idle,
         Chase,
         Attack,
@@ -55,6 +62,12 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
     private float currentHealth;
     private float nextFireTime;
     private bool canSeePlayer = false;  // 視線檢查
+
+    // 生成相關
+    private float spawnStartTime;
+    private Vector3 spawnTargetPosition;  // 生成完成後的最終位置
+    private float spawnStartY;  // 生成開始時的 Y 位置（地下）
+    private GameObject spawnEffectInstance;  // 生成特效實例
 
     // 簡易 A* 路徑資料（比紫色坦克簡化很多，不做牆壁成本計算，只要能走就好）
     private List<Vector2Int> currentPath = new List<Vector2Int>();
@@ -85,11 +98,22 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
         {
             Debug.LogWarning("[EnemyTankGreen] No player found with tag 'Player'");
         }
+
+        // 開始生成流程
+        StartSpawning();
     }
 
     void Update()
     {
         if (currentState == AIState.Dead) return;
+        
+        // 處理生成狀態
+        if (currentState == AIState.Spawning)
+        {
+            HandleSpawning();
+            return;
+        }
+        
         if (player == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -146,6 +170,136 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
     {
         if (currentState == AIState.Dead) return;
         // Green 坦克的移動邏輯放在 HandleChase / HandleAttack 裡用 rb.MovePosition 控制
+    }
+
+    /// <summary>
+    /// 開始生成流程：播放特效、設置初始狀態、開始從底下冒出
+    /// </summary>
+    private void StartSpawning()
+    {
+        currentState = AIState.Spawning;
+        spawnStartTime = Time.time;
+
+        // 記錄最終位置和初始位置（地下）
+        spawnTargetPosition = transform.position;
+        spawnStartY = spawnTargetPosition.y - 2f;  // 從地下 2 單位開始
+        
+        // 將坦克移到地下
+        transform.position = new Vector3(spawnTargetPosition.x, spawnStartY, spawnTargetPosition.z);
+
+        // 播放生成特效（在目標位置）
+        if (spawnEffectPrefab != null)
+        {
+            spawnEffectInstance = Instantiate(spawnEffectPrefab, spawnTargetPosition, Quaternion.identity);
+            // 調整特效亮度
+            AdjustEffectBrightness(spawnEffectInstance, effectBrightness);
+            // 給特效添加旋轉動畫，讓它看起來更動態
+            StartCoroutine(RotateSpawnEffect());
+            // 特效會在約2秒後自動銷毀
+            Destroy(spawnEffectInstance, spawnDuration);
+        }
+        
+        // 禁用移動（生成期間）
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>
+    /// 處理生成狀態：從底下慢慢冒出，生成完成後切換到 Idle
+    /// </summary>
+    private void HandleSpawning()
+    {
+        float elapsed = Time.time - spawnStartTime;
+        float progress = Mathf.Clamp01(elapsed / spawnDuration);
+
+        // 使用緩動函數讓動畫更平滑（Ease Out）
+        float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
+
+        // 從地下慢慢冒出：Y 軸位置從 spawnStartY 移動到 spawnTargetPosition.y
+        float currentY = Mathf.Lerp(spawnStartY, spawnTargetPosition.y, easedProgress);
+        transform.position = new Vector3(spawnTargetPosition.x, currentY, spawnTargetPosition.z);
+
+        // 生成完成
+        if (elapsed >= spawnDuration)
+        {
+            // 確保位置精確
+            transform.position = spawnTargetPosition;
+            currentState = AIState.Idle;
+        }
+    }
+
+    /// <summary>
+    /// 調整特效的亮度（通過降低材質顏色強度）
+    /// </summary>
+    private void AdjustEffectBrightness(GameObject effect, float brightnessMultiplier)
+    {
+        if (effect == null) return;
+
+        // 獲取特效的所有 Renderer 組件
+        Renderer[] renderers = effect.GetComponentsInChildren<Renderer>();
+        
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null) continue;
+
+            // 獲取所有材質（使用 materials 而不是 sharedMaterials 以創建實例）
+            Material[] materials = renderer.materials;
+            
+            foreach (Material mat in materials)
+            {
+                if (mat == null) continue;
+
+                // 調整基礎顏色（_BaseColor 或 _Color）
+                if (mat.HasProperty("_BaseColor"))
+                {
+                    Color baseColor = mat.GetColor("_BaseColor");
+                    baseColor *= brightnessMultiplier;
+                    mat.SetColor("_BaseColor", baseColor);
+                }
+                else if (mat.HasProperty("_Color"))
+                {
+                    Color color = mat.color;
+                    color *= brightnessMultiplier;
+                    mat.color = color;
+                }
+
+                // 調整發光顏色（如果有 Emission）
+                if (mat.HasProperty("_EmissionColor"))
+                {
+                    Color emissionColor = mat.GetColor("_EmissionColor");
+                    emissionColor *= brightnessMultiplier;
+                    mat.SetColor("_EmissionColor", emissionColor);
+                }
+                else if (mat.IsKeywordEnabled("_EMISSION"))
+                {
+                    // 如果啟用了 Emission，嘗試調整
+                    if (mat.HasProperty("_Emission"))
+                    {
+                        Color emission = mat.GetColor("_Emission");
+                        emission *= brightnessMultiplier;
+                        mat.SetColor("_Emission", emission);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 旋轉生成特效，讓它看起來更動態
+    /// </summary>
+    private System.Collections.IEnumerator RotateSpawnEffect()
+    {
+        if (spawnEffectInstance == null) yield break;
+
+        float rotationSpeed = 90f;  // 每秒旋轉 90 度
+        
+        while (spawnEffectInstance != null && Time.time - spawnStartTime < spawnDuration)
+        {
+            spawnEffectInstance.transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
+            yield return null;
+        }
     }
 
     private void HandleIdle()
@@ -255,6 +409,7 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
 
     /// <summary>
     /// 檢查是否能看到玩家（中間沒有障礙物擋住）
+    /// 使用 SphereCast 考慮子彈的半徑，避免在轉角處誤判
     /// </summary>
     private void CheckLineOfSight()
     {
@@ -265,9 +420,13 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
         Vector3 directionToPlayer = (player.position - turret.position).normalized;
         float distanceToPlayer = Vector3.Distance(turret.position, player.position);
 
-        // 從砲塔位置向玩家發射射線
+        // 使用子彈的半徑進行檢測（子彈半徑約 0.25，使用 0.3 稍微寬鬆一點）
+        float bulletRadius = 0.3f;
+        Vector3 rayStart = turret.position;
+        
+        // 使用 SphereCast 從砲塔位置向玩家發射有粗細的射線
         RaycastHit hit;
-        if (Physics.Raycast(turret.position, directionToPlayer, out hit, distanceToPlayer, obstacleLayerMask))
+        if (Physics.SphereCast(rayStart, bulletRadius, directionToPlayer, out hit, distanceToPlayer, obstacleLayerMask))
         {
             // 如果射線打到的是玩家，表示能看到
             if (hit.collider.CompareTag("Player"))
@@ -307,6 +466,12 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
     // IDamageable 實作
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
+        // 生成期間無敵
+        if (currentState == AIState.Spawning)
+        {
+            return;
+        }
+
         // 只接受玩家的傷害
         if (attacker == null || !attacker.CompareTag("Player"))
         {
