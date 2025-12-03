@@ -29,6 +29,9 @@ public class PressEnterUI : MonoBehaviour
     [Tooltip("閃爍速度（秒）")]
     [SerializeField] private float blinkSpeed = 0.8f;
 
+    [Tooltip("延遲顯示時間（秒）- 讓標題先出現")]
+    [SerializeField] private float delayBeforeShow = 2f;
+
     [Header("Scene Settings")]
     [Tooltip("按下 Enter 後要載入的場景")]
     [SerializeField] private string firstLevelScene = "Level1";
@@ -97,6 +100,19 @@ public class PressEnterUI : MonoBehaviour
             Debug.LogError("[PressEnterUI] pressEnterText 未指定，無法顯示！");
             return;
         }
+
+        // 延遲顯示，讓標題先出現
+        StartCoroutine(ShowPressEnterDelayed());
+    }
+
+    /// <summary>
+    /// 延遲顯示 Press Enter 提示
+    /// </summary>
+    private IEnumerator ShowPressEnterDelayed()
+    {
+        Debug.Log($"[PressEnterUI] 將在 {delayBeforeShow} 秒後顯示 Press Enter 提示");
+
+        yield return new WaitForSeconds(delayBeforeShow);
 
         Debug.Log("[PressEnterUI] 顯示 Press Enter 提示");
 
