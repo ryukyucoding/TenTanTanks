@@ -54,6 +54,7 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
     private Rigidbody rb;
     private float currentHealth;
     private float nextFireTime;
+    private bool canSeePlayer = false;  // 視線檢查
 
     // 簡易 A* 路徑資料（比紫色坦克簡化很多，不做牆壁成本計算，只要能走就好）
     private List<Vector2Int> currentPath = new List<Vector2Int>();
@@ -222,9 +223,21 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
 
     private void HandleAttack(float distanceToPlayer)
     {
-        // 不再往前衝，只原地調整砲塔並射擊
-        RotateTurretTowards(player.position);
-        TryShoot();
+        // 檢查視線
+        CheckLineOfSight();
+
+        if (canSeePlayer)
+        {
+            // 能看到玩家，原地調整砲塔並射擊
+            RotateTurretTowards(player.position);
+            TryShoot();
+        }
+        else
+        {
+            // 看不到玩家（被牆擋住），繼續按照 A* 路徑移動靠近
+            // 使用跟 Chase 一樣的移動邏輯
+            HandleChase(distanceToPlayer);
+        }
     }
 
     private void RotateTurretTowards(Vector3 targetPos)
@@ -238,6 +251,36 @@ public class EnemyTankGreen : MonoBehaviour, IDamageable
         dir.Normalize();
         Quaternion targetRot = Quaternion.LookRotation(dir);
         turret.rotation = Quaternion.Slerp(turret.rotation, targetRot, rotationSpeed * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// 檢查是否能看到玩家（中間沒有障礙物擋住）
+    /// </summary>
+    private void CheckLineOfSight()
+    {
+        canSeePlayer = false;
+
+        if (player == null || turret == null) return;
+
+        Vector3 directionToPlayer = (player.position - turret.position).normalized;
+        float distanceToPlayer = Vector3.Distance(turret.position, player.position);
+
+        // 從砲塔位置向玩家發射射線
+        RaycastHit hit;
+        if (Physics.Raycast(turret.position, directionToPlayer, out hit, distanceToPlayer, obstacleLayerMask))
+        {
+            // 如果射線打到的是玩家，表示能看到
+            if (hit.collider.CompareTag("Player"))
+            {
+                canSeePlayer = true;
+            }
+            // 否則中間有障礙物擋住，不能射擊
+        }
+        else
+        {
+            // 沒有擊中任何障礙物，視為可以看到玩家
+            canSeePlayer = true;
+        }
     }
 
     private void TryShoot()

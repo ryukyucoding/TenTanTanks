@@ -7,8 +7,18 @@ public class TransitionMover : MonoBehaviour
     [SerializeField] float targetX = 12;     // 目標 X 座標
     [SerializeField] string nextScene = "Level1";  // 預設場景（如果沒有通過 SceneTransitionManager 設置）
 
+    [Header("調試選項")]
+    [SerializeField] private bool pauseOnStart = false;  // 開始時暫停遊戲（用於調整 UI 位置）
+
     void Start()
     {
+        // 如果啟用暫停模式，暫停遊戲
+        if (pauseOnStart)
+        {
+            Time.timeScale = 0f;
+            Debug.Log("[TransitionMover] 遊戲已暫停，按空白鍵繼續");
+        }
+
         // 優先使用 SceneTransitionManager 設置的場景
         string transitionScene = SceneTransitionManager.GetNextSceneName();
         if (!string.IsNullOrEmpty(transitionScene))
@@ -20,10 +30,65 @@ public class TransitionMover : MonoBehaviour
         {
             Debug.Log($"[TransitionMover] 使用預設場景: {nextScene}");
         }
+
+        // 檢查 PlayerDataManager 是否存在
+        if (PlayerDataManager.Instance == null)
+        {
+            Debug.LogWarning("[TransitionMover] PlayerDataManager.Instance 為 null！請確保場景中有 PlayerDataManager 物件。");
+        }
+        else
+        {
+            Debug.Log($"[TransitionMover] PlayerDataManager 存在，當前生命值: {PlayerDataManager.Instance.GetCurrentHealth()}");
+        }
+
+        // 在特定關卡轉換時增加生命值
+        ApplyHealthBonus(nextScene);
+    }
+
+    /// <summary>
+    /// 在特定關卡轉換時增加生命值
+    /// 2→3關 和 4→5關時加一命
+    /// </summary>
+    private void ApplyHealthBonus(string targetScene)
+    {
+        if (PlayerDataManager.Instance == null)
+        {
+            Debug.LogError("[TransitionMover] PlayerDataManager.Instance 為 null，無法加命！");
+            return;
+        }
+
+        Debug.Log($"[TransitionMover] 檢查目標場景: {targetScene}");
+
+        // 檢查目標場景是否為 Level3 或 Level5
+        if (targetScene == "Level3")
+        {
+            int beforeHealth = PlayerDataManager.Instance.GetCurrentHealth();
+            PlayerDataManager.Instance.AddHealth(1);
+            int afterHealth = PlayerDataManager.Instance.GetCurrentHealth();
+            Debug.Log($"[TransitionMover] ★★★ 進入 Level3，獲得額外生命 +1 (前: {beforeHealth}, 後: {afterHealth})");
+        }
+        else if (targetScene == "Level5")
+        {
+            int beforeHealth = PlayerDataManager.Instance.GetCurrentHealth();
+            PlayerDataManager.Instance.AddHealth(1);
+            int afterHealth = PlayerDataManager.Instance.GetCurrentHealth();
+            Debug.Log($"[TransitionMover] ★★★ 進入 Level5，獲得額外生命 +1 (前: {beforeHealth}, 後: {afterHealth})");
+        }
+        else
+        {
+            Debug.Log($"[TransitionMover] 目標場景 '{targetScene}' 不需要加命");
+        }
     }
 
     void Update()
     {
+        // 按空白鍵恢復遊戲
+        if (pauseOnStart && Time.timeScale == 0f && Input.GetKeyDown(KeyCode.Space))
+        {
+            Time.timeScale = 1f;
+            Debug.Log("[TransitionMover] 遊戲繼續");
+        }
+
         Vector3 pos = transform.position;
 
         if (pos.x < targetX)

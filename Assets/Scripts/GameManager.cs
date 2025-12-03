@@ -152,7 +152,7 @@ public class GameManager : MonoBehaviour
             PlayerHealth playerHealth = playerTank.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
-                healthText.text = $"血量: {playerHealth.CurrentHealth}/{playerHealth.MaxHealth}";
+                healthText.text = $"血量: {playerHealth.CurrentHealth}";
             }
         }
     }
@@ -235,9 +235,19 @@ public class GameManager : MonoBehaviour
 
         currentState = GameState.Victory;
 
+        // 保存玩家當前生命值
+        if (playerTank != null && PlayerDataManager.Instance != null)
+        {
+            PlayerHealth playerHealth = playerTank.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                PlayerDataManager.Instance.SavePlayerHealth(playerHealth.CurrentHealth);
+            }
+        }
+
         if (victoryPanel != null)
             victoryPanel.SetActive(true);
-        
+
         Debug.Log("Victory!");
 
         // 自動載入下一關或由玩家手動操作

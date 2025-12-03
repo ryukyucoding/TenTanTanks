@@ -20,14 +20,14 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private float blurAnimationDuration = 0.3f;
 
     [Header("Wheel Layout")]
-    [SerializeField] private Transform centerPoint;           // ¤¤¤ßÂI
-    [SerializeField] private Transform tier1Container;        // ²Ä¤G¼h®e¾¹
-    [SerializeField] private Transform tier2Container;        // ²Ä¤T¼h®e¾¹
-    [SerializeField] private float tier1Radius = 320f;       // ²Ä¤G¼h¥b®|
-    [SerializeField] private float tier2Radius = 480f;       // ²Ä¤T¼h¥b®|
+    [SerializeField] private Transform centerPoint;           // ï¿½ï¿½ï¿½ï¿½ï¿½I
+    [SerializeField] private Transform tier1Container;        // ï¿½Ä¤Gï¿½hï¿½eï¿½ï¿½
+    [SerializeField] private Transform tier2Container;        // ï¿½Ä¤Tï¿½hï¿½eï¿½ï¿½
+    [SerializeField] private float tier1Radius = 320f;       // ï¿½Ä¤Gï¿½hï¿½bï¿½|
+    [SerializeField] private float tier2Radius = 480f;       // ï¿½Ä¤Tï¿½hï¿½bï¿½|
 
     [Header("Upgrade Button")]
-    [SerializeField] private GameObject upgradeButtonPrefab; // ¤É¯Å«ö¶s¹w»sÅé
+    [SerializeField] private GameObject upgradeButtonPrefab; // ï¿½É¯Å«ï¿½ï¿½sï¿½wï¿½sï¿½ï¿½
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color availableColor = Color.white;
     [SerializeField] private Color disabledColor = Color.gray;
@@ -54,9 +54,9 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private enum UpgradeState
     {
-        SelectingTier1,  // ¿ï¾Ü²Ä¤G¼h
-        SelectingTier2,  // ¿ï¾Ü²Ä¤T¼h
-        Confirmed        // ¤w½T»{
+        SelectingTier1,  // ï¿½ï¿½Ü²Ä¤Gï¿½h
+        SelectingTier2,  // ï¿½ï¿½Ü²Ä¤Tï¿½h
+        Confirmed        // ï¿½wï¿½Tï¿½{
     }
 
     void Start()
@@ -112,7 +112,7 @@ public class UpgradeWheelUI : MonoBehaviour
             confirmButton.gameObject.SetActive(false);
         }
 
-        // ³]¸m­I´º¼Ò½k
+        // ï¿½]ï¿½mï¿½Iï¿½ï¿½ï¿½Ò½k
         if (blurBackground != null)
         {
             var color = blurBackground.color;
@@ -141,8 +141,8 @@ public class UpgradeWheelUI : MonoBehaviour
         CreateAllUpgradeButtons();
         UpdateButtonStates();
 
-        UpdateTitle("¿ï¾Ü¤É¯Å¤è¦V");
-        UpdateDescription("¿ï¾Ü§A·Q­nªº©Z§J¤É¯Å¸ô½u");
+        UpdateTitle("Select Upgrade");
+        UpdateDescription("Please select an upgrade option");
     }
 
     public void HideWheel()
@@ -153,7 +153,7 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private IEnumerator ShowWheelAnimation()
     {
-        // ­I´º¼Ò½k®ÄªG
+        // ï¿½Iï¿½ï¿½ï¿½Ò½kï¿½ÄªG
         if (blurBackground != null)
         {
             float elapsed = 0f;
@@ -171,7 +171,7 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
-        // ½ü½LÁY©ñ°Êµe
+        // ï¿½ï¿½ï¿½Lï¿½Yï¿½ï¿½Êµe
         if (wheelContainer != null)
         {
             wheelContainer.transform.localScale = Vector3.zero;
@@ -202,7 +202,7 @@ public class UpgradeWheelUI : MonoBehaviour
         // Clear all buttons
         ClearAllButtons();
 
-        // ½ü½LÁY©ñ°Êµe¡]¤Ï¦V¡^
+        // ï¿½ï¿½ï¿½Lï¿½Yï¿½ï¿½Êµeï¿½]ï¿½Ï¦Vï¿½^
         if (wheelContainer != null)
         {
             float elapsed = 0f;
@@ -220,7 +220,7 @@ public class UpgradeWheelUI : MonoBehaviour
             }
         }
 
-        // ­I´º¼Ò½k®ø¥¢
+        // ï¿½Iï¿½ï¿½ï¿½Ò½kï¿½ï¿½ï¿½ï¿½
         if (blurBackground != null)
         {
             float elapsed = 0f;
@@ -254,12 +254,12 @@ public class UpgradeWheelUI : MonoBehaviour
 
         DebugLog("Creating upgrade buttons...");
 
-        // Create Tier 1 buttons (3 buttons at 120¢X intervals)
+        // Create Tier 1 buttons (3 buttons at 120ï¿½X intervals)
         var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
         DebugLog($"Found {tier1Options.Count} tier 1 options");
         CreateTier1Buttons(tier1Options);
 
-        // Create Tier 2 buttons (6 buttons at 60¢X intervals)
+        // Create Tier 2 buttons (6 buttons at 60ï¿½X intervals)
         var allTier2Options = new List<WheelUpgradeOption>();
         foreach (var tier1Option in tier1Options)
         {
@@ -280,7 +280,7 @@ public class UpgradeWheelUI : MonoBehaviour
             return;
         }
 
-        // 3 buttons at 120¢X intervals starting from top
+        // 3 buttons at 120ï¿½X intervals starting from top
         float angleStep = 120f;
         float startAngle = -90f; // Start from top
 
@@ -311,7 +311,7 @@ public class UpgradeWheelUI : MonoBehaviour
             return;
         }
 
-        // 6 buttons at 60¢X intervals starting from top
+        // 6 buttons at 60ï¿½X intervals starting from top
         float angleStep = 60f;
         float startAngle = -120f; // Start from top
 
@@ -378,7 +378,7 @@ public class UpgradeWheelUI : MonoBehaviour
         // Setup the button
         upgradeButton.Setup(option, () => onClickCallback(option));
 
-        // ²H¤J°Êµe
+        // ï¿½Hï¿½Jï¿½Êµe
         StartCoroutine(FadeInButton(upgradeButton, delay));
 
         return upgradeButton;
@@ -452,7 +452,7 @@ public class UpgradeWheelUI : MonoBehaviour
         currentState = UpgradeState.SelectingTier2;
 
         UpdateButtonStates();
-        UpdateTitle($"¿ï¾Ü {option.upgradeName} ªºÅÜÅé");
+        UpdateTitle($"Tier 1: {option.upgradeName}");
         UpdateDescription(option.description);
 
         // Hide confirm button until tier 2 is selected
@@ -468,7 +468,7 @@ public class UpgradeWheelUI : MonoBehaviour
         currentState = UpgradeState.Confirmed;
 
         UpdateButtonStates();
-        UpdateTitle($"½T»{¿ï¾Ü: {option.upgradeName}");
+        UpdateTitle($"Tier 2: {option.upgradeName}");
         UpdateDescription(option.description);
 
         // Show confirm button
@@ -531,8 +531,8 @@ public class UpgradeWheelUI : MonoBehaviour
         currentState = UpgradeState.SelectingTier1;
 
         UpdateButtonStates();
-        UpdateTitle("¿ï¾Ü¤É¯Å¤è¦V");
-        UpdateDescription("¿ï¾Ü§A·Q­nªº©Z§J¤É¯Å¸ô½u");
+        UpdateTitle("Select Upgrade");
+        UpdateDescription("Please select an upgrade option");
 
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(false);

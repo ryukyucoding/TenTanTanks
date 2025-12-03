@@ -160,7 +160,7 @@ public class TankShooting : MonoBehaviour
     {
         if (audioSource != null && shootSound != null)
         {
-            audioSource.PlayOneShot(shootSound);
+            audioSource.PlayOneShot(shootSound, 0.75f);
         }
     }
 

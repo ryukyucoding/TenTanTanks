@@ -3,8 +3,8 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health Settings")]
-    [SerializeField] private int maxHealth = 5;         // �̤j��q�I��
-    [SerializeField] private int currentHealth;         // ���e��q�I��
+    [SerializeField] private int initialHealth = 3;     // 初始生命值
+    private int currentHealth;                          // 當前生命值
 
     [Header("Damage Effects")]
     [SerializeField] private float invulnerabilityTime = 1f; // �L�Įɶ�
@@ -36,11 +36,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public System.Action<int, int> OnHealthChanged; // ���e��q, �̤j��q
     public System.Action OnPlayerDeath;
 
-    // ���@�ݩ�
+    // 公開屬性
     public int CurrentHealth => currentHealth;
-    public int MaxHealth => maxHealth;
     public bool IsAlive => currentHealth > 0;
-    public float HealthPercentage => (float)currentHealth / maxHealth;
 
     void Awake()
     {
@@ -48,7 +46,8 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
-        currentHealth = maxHealth;
+        // 先設置為初始值
+        currentHealth = initialHealth;
 
         // �O�s��l�C��
         if (tankRenderers != null && tankRenderers.Length > 0)
@@ -66,8 +65,32 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     void Start()
     {
-        // �q��UI��l��q
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        // 嘗試從 PlayerDataManager 載入生命值
+        if (PlayerDataManager.Instance != null)
+        {
+            bool loaded = PlayerDataManager.Instance.LoadPlayerHealth(this);
+            if (!loaded)
+            {
+                // 如果沒有保存的數據，初始化為 initialHealth
+                currentHealth = initialHealth;
+                // 保存初始生命值
+                PlayerDataManager.Instance.SavePlayerHealth(currentHealth);
+            }
+        }
+        else
+        {
+            currentHealth = initialHealth;
+            Debug.LogWarning("[PlayerHealth] PlayerDataManager 不存在，使用預設生命值");
+        }
+
+        // 通知UI初始生命
+        OnHealthChanged?.Invoke(currentHealth, currentHealth);
+    }
+
+    void OnDestroy()
+    {
+        // 註：不在這裡保存生命值，因為場景切換時會觸發 OnDestroy
+        // 生命值的保存在 GameManager.Victory() 中處理
     }
 
     void Update()
@@ -91,18 +114,18 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         lastDamageTime = Time.time;
         isInvulnerable = true;
 
-        Debug.Log($"Player took 1 damage. Health: {currentHealth}/{maxHealth}");
+        Debug.Log($"Player took 1 damage. Health: {currentHealth}");
 
-        // Ĳ�o��ı�M����
+        // 播放受傷特效和音效
         PlayDamageEffects(hitPoint);
 
-        // �q���t�Φ�q�ܤ�
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        // 通知系統生命變化
+        OnHealthChanged?.Invoke(currentHealth, currentHealth);
 
-        // �q��GameManager
+        // 通知GameManager
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnPlayerDamaged(currentHealth, maxHealth);
+            GameManager.Instance.OnPlayerDamaged(currentHealth, currentHealth);
         }
 
         // �ˬd�O�_���`
@@ -225,62 +248,39 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    // ���@��k�G�v��
+    // 公開方法：治療
     public void Heal(int healAmount = 1)
     {
         if (!IsAlive) return;
 
         int oldHealth = currentHealth;
-        currentHealth = Mathf.Min(maxHealth, currentHealth + healAmount);
+        currentHealth += healAmount;
 
         if (currentHealth != oldHealth)
         {
-            Debug.Log($"Player healed for {currentHealth - oldHealth}. Health: {currentHealth}/{maxHealth}");
-            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            Debug.Log($"Player healed for {currentHealth - oldHealth}. Health: {currentHealth}");
+            OnHealthChanged?.Invoke(currentHealth, currentHealth);
         }
     }
 
-    // ���@��k�G�]�m�̤j��q
-    public void SetMaxHealth(int newMaxHealth)
+    /// <summary>
+    /// 直接設置生命值（不觸發事件，用於載入保存的數據）
+    /// </summary>
+    public void SetHealthDirect(int health)
     {
-        float healthPercentage = HealthPercentage;
-        maxHealth = newMaxHealth;
-        currentHealth = Mathf.RoundToInt(maxHealth * healthPercentage);
-
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
-    }
-
-    // ���@��k�G�����v��
-    public void FullHeal()
-    {
-        Heal(maxHealth);
+        currentHealth = Mathf.Max(0, health);
+        Debug.Log($"直接設置生命值: {currentHealth}");
     }
 
     // �����Ϊ�Gizmos
     void OnDrawGizmosSelected()
     {
-        // ��ܦ�q��
+        // 顯示生命條
         Vector3 healthBarPos = transform.position + Vector3.up * 3f;
-        Vector3 healthBarSize = new Vector3(2f, 0.2f, 0f);
 
-        // �I���]����^
-        Gizmos.color = Color.red;
-        Gizmos.DrawCube(healthBarPos, healthBarSize);
-
-        // ��q�]���^
-        if (IsAlive)
-        {
-            Gizmos.color = Color.green;
-            Vector3 healthSize = healthBarSize;
-            healthSize.x *= HealthPercentage;
-            Vector3 healthPos = healthBarPos;
-            healthPos.x -= (healthBarSize.x - healthSize.x) * 0.5f;
-            Gizmos.DrawCube(healthPos, healthSize);
-        }
-
-        // ��ܦ�q�I�Ƥ�r
+        // 顯示生命數字
         #if UNITY_EDITOR
-        UnityEditor.Handles.Label(healthBarPos + Vector3.up * 0.5f, $"HP: {currentHealth}/{maxHealth}");
+        UnityEditor.Handles.Label(healthBarPos + Vector3.up * 0.5f, $"HP: {currentHealth}");
         #endif
     }
 }

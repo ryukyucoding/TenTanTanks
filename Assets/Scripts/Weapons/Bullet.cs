@@ -235,11 +235,11 @@ public class Bullet : MonoBehaviour
     private void HandleCollision(Collider other, Vector3 hitPoint, Vector3 hitNormal)
     {
         // 延遲0.05秒再開始碰撞檢測，讓子彈飛出發射者
-        if (Time.time - spawnTime < 0.05f)
-        {
-            Debug.Log("子彈剛發射，暫時忽略碰撞");
-            return;
-        }
+        // if (Time.time - spawnTime < 0.05f)
+        // {
+        //     // Debug.Log("子彈剛發射，暫時忽略碰撞");
+        //     return;
+        // }
 
         // 如果在反彈冷卻期間碰到牆壁，直接忽略
         if (IsWall(other.gameObject) && Time.time - lastBounceTime < BOUNCE_COOLDOWN)
@@ -327,13 +327,8 @@ public class Bullet : MonoBehaviour
             Debug.Log($"Bullet hit {hitTarget.name} (no damage component)");
         }
 
-        // 創建擊中特效
         CreateHitEffect(hitPoint, hitNormal);
-
-        // 播放擊中音效
         PlayHitSound(hitPoint);
-
-        // 銷毀子彈
         DestroyBullet();
     }
 
@@ -346,8 +341,8 @@ public class Bullet : MonoBehaviour
     // 判斷是否為反彈面（優先檢查）
     private bool IsBouncePlane(GameObject obj)
     {
-        // 檢查名稱是否包含 "BouncePlane"
-        return obj.name.Contains("BouncePlane");
+        // 檢查名稱是否包含 "BouncePlane" 或 "InnerCube"
+        return obj.name.Contains("BouncePlane") || obj.name.Contains("InnerCube");
     }
 
     // 判斷是否應該忽略（玩家：只忽略自己；敵人：忽略所有敵人）
@@ -424,8 +419,9 @@ public class Bullet : MonoBehaviour
         rb.linearVelocity = reflectDir.normalized * speed;
 
         // 將子彈推離牆面，距離更大以避免再次碰撞
-        float pushDistance = 0.3f;
-        transform.position = hitPoint + hitNormal * pushDistance;
+        // float pushDistance = 0.3f;
+        // transform.position = hitPoint + hitNormal * pushDistance;
+        transform.position = hitPoint; // don't push
 
         // 調整子彈朝向
         if (speed > 0.1f)
@@ -436,6 +432,8 @@ public class Bullet : MonoBehaviour
 
     // 智能法線標準化：使用子彈方向輔助判斷
     // 當兩個軸的法線值接近時，選擇與子彈方向最對立的軸
+    // only use when the bounce plane is (1, 0, 0) or (0, 0, 1)
+    // not a good solution but works better than before
     private Vector3 NormalizeToMainAxisSmart(Vector3 normal, Vector3 bulletDirection)
     {
         // 取得各軸的絕對值

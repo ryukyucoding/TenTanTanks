@@ -13,6 +13,10 @@ public class PlayerDataManager : MonoBehaviour
     public int fireRateLevel = 0;
     public int availableUpgradePoints = 0;
 
+    [Header("玩家生命值")]
+    public int currentHealth = 3;  // 玩家當前生命值
+    public bool hasHealthData = false;  // 是否有保存的生命值數據
+
     void Awake()
     {
         // 單例模式 + DontDestroyOnLoad
@@ -20,11 +24,11 @@ public class PlayerDataManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("✓ PlayerDataManager 已創建並設為持久化");
+            Debug.Log($"✓ PlayerDataManager 已創建並設為持久化 (GameObject: {gameObject.name})");
         }
         else
         {
-            Debug.Log("PlayerDataManager 已存在，銷毀重複物件");
+            Debug.LogWarning($"PlayerDataManager 已存在，銷毀重複物件 (嘗試創建的物件: {gameObject.name}, 現有實例: {Instance.gameObject.name})");
             Destroy(gameObject);
         }
     }
@@ -75,6 +79,60 @@ public class PlayerDataManager : MonoBehaviour
         bulletSpeedLevel = 0;
         fireRateLevel = 0;
         availableUpgradePoints = 0;
+        currentHealth = 3;
+        hasHealthData = false;
         Debug.Log("✓ 玩家數據已重置");
     }
+
+    /// <summary>
+    /// 保存玩家當前的生命值
+    /// </summary>
+    public void SavePlayerHealth(int health)
+    {
+        currentHealth = health;
+        hasHealthData = true;
+        Debug.Log($"✓ 保存玩家生命值: {currentHealth}");
+    }
+
+    /// <summary>
+    /// 載入保存的生命值到 PlayerHealth
+    /// </summary>
+    public bool LoadPlayerHealth(PlayerHealth playerHealth)
+    {
+        if (playerHealth == null)
+        {
+            Debug.LogError("[PlayerDataManager] PlayerHealth 為 null！");
+            return false;
+        }
+
+        if (!hasHealthData)
+        {
+            return false;
+        }
+
+        // 直接設置生命值（不觸發事件）
+        playerHealth.SetHealthDirect(currentHealth);
+        return true;
+    }
+
+    /// <summary>
+    /// 增加玩家生命值（在 Transition 場景中使用）
+    /// </summary>
+    public void AddHealth(int amount = 1)
+    {
+        if (!hasHealthData)
+        {
+            // 如果沒有數據，設置為初始值
+            currentHealth = 3;
+            hasHealthData = true;
+        }
+
+        currentHealth += amount;
+        Debug.Log($"✓ 增加生命值 +{amount}，當前: {currentHealth}");
+    }
+
+    /// <summary>
+    /// 獲取當前生命值
+    /// </summary>
+    public int GetCurrentHealth() => currentHealth;
 }

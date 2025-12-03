@@ -539,7 +539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ecf7e6832bd04545bf5bc01794f3ce7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTank
-  moveSpeed: 3
+  moveSpeed: 5
   rotationSpeed: 100
   detectionRange: 10
   shootingRange: 8

@@ -44,8 +44,8 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
     [SerializeField] private float pathfindingCheckRadius = 0.8f; // 路徑尋找檢測半徑
 
     [Header("Wall Avoidance Settings (方案3)")]
-    [SerializeField] private float wallDangerZone = 1.5f; // 牆壁危險區域半徑（在此範圍內成本增加）
-    [SerializeField] private float wallCostMultiplier = 2.0f; // 靠近牆壁時的成本倍數（越大越不想靠近）
+    [SerializeField] private float wallDangerZone = 2.0f; // 牆壁危險區域半徑（在此範圍內成本增加）
+    [SerializeField] private float wallCostMultiplier = 3.0f; // 靠近牆壁時的成本倍數（越大越不想靠近）
 
     private float lastVisionCheck = 0f;
     
@@ -124,7 +124,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
     // 危險檢測
     private List<GameObject> nearbyDangers = new List<GameObject>();
     private GameObject closestDanger;
-    private float dangerCheckInterval = 0.05f; // 危險檢測間隔（更頻繁檢測）
+    private float dangerCheckInterval = 0.02f; // 危險檢測間隔（提高到每0.02秒，更快反應反彈子彈）
     private float lastDangerCheck = 0f;
     private bool enableBulletAvoidanceDebug = true; // 調試信息開關
     
