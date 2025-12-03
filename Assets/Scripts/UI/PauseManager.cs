@@ -70,6 +70,14 @@ public class PauseManager : MonoBehaviour
     public void QuitToMenu()
     {
         Time.timeScale = 1f;          // 確保恢復流程
-        SceneManager.LoadScene("Menu");
+
+        // 重置玩家數據（生命值和升級數據）
+        if (PlayerDataManager.Instance != null)
+        {
+            PlayerDataManager.Instance.ResetData();
+            Debug.Log("[PauseManager] 返回主選單，已重置玩家數據");
+        }
+
+        SceneManager.LoadScene("Menu-new");
     }
 }
