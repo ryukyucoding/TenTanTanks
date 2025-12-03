@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Enhanced Transition Mover - Integrates with upgrade system
-/// Pauses and triggers upgrade wheel during specific transitions (Level2¡÷3, Level4¡÷5)
+/// Enhanced Transition Mover - Standalone version
+/// Can work independently or with upgrade system
 /// Fully compatible with existing TransitionMover functionality
 /// </summary>
 public class EnhancedTransitionMover : MonoBehaviour
@@ -17,11 +17,14 @@ public class EnhancedTransitionMover : MonoBehaviour
     [SerializeField] private float upgradePositionX = 0f; // X position to trigger upgrade
     [SerializeField] private float upgradeDetectionRange = 1f; // Detection range
     [SerializeField] private bool enableUpgrades = true; // Whether to enable upgrade functionality
+    [SerializeField] private bool pauseForUpgrade = true; // Whether to pause for upgrade
 
     [Header("Scenes Requiring Upgrades")]
     [SerializeField] private string[] upgradeScenes = { "Level3", "Level5" }; // Target scenes that need upgrades
 
-    private UpdatedTransitionUpgradeManager upgradeManager;
+    [Header("Simple Upgrade Testing")]
+    [SerializeField] private SimpleTransitionUpgrade simpleUpgrade; // Optional simple upgrade component
+
     private bool hasTriggeredUpgrade = false;
     private bool isUpgradeInProgress = false;
     private bool canMove = true;
@@ -29,7 +32,7 @@ public class EnhancedTransitionMover : MonoBehaviour
     void Start()
     {
         InitializeTransition();
-        FindUpgradeManager();
+        FindUpgradeComponents();
     }
 
     void Update()
@@ -83,19 +86,21 @@ public class EnhancedTransitionMover : MonoBehaviour
     }
 
     /// <summary>
-    /// Find upgrade manager
+    /// Find upgrade components
     /// </summary>
-    private void FindUpgradeManager()
+    private void FindUpgradeComponents()
     {
-        upgradeManager = FindFirstObjectByType<UpdatedTransitionUpgradeManager>();
-        if (upgradeManager == null)
+        // Try to find simple upgrade component first
+        if (simpleUpgrade == null)
+            simpleUpgrade = FindFirstObjectByType<SimpleTransitionUpgrade>();
+
+        if (simpleUpgrade != null)
         {
-            Debug.LogWarning("[EnhancedTransitionMover] UpdatedTransitionUpgradeManager not found, upgrade functionality will be disabled");
-            enableUpgrades = false;
+            Debug.Log("[EnhancedTransitionMover] Found SimpleTransitionUpgrade, upgrade functionality enabled");
         }
-        else
+        else if (enableUpgrades)
         {
-            Debug.Log("[EnhancedTransitionMover] Found UpdatedTransitionUpgradeManager, upgrade functionality enabled");
+            Debug.LogWarning("[EnhancedTransitionMover] No upgrade components found, but upgrades are enabled");
         }
     }
 
@@ -135,23 +140,64 @@ public class EnhancedTransitionMover : MonoBehaviour
     {
         hasTriggeredUpgrade = true;
         isUpgradeInProgress = true;
-        canMove = false;
+
+        if (pauseForUpgrade)
+            canMove = false;
 
         Debug.Log("[EnhancedTransitionMover] Triggered upgrade at position " + transform.position.x + ", target scene: " + nextScene);
 
-        if (upgradeManager != null)
+        // Try different upgrade systems
+        if (TryTriggerSimpleUpgrade())
         {
-            upgradeManager.TriggerTransitionUpgrade();
+            Debug.Log("[EnhancedTransitionMover] Using SimpleTransitionUpgrade");
+        }
+        else if (TryTriggerAdvancedUpgrade())
+        {
+            Debug.Log("[EnhancedTransitionMover] Using advanced upgrade system");
         }
         else
         {
-            Debug.LogError("[EnhancedTransitionMover] Upgrade manager is null, skipping upgrade and continuing");
+            Debug.LogWarning("[EnhancedTransitionMover] No upgrade system available, continuing without upgrade");
             ResumeMovement();
         }
     }
 
     /// <summary>
-    /// Resume movement (called by UpdatedTransitionUpgradeManager)
+    /// Try to trigger simple upgrade system
+    /// </summary>
+    private bool TryTriggerSimpleUpgrade()
+    {
+        if (simpleUpgrade != null)
+        {
+            string transitionType = nextScene == "Level3" ? "Level2To3" : "Level4To5";
+            simpleUpgrade.ShowUpgradePanel(transitionType);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Try to trigger advanced upgrade system
+    /// </summary>
+    private bool TryTriggerAdvancedUpgrade()
+    {
+        // Try to find TransitionUpgradeManager
+        var upgradeManager = FindFirstObjectByType<MonoBehaviour>();
+        if (upgradeManager != null && upgradeManager.GetType().Name.Contains("TransitionUpgradeManager"))
+        {
+            // Use reflection to call TriggerTransitionUpgrade if it exists
+            var method = upgradeManager.GetType().GetMethod("TriggerTransitionUpgrade");
+            if (method != null)
+            {
+                method.Invoke(upgradeManager, null);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Resume movement (called by upgrade systems)
     /// </summary>
     public void ResumeMovement()
     {
@@ -281,7 +327,7 @@ public class EnhancedTransitionMover : MonoBehaviour
         Debug.Log("Upgrade in progress: " + isUpgradeInProgress);
         Debug.Log("Can move: " + canMove);
         Debug.Log("Is upgrade scene: " + IsUpgradeScene(nextScene));
-        Debug.Log("Upgrade manager: " + (upgradeManager != null ? "exists" : "not found"));
+        Debug.Log("Simple upgrade found: " + (simpleUpgrade != null));
     }
 
     // Public methods for other scripts to use
