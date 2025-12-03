@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Press Enter to Start 閃爍提示 UI
@@ -41,7 +42,7 @@ public class PressEnterUI : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip enterSound;
 
-    private bool isActive = false;
+    private bool isActive = true ;
     private bool hasStarted = false;
     private Coroutine blinkCoroutine;
 
@@ -83,11 +84,26 @@ public class PressEnterUI : MonoBehaviour
         // 只有在啟用狀態且尚未開始時，才監聽 Enter 鍵
         if (isActive && !hasStarted)
         {
-            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            // 使用新的 Input System
+            if (Keyboard.current != null)
             {
-                StartGame();
+                if (Keyboard.current.enterKey.wasPressedThisFrame ||
+                    Keyboard.current.numpadEnterKey.wasPressedThisFrame)
+                {
+                    Debug.Log("[PressEnterUI] Enter 鍵被按下！");
+                    StartGame();
+                }
             }
         }
+
+        // 測試用：任何時候按 Space 都強制觸發（僅用於測試）
+        #if UNITY_EDITOR
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && !hasStarted)
+        {
+            Debug.LogWarning("[PressEnterUI] 測試：Space 鍵強制開始遊戲");
+            StartGame();
+        }
+        #endif
     }
 
     /// <summary>
