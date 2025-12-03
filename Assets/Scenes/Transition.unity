@@ -489,28 +489,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 408710728}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ebfc04bce3825c42930727c13277b12, type: 3}
+  m_Script: {fileID: 11500000, guid: ac252548cdaa15544bc0ba4073ff1f6c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SimpleTransitionUpgrade
-  upgradePanel: {fileID: 102319479}
-  titleText: {fileID: 0}
-  doubleheadButton: {fileID: 0}
-  hugeButton: {fileID: 0}
-  smallButton: {fileID: 0}
-  fourheadFrontBackButton: {fileID: 0}
-  fourheadCrossButton: {fileID: 0}
-  hugeTripleFrontButton: {fileID: 0}
-  hugeTriple120Button: {fileID: 0}
-  smallTripleFrontButton: {fileID: 0}
-  smallTriple120Button: {fileID: 0}
-  confirmDialog: {fileID: 0}
-  confirmText: {fileID: 0}
-  confirmYesButton: {fileID: 0}
-  confirmNoButton: {fileID: 0}
-  doubleheadModel: {fileID: 0}
-  fourheadModel: {fileID: 0}
-  hugeModel: {fileID: 0}
-  smallModel: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::TransitionWheelUpgrade
+  upgradeWheelUI: {fileID: 1852038850}
+  tankUpgradeSystem: {fileID: 127472153}
+  upgradeCanvas: {fileID: 102319482}
+  doubleheadModel: {fileID: 561656193}
+  fourheadModel: {fileID: 696233252}
+  hugeModel: {fileID: 1977880743}
+  smallModel: {fileID: 1526681576}
+  useWheelForTransition: 1
 --- !u!1 &466274860
 GameObject:
   m_ObjectHideFlags: 0

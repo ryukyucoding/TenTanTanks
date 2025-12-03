@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Enhanced Transition Mover - Standalone version
+/// Enhanced Transition Mover - Standalone version that works with TransitionWheelUpgrade
 /// Can work independently or with upgrade system
 /// Fully compatible with existing TransitionMover functionality
 /// </summary>
@@ -22,8 +22,8 @@ public class EnhancedTransitionMover : MonoBehaviour
     [Header("Scenes Requiring Upgrades")]
     [SerializeField] private string[] upgradeScenes = { "Level3", "Level5" }; // Target scenes that need upgrades
 
-    [Header("Simple Upgrade Testing")]
-    [SerializeField] private SimpleTransitionUpgrade simpleUpgrade; // Optional simple upgrade component
+    [Header("Transition Upgrade Testing")]
+    [SerializeField] private TransitionWheelUpgrade transitionUpgrade; // Optional transition upgrade component
 
     private bool hasTriggeredUpgrade = false;
     private bool isUpgradeInProgress = false;
@@ -90,13 +90,13 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     private void FindUpgradeComponents()
     {
-        // Try to find simple upgrade component first
-        if (simpleUpgrade == null)
-            simpleUpgrade = FindFirstObjectByType<SimpleTransitionUpgrade>();
+        // Try to find transition wheel upgrade component first
+        if (transitionUpgrade == null)
+            transitionUpgrade = FindFirstObjectByType<TransitionWheelUpgrade>();
 
-        if (simpleUpgrade != null)
+        if (transitionUpgrade != null)
         {
-            Debug.Log("[EnhancedTransitionMover] Found SimpleTransitionUpgrade, upgrade functionality enabled");
+            Debug.Log("[EnhancedTransitionMover] Found TransitionWheelUpgrade, upgrade functionality enabled");
         }
         else if (enableUpgrades)
         {
@@ -147,9 +147,9 @@ public class EnhancedTransitionMover : MonoBehaviour
         Debug.Log("[EnhancedTransitionMover] Triggered upgrade at position " + transform.position.x + ", target scene: " + nextScene);
 
         // Try different upgrade systems
-        if (TryTriggerSimpleUpgrade())
+        if (TryTriggerTransitionUpgrade())
         {
-            Debug.Log("[EnhancedTransitionMover] Using SimpleTransitionUpgrade");
+            Debug.Log("[EnhancedTransitionMover] Using TransitionWheelUpgrade");
         }
         else if (TryTriggerAdvancedUpgrade())
         {
@@ -163,14 +163,14 @@ public class EnhancedTransitionMover : MonoBehaviour
     }
 
     /// <summary>
-    /// Try to trigger simple upgrade system
+    /// Try to trigger transition wheel upgrade system
     /// </summary>
-    private bool TryTriggerSimpleUpgrade()
+    private bool TryTriggerTransitionUpgrade()
     {
-        if (simpleUpgrade != null)
+        if (transitionUpgrade != null)
         {
             string transitionType = nextScene == "Level3" ? "Level2To3" : "Level4To5";
-            simpleUpgrade.ShowUpgradePanel(transitionType);
+            transitionUpgrade.ShowUpgradePanel(transitionType);
             return true;
         }
         return false;
@@ -327,7 +327,7 @@ public class EnhancedTransitionMover : MonoBehaviour
         Debug.Log("Upgrade in progress: " + isUpgradeInProgress);
         Debug.Log("Can move: " + canMove);
         Debug.Log("Is upgrade scene: " + IsUpgradeScene(nextScene));
-        Debug.Log("Simple upgrade found: " + (simpleUpgrade != null));
+        Debug.Log("Transition upgrade found: " + (transitionUpgrade != null));
     }
 
     // Public methods for other scripts to use
