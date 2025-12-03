@@ -1158,7 +1158,7 @@ MonoBehaviour:
   heartSize: {x: 160, y: 160}
   heartSpacing: 50
   heartZOffset: -50
-  animationDelay: 1
+  animationDelay: 0.25
   scaleAnimationDuration: 0.5
   scaleCurve:
     serializedVersion: 2
@@ -1190,7 +1190,8 @@ MonoBehaviour:
   rightLevelTextOffset: {x: 10, y: 2, z: 3}
   leftTextScreenPosition: {x: 400, y: 1100}
   rightTextScreenPosition: {x: 2100, y: 1100}
-  displayDuration: 0.5
+  displayDuration: 0.4
+  fadeDuration: 0.25
 --- !u!1 &2024845236
 GameObject:
   m_ObjectHideFlags: 0

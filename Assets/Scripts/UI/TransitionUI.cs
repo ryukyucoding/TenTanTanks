@@ -38,6 +38,7 @@ public class TransitionUI : MonoBehaviour
     [SerializeField] private Vector2 leftTextScreenPosition = new Vector2(200, 400);   // 左側文字螢幕座標
     [SerializeField] private Vector2 rightTextScreenPosition = new Vector2(600, 400);  // 右側文字螢幕座標
     [SerializeField] private float displayDuration = 2f;      // 每個文字顯示的時間（秒）
+    [SerializeField] private float fadeDuration = 0.5f;       // 淡入淡出時間（秒）
 
     private int currentLevel;
     private int nextLevel;
@@ -198,6 +199,10 @@ public class TransitionUI : MonoBehaviour
             if (!followTank)
             {
                 leftLevelText.gameObject.SetActive(true);
+                // 確保初始透明度為 1（完全顯示）
+                Color color = leftLevelText.color;
+                color.a = 1f;
+                leftLevelText.color = color;
                 StartCoroutine(ShowTextSequence());
             }
             else
@@ -227,14 +232,52 @@ public class TransitionUI : MonoBehaviour
     /// </summary>
     private IEnumerator ShowTextSequence()
     {
-        // 先顯示左側文字
+        // 左側文字已經在一開始就顯示了，這裡只需要等待
         yield return new WaitForSeconds(displayDuration);
 
-        // 切換到右側文字
-        if (leftLevelText != null) leftLevelText.gameObject.SetActive(false);
-        if (rightLevelText != null) rightLevelText.gameObject.SetActive(true);
+        // 左側文字淡出
+        if (leftLevelText != null)
+        {
+            yield return StartCoroutine(FadeText(leftLevelText, 1f, 0f, fadeDuration));
+            leftLevelText.gameObject.SetActive(false);
+        }
+
+        // 右側文字淡入
+        if (rightLevelText != null)
+        {
+            rightLevelText.gameObject.SetActive(true);
+            yield return StartCoroutine(FadeText(rightLevelText, 0f, 1f, fadeDuration));
+        }
 
         Debug.Log("[TransitionUI] 切換到右側關卡文字");
+    }
+
+    /// <summary>
+    /// 文字淡入淡出動畫
+    /// </summary>
+    /// <param name="text">要淡入淡出的文字組件</param>
+    /// <param name="startAlpha">起始透明度 (0-1)</param>
+    /// <param name="endAlpha">結束透明度 (0-1)</param>
+    /// <param name="duration">動畫持續時間（秒）</param>
+    private IEnumerator FadeText(TextMeshProUGUI text, float startAlpha, float endAlpha, float duration)
+    {
+        if (text == null) yield break;
+
+        Color color = text.color;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            color.a = Mathf.Lerp(startAlpha, endAlpha, t);
+            text.color = color;
+            yield return null;
+        }
+
+        // 確保最終透明度正確
+        color.a = endAlpha;
+        text.color = color;
     }
 
     /// <summary>
