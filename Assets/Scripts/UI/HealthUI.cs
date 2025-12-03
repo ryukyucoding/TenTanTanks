@@ -53,8 +53,7 @@ public class HealthUI : MonoBehaviour
             {
                 // 找到玩家了，初始化UI
                 playerHealth.OnHealthChanged += UpdateHealthDisplay;
-                InitializeHearts(playerHealth.MaxHealth);
-                UpdateHealthDisplay(playerHealth.CurrentHealth, playerHealth.MaxHealth);
+                UpdateHealthDisplay(playerHealth.CurrentHealth, playerHealth.CurrentHealth);
                 isInitialized = true;
                 yield break;
             }
@@ -88,56 +87,13 @@ public class HealthUI : MonoBehaviour
         }
     }
 
-    private void InitializeHearts(int maxHealth)
+    private void UpdateHealthDisplay(int currentHealth, int unusedParameter)
     {
-        // 清除現有的愛心
-        foreach (Image heart in heartImages)
+        // 確保有足夠的愛心圖示（動態調整）
+        while (heartImages.Count < currentHealth)
         {
-            if (heart != null)
-                Destroy(heart.gameObject);
-        }
-        heartImages.Clear();
-
-        // 創建新的愛心
-        for (int i = 0; i < maxHealth; i++)
-        {
-            GameObject heartObj;
-
-            if (heartPrefab != null)
-            {
-                // 使用預製物
-                heartObj = Instantiate(heartPrefab, heartsContainer);
-            }
-            else
-            {
-                // 動態創建 Image
-                heartObj = new GameObject($"Heart_{i}");
-                heartObj.transform.SetParent(heartsContainer);
-                heartObj.AddComponent<Image>();
-            }
-
-            // 設置 RectTransform
-            RectTransform rectTransform = heartObj.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = heartSize;
-            rectTransform.anchoredPosition = new Vector2(i * (heartSize.x + heartSpacing), 0);
-
-            // 設置 Image
-            Image heartImage = heartObj.GetComponent<Image>();
-            if (fullHeartSprite != null)
-            {
-                heartImage.sprite = fullHeartSprite;
-            }
-
-            heartImages.Add(heartImage);
-        }
-    }
-
-    private void UpdateHealthDisplay(int currentHealth, int maxHealth)
-    {
-        // 確保有足夠的愛心圖示
-        if (heartImages.Count != maxHealth)
-        {
-            InitializeHearts(maxHealth);
+            // 需要更多愛心，創建新的
+            CreateHeart(heartImages.Count);
         }
 
         // 更新每個愛心的顯示狀態
@@ -154,20 +110,43 @@ public class HealthUI : MonoBehaviour
                 }
                 else
                 {
-                    // 顯示空的愛心或隱藏
-                    if (emptyHeartSprite != null)
-                    {
-                        heartImages[i].sprite = emptyHeartSprite;
-                        heartImages[i].enabled = true;
-                    }
-                    else
-                    {
-                        // 如果沒有空愛心圖片，直接隱藏
-                        heartImages[i].enabled = false;
-                    }
+                    // 超過當前生命的愛心隱藏
+                    heartImages[i].enabled = false;
                 }
             }
         }
+    }
+
+    private void CreateHeart(int index)
+    {
+        GameObject heartObj;
+
+        if (heartPrefab != null)
+        {
+            // 使用預製物
+            heartObj = Instantiate(heartPrefab, heartsContainer);
+        }
+        else
+        {
+            // 動態創建 Image
+            heartObj = new GameObject($"Heart_{index}");
+            heartObj.transform.SetParent(heartsContainer);
+            heartObj.AddComponent<Image>();
+        }
+
+        // 設置 RectTransform
+        RectTransform rectTransform = heartObj.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = heartSize;
+        rectTransform.anchoredPosition = new Vector2(index * (heartSize.x + heartSpacing), 0);
+
+        // 設置 Image
+        Image heartImage = heartObj.GetComponent<Image>();
+        if (fullHeartSprite != null)
+        {
+            heartImage.sprite = fullHeartSprite;
+        }
+
+        heartImages.Add(heartImage);
     }
 
     // 手動設置玩家（如果需要）
@@ -183,8 +162,7 @@ public class HealthUI : MonoBehaviour
         if (playerHealth != null)
         {
             playerHealth.OnHealthChanged += UpdateHealthDisplay;
-            InitializeHearts(playerHealth.MaxHealth);
-            UpdateHealthDisplay(playerHealth.CurrentHealth, playerHealth.MaxHealth);
+            UpdateHealthDisplay(playerHealth.CurrentHealth, playerHealth.CurrentHealth);
         }
     }
 }
