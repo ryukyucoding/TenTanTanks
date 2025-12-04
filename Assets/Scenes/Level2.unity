@@ -12894,7 +12894,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b400411368c41f84c90173aabad1a210, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpgradePointManager
-  upgradePointsPerWave: 3
+  upgradePointsPerWave: 2
   playerTankStats: {fileID: 0}
 --- !u!4 &1542962355
 Transform:

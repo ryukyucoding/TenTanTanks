@@ -613,9 +613,9 @@ MonoBehaviour:
   moveSpeedIncrement: 0.3
   bulletSpeedIncrement: 0.5
   fireRateIncrement: 0.2
-  maxMoveSpeedLevel: 100
-  maxBulletSpeedLevel: 100
-  maxFireRateLevel: 100
+  maxMoveSpeedLevel: 10
+  maxBulletSpeedLevel: 10
+  maxFireRateLevel: 10
 --- !u!114 &6168854359044807033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -628,8 +628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aec0fecb9837ac4dbb4c116fe837e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 3
-  currentHealth: 0
+  initialHealth: 3
   invulnerabilityTime: 1
   damageEffect: {fileID: 0}
   damageSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
