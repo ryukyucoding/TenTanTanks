@@ -168,11 +168,13 @@ public class TransitionWheelUpgrade : MonoBehaviour
     /// </summary>
     private void ShowConfirmationDialog(WheelUpgradeOption upgrade)
     {
-        var confirmationDialog = FindFirstObjectByType<TransitionConfirmationDialog>();
+        // Try SimpleTransitionDialog first (auto-creates UI)
+        var simpleDialog = FindFirstObjectByType<SimpleTransitionDialog>();
 
-        if (confirmationDialog != null)
+        if (simpleDialog != null)
         {
-            confirmationDialog.ShowDialog(
+            DebugLog("Using SimpleTransitionDialog for confirmation");
+            simpleDialog.ShowDialog(
                 upgrade,
                 () => ConfirmUpgradeChoice(),
                 () => CancelUpgradeChoice()
@@ -180,8 +182,23 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
         else
         {
-            DebugLog("No TransitionConfirmationDialog found, using simple confirmation");
-            ShowSimpleConfirmation(upgrade);
+            // Try original TransitionConfirmationDialog
+            var confirmationDialog = FindFirstObjectByType<TransitionConfirmationDialog>();
+
+            if (confirmationDialog != null)
+            {
+                DebugLog("Using TransitionConfirmationDialog for confirmation");
+                confirmationDialog.ShowDialog(
+                    upgrade,
+                    () => ConfirmUpgradeChoice(),
+                    () => CancelUpgradeChoice()
+                );
+            }
+            else
+            {
+                DebugLog("No confirmation dialog found, using auto-confirm fallback");
+                ShowSimpleConfirmation(upgrade);
+            }
         }
     }
 

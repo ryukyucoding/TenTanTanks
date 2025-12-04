@@ -789,11 +789,23 @@ public class UpgradeWheelUI : MonoBehaviour
             {
                 DebugLog($"Transition upgrade confirmed: {selectedOption.upgradeName}");
 
+                // Hide the wheel first
+                HideWheel();
+
                 var transitionManager = FindFirstObjectByType<TransitionWheelUpgrade>();
                 if (transitionManager != null)
                 {
+                    DebugLog($"Calling TransitionWheelUpgrade.OnUpgradeSelected for: {selectedOption.upgradeName}");
                     transitionManager.OnUpgradeSelected(selectedOption);
                 }
+                else
+                {
+                    DebugLog("ERROR: TransitionWheelUpgrade not found! Cannot continue transition.");
+                }
+            }
+            else
+            {
+                DebugLog("ERROR: No option selected for confirmation!");
             }
         }
     }
@@ -881,6 +893,26 @@ public class UpgradeWheelUI : MonoBehaviour
             {
                 DebugLog($"  - {option.upgradeName}: {option.description}");
             }
+        }
+    }
+
+    [ContextMenu("Test Transition Confirm")]
+    public void TestTransitionConfirm()
+    {
+        DebugLog("=== Testing Transition Confirm ===");
+        DebugLog($"IsTransitionMode: {isTransitionMode}");
+        DebugLog($"TransitionAllowedTier: {transitionAllowedTier}");
+        DebugLog($"SelectedTier1Option: {(selectedTier1Option != null ? selectedTier1Option.upgradeName : "null")}");
+        DebugLog($"SelectedTier2Option: {(selectedTier2Option != null ? selectedTier2Option.upgradeName : "null")}");
+
+        if (isTransitionMode)
+        {
+            DebugLog("Manually calling ConfirmUpgradeTransition...");
+            ConfirmUpgradeTransition();
+        }
+        else
+        {
+            DebugLog("Not in transition mode - cannot test transition confirm");
         }
     }
 
