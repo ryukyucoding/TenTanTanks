@@ -20,14 +20,14 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private float blurAnimationDuration = 0.3f;
 
     [Header("Wheel Layout")]
-    [SerializeField] private Transform centerPoint;           // �����I
-    [SerializeField] private Transform tier1Container;        // �ĤG�h�e��
-    [SerializeField] private Transform tier2Container;        // �ĤT�h�e��
-    [SerializeField] private float tier1Radius = 320f;       // �ĤG�h�b�|
-    [SerializeField] private float tier2Radius = 480f;       // �ĤT�h�b�|
+    [SerializeField] private Transform centerPoint;
+    [SerializeField] private Transform tier1Container;
+    [SerializeField] private Transform tier2Container;
+    [SerializeField] private float tier1Radius = 320f;
+    [SerializeField] private float tier2Radius = 480f;
 
     [Header("Upgrade Button")]
-    [SerializeField] private GameObject upgradeButtonPrefab; // �ɯū��s�w�s��
+    [SerializeField] private GameObject upgradeButtonPrefab;
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color availableColor = Color.white;
     [SerializeField] private Color disabledColor = Color.gray;
@@ -52,11 +52,16 @@ public class UpgradeWheelUI : MonoBehaviour
     private Vector3 originalCenterPosition;
     private bool centerPropertiesStored = false;
 
+    // Transition mode variables
+    private bool isTransitionMode = false;
+    private int transitionAllowedTier = 1;
+    private string transitionParentUpgrade = "";
+
     private enum UpgradeState
     {
-        SelectingTier1,  // ��ܲĤG�h
-        SelectingTier2,  // ��ܲĤT�h
-        Confirmed        // �w�T�{
+        SelectingTier1,
+        SelectingTier2,
+        Confirmed
     }
 
     void Start()
@@ -112,7 +117,6 @@ public class UpgradeWheelUI : MonoBehaviour
             confirmButton.gameObject.SetActive(false);
         }
 
-        // �]�m�I���ҽk
         if (blurBackground != null)
         {
             var color = blurBackground.color;
@@ -123,23 +127,105 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("UI setup completed");
     }
 
+    #region Transition Mode Methods
+
+    /// <summary>
+    /// Set the wheel to transition mode with specific constraints
+    /// </summary>
+    public void SetTransitionMode(int allowedTier, string parentUpgrade = null)
+    {
+        isTransitionMode = true;
+        transitionAllowedTier = allowedTier;
+        transitionParentUpgrade = parentUpgrade ?? "";
+
+        DebugLog($"Set to transition mode: Tier {allowedTier}, Parent: {transitionParentUpgrade}");
+
+        // Update the state based on allowed tier
+        if (allowedTier == 1)
+        {
+            currentState = UpgradeState.SelectingTier1;
+        }
+        else if (allowedTier == 2)
+        {
+            currentState = UpgradeState.SelectingTier2;
+            // Set a dummy tier 1 selection to enable tier 2 buttons
+            selectedTier1Option = new WheelUpgradeOption(transitionParentUpgrade, "", 1);
+        }
+    }
+
+    /// <summary>
+    /// Exit transition mode and return to normal wheel mode
+    /// </summary>
+    public void ExitTransitionMode()
+    {
+        isTransitionMode = false;
+        transitionAllowedTier = 1;
+        transitionParentUpgrade = "";
+        currentState = UpgradeState.SelectingTier1;
+    }
+
+    #endregion
+
+    #region Show/Hide Methods
+
     public void ShowWheel()
     {
-        DebugLog("ShowWheel called");
+        if (isTransitionMode)
+        {
+            ShowWheelForTransition();
+        }
+        else
+        {
+            ShowWheelNormal();
+        }
+    }
+
+    private void ShowWheelNormal()
+    {
+        DebugLog("ShowWheel called for normal mode");
 
         if (upgradeCanvas != null)
             upgradeCanvas.gameObject.SetActive(true);
 
-        // Store center properties if not already stored
         if (!centerPropertiesStored)
             StoreCenterProperties();
 
         StartCoroutine(ShowWheelAnimation());
         currentState = UpgradeState.SelectingTier1;
 
-        // Create all buttons at once
         CreateAllUpgradeButtons();
         UpdateButtonStates();
+
+        UpdateTitle("Select Upgrade");
+        UpdateDescription("Please select an upgrade option");
+    }
+
+    public void ShowWheelForTransition()
+    {
+        DebugLog("ShowWheel called for transition mode");
+
+        if (upgradeCanvas != null)
+            upgradeCanvas.gameObject.SetActive(true);
+
+        if (!centerPropertiesStored)
+            StoreCenterProperties();
+
+        StartCoroutine(ShowWheelAnimation());
+
+        // Don't reset state if we're in transition mode
+        if (!isTransitionMode)
+            currentState = UpgradeState.SelectingTier1;
+
+        CreateAllUpgradeButtonsWithMode();
+
+        if (isTransitionMode)
+        {
+            UpdateButtonStatesTransition();
+        }
+        else
+        {
+            UpdateButtonStates();
+        }
 
         UpdateTitle("Select Upgrade");
         UpdateDescription("Please select an upgrade option");
@@ -151,9 +237,12 @@ public class UpgradeWheelUI : MonoBehaviour
         StartCoroutine(HideWheelAnimation());
     }
 
+    #endregion
+
+    #region Animation Methods
+
     private IEnumerator ShowWheelAnimation()
     {
-        // �I���ҽk�ĪG
         if (blurBackground != null)
         {
             float elapsed = 0f;
@@ -171,7 +260,6 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
-        // ���L�Y��ʵe
         if (wheelContainer != null)
         {
             wheelContainer.transform.localScale = Vector3.zero;
@@ -183,14 +271,10 @@ public class UpgradeWheelUI : MonoBehaviour
                 float progress = Mathf.SmoothStep(0f, 1f, elapsed / wheelScaleInDuration);
                 wheelContainer.transform.localScale = Vector3.one * progress;
 
-                // Keep center area properties intact during animation
                 RestoreCenterProperties();
-
                 yield return null;
             }
             wheelContainer.transform.localScale = Vector3.one;
-
-            // Final restoration to ensure center area is correctly positioned
             RestoreCenterProperties();
         }
 
@@ -199,10 +283,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private IEnumerator HideWheelAnimation()
     {
-        // Clear all buttons
         ClearAllButtons();
 
-        // ���L�Y��ʵe�]�ϦV�^
         if (wheelContainer != null)
         {
             float elapsed = 0f;
@@ -213,14 +295,11 @@ public class UpgradeWheelUI : MonoBehaviour
                 elapsed += Time.deltaTime;
                 float progress = elapsed / (wheelScaleInDuration * 0.5f);
                 wheelContainer.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, progress);
-
                 RestoreCenterProperties();
-
                 yield return null;
             }
         }
 
-        // �I���ҽk����
         if (blurBackground != null)
         {
             float elapsed = 0f;
@@ -244,6 +323,22 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Hide animation completed");
     }
 
+    #endregion
+
+    #region Button Creation Methods
+
+    private void CreateAllUpgradeButtonsWithMode()
+    {
+        if (isTransitionMode)
+        {
+            CreateAllUpgradeButtonsTransition();
+        }
+        else
+        {
+            CreateAllUpgradeButtons();
+        }
+    }
+
     private void CreateAllUpgradeButtons()
     {
         if (upgradeSystem == null)
@@ -254,12 +349,10 @@ public class UpgradeWheelUI : MonoBehaviour
 
         DebugLog("Creating upgrade buttons...");
 
-        // Create Tier 1 buttons (3 buttons at 120�X intervals)
         var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
         DebugLog($"Found {tier1Options.Count} tier 1 options");
         CreateTier1Buttons(tier1Options);
 
-        // Create Tier 2 buttons (6 buttons at 60�X intervals)
         var allTier2Options = new List<WheelUpgradeOption>();
         foreach (var tier1Option in tier1Options)
         {
@@ -272,6 +365,41 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog($"Button creation completed: {tier1Buttons.Count} tier1, {tier2Buttons.Count} tier2");
     }
 
+    private void CreateAllUpgradeButtonsTransition()
+    {
+        if (upgradeSystem == null)
+        {
+            Debug.LogError("Cannot create buttons: TankUpgradeSystem is null");
+            return;
+        }
+
+        DebugLog("Creating upgrade buttons for transition mode...");
+
+        var tier1Options = upgradeSystem.GetAvailableUpgrades(1);
+        DebugLog($"Found {tier1Options.Count} tier 1 options");
+        CreateTier1Buttons(tier1Options);
+
+        if (transitionAllowedTier == 1)
+        {
+            var allTier2Options = new List<WheelUpgradeOption>();
+            foreach (var tier1Option in tier1Options)
+            {
+                var tier2Options = upgradeSystem.GetAvailableUpgrades(2, tier1Option.upgradeName);
+                allTier2Options.AddRange(tier2Options);
+            }
+            DebugLog($"Found {allTier2Options.Count} total tier 2 options for preview");
+            CreateTier2Buttons(allTier2Options);
+        }
+        else if (transitionAllowedTier == 2)
+        {
+            var tier2Options = upgradeSystem.GetAvailableUpgrades(2, transitionParentUpgrade);
+            DebugLog($"Found {tier2Options.Count} tier 2 options for parent '{transitionParentUpgrade}'");
+            CreateTier2Buttons(tier2Options);
+        }
+
+        DebugLog($"Transition button creation completed: {tier1Buttons.Count} tier1, {tier2Buttons.Count} tier2");
+    }
+
     private void CreateTier1Buttons(List<WheelUpgradeOption> options)
     {
         if (tier1Container == null)
@@ -280,9 +408,8 @@ public class UpgradeWheelUI : MonoBehaviour
             return;
         }
 
-        // 3 buttons at 120�X intervals starting from top
         float angleStep = 120f;
-        float startAngle = -90f; // Start from top
+        float startAngle = -90f;
 
         for (int i = 0; i < options.Count; i++)
         {
@@ -290,7 +417,9 @@ public class UpgradeWheelUI : MonoBehaviour
             float angle = startAngle + (angleStep * i);
             Vector3 position = GetCirclePosition(angle, tier1Radius);
 
-            var button = CreateUpgradeButton(option, tier1Container, position, OnTier1Selected, i * buttonFadeDelay);
+            System.Action<WheelUpgradeOption> callback = isTransitionMode ? OnTier1SelectedTransition : OnTier1Selected;
+
+            var button = CreateUpgradeButton(option, tier1Container, position, callback, i * buttonFadeDelay);
             if (button != null)
             {
                 tier1Buttons.Add(button);
@@ -311,9 +440,8 @@ public class UpgradeWheelUI : MonoBehaviour
             return;
         }
 
-        // 6 buttons at 60�X intervals starting from top
         float angleStep = 60f;
-        float startAngle = -120f; // Start from top
+        float startAngle = -120f;
 
         for (int i = 0; i < options.Count; i++)
         {
@@ -321,7 +449,9 @@ public class UpgradeWheelUI : MonoBehaviour
             float angle = startAngle + (angleStep * i);
             Vector3 position = GetCirclePosition(angle, tier2Radius);
 
-            var button = CreateUpgradeButton(option, tier2Container, position, OnTier2Selected, i * buttonFadeDelay);
+            System.Action<WheelUpgradeOption> callback = isTransitionMode ? OnTier2SelectedTransition : OnTier2Selected;
+
+            var button = CreateUpgradeButton(option, tier2Container, position, callback, i * buttonFadeDelay);
             if (button != null)
             {
                 tier2Buttons.Add(button);
@@ -356,7 +486,6 @@ public class UpgradeWheelUI : MonoBehaviour
             return null;
         }
 
-        // Create the button GameObject
         GameObject buttonObj = Instantiate(upgradeButtonPrefab, container);
         if (buttonObj == null)
         {
@@ -367,7 +496,6 @@ public class UpgradeWheelUI : MonoBehaviour
         buttonObj.transform.localPosition = position;
         buttonObj.name = $"UpgradeButton_{option.upgradeName}";
 
-        // Get or add WheelUpgradeButton component
         var upgradeButton = buttonObj.GetComponent<WheelUpgradeButton>();
         if (upgradeButton == null)
         {
@@ -375,10 +503,7 @@ public class UpgradeWheelUI : MonoBehaviour
             DebugLog($"Added WheelUpgradeButton component to {option.upgradeName}");
         }
 
-        // Setup the button
         upgradeButton.Setup(option, () => onClickCallback(option));
-
-        // �H�J�ʵe
         StartCoroutine(FadeInButton(upgradeButton, delay));
 
         return upgradeButton;
@@ -405,9 +530,12 @@ public class UpgradeWheelUI : MonoBehaviour
         canvasGroup.alpha = 1f;
     }
 
+    #endregion
+
+    #region Button State Management
+
     private void UpdateButtonStates()
     {
-        // Update Tier 1 buttons
         foreach (var button in tier1Buttons)
         {
             if (button == null) continue;
@@ -422,7 +550,6 @@ public class UpgradeWheelUI : MonoBehaviour
             }
         }
 
-        // Update Tier 2 buttons
         foreach (var button in tier2Buttons)
         {
             if (button == null) continue;
@@ -445,17 +572,116 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
+    private void UpdateButtonStatesTransition()
+    {
+        if (isTransitionMode)
+        {
+            if (transitionAllowedTier == 1)
+            {
+                UpdateTier1ButtonsForSelection();
+                UpdateTier2ButtonsForPreview();
+            }
+            else if (transitionAllowedTier == 2)
+            {
+                UpdateTier1ButtonsForPreviousChoice();
+                UpdateTier2ButtonsForSelection();
+            }
+        }
+        else
+        {
+            UpdateButtonStates();
+        }
+    }
+
+    private void UpdateTier1ButtonsForSelection()
+    {
+        foreach (var button in tier1Buttons)
+        {
+            if (button == null) continue;
+
+            if (selectedTier1Option != null && button.GetUpgradeOption().upgradeName == selectedTier1Option.upgradeName)
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Selected);
+            }
+            else
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
+            }
+        }
+    }
+
+    private void UpdateTier2ButtonsForPreview()
+    {
+        foreach (var button in tier2Buttons)
+        {
+            if (button == null) continue;
+
+            if (selectedTier1Option != null && button.GetUpgradeOption().parentUpgradeName == selectedTier1Option.upgradeName)
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Preview);
+            }
+            else
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+            }
+        }
+    }
+
+    private void UpdateTier1ButtonsForPreviousChoice()
+    {
+        foreach (var button in tier1Buttons)
+        {
+            if (button == null) continue;
+
+            if (button.GetUpgradeOption().upgradeName == transitionParentUpgrade)
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.PreviousChoice);
+            }
+            else
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+            }
+        }
+    }
+
+    private void UpdateTier2ButtonsForSelection()
+    {
+        foreach (var button in tier2Buttons)
+        {
+            if (button == null) continue;
+
+            if (button.GetUpgradeOption().parentUpgradeName == transitionParentUpgrade)
+            {
+                if (selectedTier2Option != null && button.GetUpgradeOption().upgradeName == selectedTier2Option.upgradeName)
+                {
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.Selected);
+                }
+                else
+                {
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
+                }
+            }
+            else
+            {
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Selection Handlers
+
     private void OnTier1Selected(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
-        selectedTier2Option = null; // Reset tier 2 selection
+        selectedTier2Option = null;
         currentState = UpgradeState.SelectingTier2;
 
         UpdateButtonStates();
         UpdateTitle($"Tier 1: {option.upgradeName}");
         UpdateDescription(option.description);
 
-        // Hide confirm button until tier 2 is selected
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(false);
 
@@ -471,27 +697,110 @@ public class UpgradeWheelUI : MonoBehaviour
         UpdateTitle($"Tier 2: {option.upgradeName}");
         UpdateDescription(option.description);
 
-        // Show confirm button
         if (confirmButton != null)
             confirmButton.gameObject.SetActive(true);
 
         DebugLog($"Tier 2 selected: {option.upgradeName}");
     }
 
-    private void ConfirmUpgrade()
+    private void OnTier1SelectedTransition(WheelUpgradeOption option)
     {
-        if (selectedTier2Option != null && upgradeSystem != null)
-        {
-            upgradeSystem.ApplyUpgrade(selectedTier2Option.upgradeName);
-            HideWheel();
+        selectedTier1Option = option;
 
-            DebugLog($"Upgrade confirmed: {selectedTier2Option.upgradeName}");
+        if (isTransitionMode && transitionAllowedTier == 1)
+        {
+            UpdateButtonStatesTransition();
+            UpdateTitle($"Selected: {option.upgradeName}");
+            UpdateDescription(option.description);
+
+            if (confirmButton != null)
+                confirmButton.gameObject.SetActive(true);
+
+            DebugLog($"Tier 1 selected in transition mode: {option.upgradeName}");
         }
         else
         {
-            Debug.LogError("Cannot confirm upgrade: selectedTier2Option or upgradeSystem is null");
+            OnTier1Selected(option);
         }
     }
+
+    private void OnTier2SelectedTransition(WheelUpgradeOption option)
+    {
+        selectedTier2Option = option;
+
+        if (isTransitionMode && transitionAllowedTier == 2)
+        {
+            UpdateButtonStatesTransition();
+            UpdateTitle($"Selected: {option.upgradeName}");
+            UpdateDescription(option.description);
+
+            if (confirmButton != null)
+                confirmButton.gameObject.SetActive(true);
+
+            DebugLog($"Tier 2 selected in transition mode: {option.upgradeName}");
+        }
+        else
+        {
+            OnTier2Selected(option);
+        }
+    }
+
+    #endregion
+
+    #region Confirmation
+
+    private void ConfirmUpgrade()
+    {
+        if (isTransitionMode)
+        {
+            ConfirmUpgradeTransition();
+        }
+        else
+        {
+            if (selectedTier2Option != null && upgradeSystem != null)
+            {
+                upgradeSystem.ApplyUpgrade(selectedTier2Option.upgradeName);
+                HideWheel();
+                DebugLog($"Upgrade confirmed: {selectedTier2Option.upgradeName}");
+            }
+            else
+            {
+                Debug.LogError("Cannot confirm upgrade: selectedTier2Option or upgradeSystem is null");
+            }
+        }
+    }
+
+    public void ConfirmUpgradeTransition()
+    {
+        WheelUpgradeOption selectedOption = null;
+
+        if (isTransitionMode)
+        {
+            if (transitionAllowedTier == 1 && selectedTier1Option != null)
+            {
+                selectedOption = selectedTier1Option;
+            }
+            else if (transitionAllowedTier == 2 && selectedTier2Option != null)
+            {
+                selectedOption = selectedTier2Option;
+            }
+
+            if (selectedOption != null)
+            {
+                DebugLog($"Transition upgrade confirmed: {selectedOption.upgradeName}");
+
+                var transitionManager = FindFirstObjectByType<TransitionWheelUpgrade>();
+                if (transitionManager != null)
+                {
+                    transitionManager.OnUpgradeSelected(selectedOption);
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Utility Methods
 
     private void ClearAllButtons()
     {
@@ -540,7 +849,10 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Back to tier 1 selection");
     }
 
-    // Debug method to manually fix center area positioning
+    #endregion
+
+    #region Debug Methods
+
     [ContextMenu("Fix Center Area Position")]
     public void FixCenterAreaPosition()
     {
@@ -552,7 +864,6 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    // Debug method to test button creation
     [ContextMenu("Test Button Creation")]
     public void TestButtonCreation()
     {
@@ -572,4 +883,6 @@ public class UpgradeWheelUI : MonoBehaviour
             }
         }
     }
+
+    #endregion
 }
