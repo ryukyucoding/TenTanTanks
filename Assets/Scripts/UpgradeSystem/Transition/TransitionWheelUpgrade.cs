@@ -1,32 +1,31 @@
 using UnityEngine;
-using UnityEngine.UI;
-using WheelUpgradeSystem;
-using TMPro;
 using System.Collections;
+using WheelUpgradeSystem;
 
 /// <summary>
-/// Transition Wheel Upgrade - Integrates with existing UpgradeWheelUI system
-/// Shows the upgrade wheel during transition and handles tank model switching
+/// Handles transition upgrade integration with the existing UpgradeWheelUI system
+/// Supports tier filtering and confirmation for Level 2¡÷3 and Level 4¡÷5 transitions
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
-    [Header("Existing Wheel System References")]
+    [Header("Component References")]
     [SerializeField] private UpgradeWheelUI upgradeWheelUI;
     [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
     [SerializeField] private Canvas upgradeCanvas;
+    [SerializeField] private EnhancedTransitionMover transitionMover;
 
-    [Header("Tank Model References")]
-    [SerializeField] private GameObject doubleheadModel;  // doublehead tank
-    [SerializeField] private GameObject fourheadModel;    // fourhead tank
-    [SerializeField] private GameObject hugeModel;        // HUGE tank
-    [SerializeField] private GameObject smallModel;       // SMALL tank
+    [Header("Tank Models")]
+    [SerializeField] private GameObject doubleheadModel;
+    [SerializeField] private GameObject fourheadModel;
+    [SerializeField] private GameObject hugeModel;
+    [SerializeField] private GameObject smallModel;
 
-    [Header("Transition Settings")]
-    [SerializeField] private bool useWheelForTransition = true;
+    [Header("Debug")]
+    [SerializeField] private bool enableDebugLogs = true;
 
-    private EnhancedTransitionMover transitionMover;
-    private string currentTransitionType;
+    // Private variables
     private bool isTransitionMode = false;
+    private string currentTransitionType = "";
     private WheelUpgradeOption selectedUpgrade;
 
     void Start()
@@ -36,43 +35,37 @@ public class TransitionWheelUpgrade : MonoBehaviour
     }
 
     /// <summary>
-    /// Find required components automatically
+    /// Find required components automatically if not assigned
     /// </summary>
     private void FindComponents()
     {
-        // Find transition mover
-        transitionMover = FindFirstObjectByType<EnhancedTransitionMover>();
-
-        // Find upgrade wheel UI if not assigned
         if (upgradeWheelUI == null)
             upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
 
-        // Find tank upgrade system if not assigned  
         if (tankUpgradeSystem == null)
             tankUpgradeSystem = FindFirstObjectByType<TankUpgradeSystem>();
 
-        // Find upgrade canvas if not assigned
-        if (upgradeCanvas == null && upgradeWheelUI != null)
-        {
-            // Try to get canvas from the UpgradeWheelUI's game object hierarchy
-            upgradeCanvas = upgradeWheelUI.GetComponentInParent<Canvas>();
-        }
+        if (upgradeCanvas == null)
+            upgradeCanvas = FindFirstObjectByType<Canvas>();
 
-        Debug.Log("[TransitionWheelUpgrade] Component search complete:");
-        Debug.Log("  - UpgradeWheelUI: " + (upgradeWheelUI != null ? "Found" : "Missing"));
-        Debug.Log("  - TankUpgradeSystem: " + (tankUpgradeSystem != null ? "Found" : "Missing"));
-        Debug.Log("  - UpgradeCanvas: " + (upgradeCanvas != null ? "Found" : "Missing"));
-        Debug.Log("  - TransitionMover: " + (transitionMover != null ? "Found" : "Missing"));
+        if (transitionMover == null)
+            transitionMover = FindFirstObjectByType<EnhancedTransitionMover>();
+
+        DebugLog("Component search complete:");
+        DebugLog($"  - UpgradeWheelUI: {(upgradeWheelUI != null ? "Found" : "Missing")}");
+        DebugLog($"  - TankUpgradeSystem: {(tankUpgradeSystem != null ? "Found" : "Missing")}");
+        DebugLog($"  - UpgradeCanvas: {(upgradeCanvas != null ? "Found" : "Missing")}");
+        DebugLog($"  - TransitionMover: {(transitionMover != null ? "Found" : "Missing")}");
     }
 
     /// <summary>
-    /// Setup the wheel for transition use
+    /// Setup the wheel for transition-specific behavior
     /// </summary>
     private void SetupWheelForTransition()
     {
         if (upgradeWheelUI != null)
         {
-            Debug.Log("[TransitionWheelUpgrade] Setting up wheel for transition mode");
+            DebugLog("Setting up wheel for transition mode");
         }
     }
 
@@ -84,17 +77,15 @@ public class TransitionWheelUpgrade : MonoBehaviour
         currentTransitionType = transitionType;
         isTransitionMode = true;
 
-        Debug.Log("[TransitionWheelUpgrade] Showing upgrade panel for: " + transitionType);
+        DebugLog("Showing upgrade panel for: " + transitionType);
 
         if (upgradeWheelUI != null)
         {
-            // Show the existing upgrade wheel
             StartCoroutine(ShowWheelWithDelay());
         }
         else
         {
-            Debug.LogError("[TransitionWheelUpgrade] UpgradeWheelUI not found!");
-            // Fall back to continuing transition
+            DebugLog("UpgradeWheelUI not found!");
             if (transitionMover != null)
                 transitionMover.ResumeMovement();
         }
@@ -107,17 +98,16 @@ public class TransitionWheelUpgrade : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
 
-        // Make sure canvas is active
         if (upgradeCanvas != null)
             upgradeCanvas.gameObject.SetActive(true);
 
-        // Show the wheel using the existing system
+        // IMPORTANT: Set up transition-specific mode BEFORE showing the wheel
+        SetupTransitionMode();
+
+        // NOW show the wheel (it will use transition mode)
         upgradeWheelUI.ShowWheel();
 
-        Debug.Log("[TransitionWheelUpgrade] Upgrade wheel should now be visible");
-
-        // Set up transition-specific mode
-        SetupTransitionMode();
+        DebugLog("Upgrade wheel should now be visible with transition mode applied");
     }
 
     /// <summary>
@@ -125,118 +115,229 @@ public class TransitionWheelUpgrade : MonoBehaviour
     /// </summary>
     private void SetupTransitionMode()
     {
-        // Filter upgrade options based on transition type
+        if (upgradeWheelUI == null) return;
+
         if (currentTransitionType == "Level2To3")
         {
-            Debug.Log("[TransitionWheelUpgrade] Configuring for Level 2¡÷3 transition (First tier upgrades)");
-            // Show only tier 1 upgrades: doublehead, HUGE, SMALL
+            DebugLog("Configuring for Level 2¡÷3 transition (First tier upgrades only)");
+            SetWheelTransitionMode(1, null);
         }
         else if (currentTransitionType == "Level4To5")
         {
-            Debug.Log("[TransitionWheelUpgrade] Configuring for Level 4¡÷5 transition (Second tier upgrades)");
-            // Show tier 2 upgrades based on previous selection
+            DebugLog("Configuring for Level 4¡÷5 transition (Second tier upgrades only)");
+            string previousChoice = GetPreviousTier1Choice();
+            SetWheelTransitionMode(2, previousChoice);
         }
-
-        // Subscribe to upgrade selection events if available
-        // Note: This depends on your existing UpgradeWheelUI implementation
     }
 
     /// <summary>
-    /// Handle upgrade selection (this should be called when player selects an upgrade)
-    /// You may need to modify your existing UpgradeWheelUI to call this
+    /// Set the wheel to transition mode with specific tier filtering
+    /// </summary>
+    private void SetWheelTransitionMode(int allowedTier, string parentUpgrade = null)
+    {
+        if (upgradeWheelUI != null)
+        {
+            upgradeWheelUI.SetTransitionMode(allowedTier, parentUpgrade);
+            DebugLog($"Set wheel to transition mode: Tier {allowedTier}, Parent: {parentUpgrade}");
+        }
+        else
+        {
+            DebugLog("UpgradeWheelUI is null, cannot set transition mode");
+        }
+    }
+
+    /// <summary>
+    /// Handle upgrade selection (called by UpgradeWheelUI when player selects)
     /// </summary>
     public void OnUpgradeSelected(WheelUpgradeOption upgrade)
     {
         selectedUpgrade = upgrade;
 
-        Debug.Log("[TransitionWheelUpgrade] Upgrade selected: " + upgrade.upgradeName);
+        DebugLog("Upgrade selected: " + upgrade.upgradeName);
 
-        // Apply the upgrade
-        ApplyUpgrade(upgrade);
-
-        // Apply visual transformation
-        ApplyTankModelTransformation(upgrade);
-
-        // Hide the wheel
+        // Hide the wheel first
         if (upgradeWheelUI != null)
             upgradeWheelUI.HideWheel();
+
+        // Show confirmation dialog
+        ShowConfirmationDialog(upgrade);
+    }
+
+    /// <summary>
+    /// Show confirmation dialog for the selected upgrade
+    /// </summary>
+    private void ShowConfirmationDialog(WheelUpgradeOption upgrade)
+    {
+        var confirmationDialog = FindFirstObjectByType<TransitionConfirmationDialog>();
+
+        if (confirmationDialog != null)
+        {
+            confirmationDialog.ShowDialog(
+                upgrade,
+                () => ConfirmUpgradeChoice(),
+                () => CancelUpgradeChoice()
+            );
+        }
+        else
+        {
+            DebugLog("No TransitionConfirmationDialog found, using simple confirmation");
+            ShowSimpleConfirmation(upgrade);
+        }
+    }
+
+    /// <summary>
+    /// Simple fallback confirmation system
+    /// </summary>
+    private void ShowSimpleConfirmation(WheelUpgradeOption upgrade)
+    {
+        string message = $"Choose '{upgrade.upgradeName}'?\n\n{upgrade.description}\n\nThis choice will affect your tank for the rest of the game.";
+
+        DebugLog("Confirmation: " + message);
+        StartCoroutine(AutoConfirmAfterDelay(2f));
+    }
+
+    /// <summary>
+    /// Auto-confirm after delay (for testing without dialog UI)
+    /// </summary>
+    private System.Collections.IEnumerator AutoConfirmAfterDelay(float delay)
+    {
+        DebugLog($"Auto-confirming in {delay} seconds...");
+        yield return new WaitForSeconds(delay);
+
+        DebugLog("Auto-confirmed!");
+        ConfirmUpgradeChoice();
+    }
+
+    /// <summary>
+    /// Confirm the upgrade choice
+    /// </summary>
+    public void ConfirmUpgradeChoice()
+    {
+        if (selectedUpgrade == null)
+        {
+            DebugLog("No upgrade selected for confirmation!");
+            return;
+        }
+
+        DebugLog("Confirming upgrade: " + selectedUpgrade.upgradeName);
+
+        // Save the choice if this is a tier 1 upgrade
+        if (currentTransitionType == "Level2To3")
+        {
+            SaveTier1Choice(selectedUpgrade.upgradeName);
+        }
+
+        // Apply the upgrade
+        ApplyUpgrade(selectedUpgrade);
+
+        // Apply visual transformation
+        ApplyTankModelTransformation(selectedUpgrade);
 
         // Continue transition after small delay
         StartCoroutine(ContinueTransitionAfterDelay());
     }
 
     /// <summary>
-    /// Apply the upgrade to the tank upgrade system
+    /// Cancel the upgrade choice
     /// </summary>
-    private void ApplyUpgrade(WheelUpgradeOption upgrade)
+    public void CancelUpgradeChoice()
     {
-        if (tankUpgradeSystem != null && upgrade != null)
+        DebugLog("Upgrade choice canceled, showing wheel again");
+
+        selectedUpgrade = null;
+
+        if (upgradeWheelUI != null)
         {
-            tankUpgradeSystem.ApplyUpgrade(upgrade.upgradeName);
-            Debug.Log("[TransitionWheelUpgrade] Applied upgrade to system: " + upgrade.upgradeName);
+            StartCoroutine(ShowWheelAfterDelay());
         }
     }
 
     /// <summary>
-    /// Apply tank model transformation based on upgrade
+    /// Show wheel again after small delay
+    /// </summary>
+    private IEnumerator ShowWheelAfterDelay()
+    {
+        yield return new WaitForSeconds(0.3f);
+        upgradeWheelUI.ShowWheel();
+        SetupTransitionMode();
+    }
+
+    /// <summary>
+    /// Save tier 1 choice for Level 4¡÷5 use
+    /// </summary>
+    private void SaveTier1Choice(string upgradeName)
+    {
+        if (PlayerDataManager.Instance != null)
+        {
+            // TODO: Add this method to PlayerDataManager
+            // PlayerDataManager.Instance.SaveUpgradeChoice(upgradeName);
+            DebugLog("Saved tier 1 choice: " + upgradeName);
+        }
+    }
+
+    /// <summary>
+    /// Get the player's previous tier 1 upgrade choice
+    /// </summary>
+    private string GetPreviousTier1Choice()
+    {
+        if (PlayerDataManager.Instance != null)
+        {
+            // TODO: Get from PlayerDataManager
+            // For testing, return default
+            return "Heavy";
+        }
+
+        return "Heavy"; // Default for testing
+    }
+
+    /// <summary>
+    /// Apply the selected upgrade to the tank system
+    /// </summary>
+    private void ApplyUpgrade(WheelUpgradeOption upgrade)
+    {
+        if (tankUpgradeSystem != null)
+        {
+            tankUpgradeSystem.ApplyUpgrade(upgrade.upgradeName);
+            DebugLog("Applied upgrade to tank system: " + upgrade.upgradeName);
+        }
+        else
+        {
+            DebugLog("TankUpgradeSystem not found!");
+        }
+    }
+
+    /// <summary>
+    /// Apply visual tank model transformation
     /// </summary>
     private void ApplyTankModelTransformation(WheelUpgradeOption upgrade)
     {
-        if (upgrade == null)
-        {
-            Debug.LogWarning("[TransitionWheelUpgrade] Cannot apply tank transformation: upgrade is null");
-            return;
-        }
-
-        Debug.Log("[TransitionWheelUpgrade] Applying tank model transformation: " + upgrade.upgradeName);
-
-        // Hide all tank models first
         HideAllTankModels();
 
-        // Show appropriate model based on upgrade
-        switch (upgrade.upgradeName.ToLower())
+        string upgradeName = upgrade.upgradeName.ToLower();
+
+        if (upgradeName.Contains("doublehead") && doubleheadModel != null)
         {
-            case "doublehead":
-                if (doubleheadModel != null)
-                {
-                    doubleheadModel.SetActive(true);
-                    Debug.Log("[TransitionWheelUpgrade] Switched to doublehead model");
-                }
-                break;
-
-            case "fourhead":
-            case "fourhead_front_back":
-            case "fourhead_cross":
-                if (fourheadModel != null)
-                {
-                    fourheadModel.SetActive(true);
-                    Debug.Log("[TransitionWheelUpgrade] Switched to fourhead model");
-                }
-                break;
-
-            case "huge":
-            case "huge_triple_front":
-            case "huge_triple_120":
-                if (hugeModel != null)
-                {
-                    hugeModel.SetActive(true);
-                    Debug.Log("[TransitionWheelUpgrade] Switched to HUGE model");
-                }
-                break;
-
-            case "small":
-            case "small_triple_front":
-            case "small_triple_120":
-                if (smallModel != null)
-                {
-                    smallModel.SetActive(true);
-                    Debug.Log("[TransitionWheelUpgrade] Switched to SMALL model");
-                }
-                break;
-
-            default:
-                Debug.LogWarning("[TransitionWheelUpgrade] Unknown upgrade type: " + upgrade.upgradeName);
-                break;
+            doubleheadModel.SetActive(true);
+            DebugLog("Switched to doublehead model");
+        }
+        else if (upgradeName.Contains("fourhead") && fourheadModel != null)
+        {
+            fourheadModel.SetActive(true);
+            DebugLog("Switched to fourhead model");
+        }
+        else if (upgradeName.Contains("huge") && hugeModel != null)
+        {
+            hugeModel.SetActive(true);
+            DebugLog("Switched to huge model");
+        }
+        else if (upgradeName.Contains("small") && smallModel != null)
+        {
+            smallModel.SetActive(true);
+            DebugLog("Switched to small model");
+        }
+        else
+        {
+            DebugLog("No matching tank model found for: " + upgradeName);
         }
     }
 
@@ -252,7 +353,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
     }
 
     /// <summary>
-    /// Continue transition after upgrade is applied
+    /// Continue transition after delay
     /// </summary>
     private IEnumerator ContinueTransitionAfterDelay()
     {
@@ -263,62 +364,47 @@ public class TransitionWheelUpgrade : MonoBehaviour
         if (transitionMover != null)
         {
             transitionMover.ResumeMovement();
-            Debug.Log("[TransitionWheelUpgrade] Transition resumed");
+            DebugLog("Tank movement resumed");
+        }
+        else
+        {
+            DebugLog("TransitionMover not found!");
         }
     }
 
     /// <summary>
-    /// Called when wheel is closed without selection (fallback)
+    /// Debug logging with prefix
     /// </summary>
-    public void OnWheelClosed()
+    private void DebugLog(string message)
     {
-        if (isTransitionMode)
-        {
-            Debug.Log("[TransitionWheelUpgrade] Wheel closed during transition, continuing without upgrade");
-            if (transitionMover != null)
-                transitionMover.ResumeMovement();
-        }
+        if (enableDebugLogs)
+            Debug.Log($"[TransitionWheelUpgrade] {message}");
     }
 
-    // Debug methods
-    [ContextMenu("Test Show Upgrade Panel Level2To3")]
+    // Debug methods for testing
+    [ContextMenu("Debug Show Level 2¡÷3")]
     public void DebugShowLevel2To3()
     {
         ShowUpgradePanel("Level2To3");
     }
 
-    [ContextMenu("Test Show Upgrade Panel Level4To5")]
+    [ContextMenu("Debug Show Level 4¡÷5")]
     public void DebugShowLevel4To5()
     {
         ShowUpgradePanel("Level4To5");
     }
 
-    [ContextMenu("Check Component References")]
+    [ContextMenu("Debug Check References")]
     public void DebugCheckReferences()
     {
-        Debug.Log("=== TransitionWheelUpgrade References ===");
-        Debug.Log("UpgradeWheelUI: " + (upgradeWheelUI != null ? "Connected" : "Missing"));
-        Debug.Log("TankUpgradeSystem: " + (tankUpgradeSystem != null ? "Connected" : "Missing"));
-        Debug.Log("UpgradeCanvas: " + (upgradeCanvas != null ? "Connected" : "Missing"));
-        Debug.Log("TransitionMover: " + (transitionMover != null ? "Found" : "Missing"));
-        Debug.Log("Tank Models:");
-        Debug.Log("  - Doublehead: " + (doubleheadModel != null ? "Y" : "N"));
-        Debug.Log("  - Fourhead: " + (fourheadModel != null ? "Y" : "N"));
-        Debug.Log("  - HUGE: " + (hugeModel != null ? "Y" : "N"));
-        Debug.Log("  - SMALL: " + (smallModel != null ? "Y" : "N"));
-    }
-
-    [ContextMenu("Test Tank Model Switch - Doublehead")]
-    public void DebugSwitchToDoublehead()
-    {
-        var testUpgrade = new WheelUpgradeOption { upgradeName = "doublehead" };
-        ApplyTankModelTransformation(testUpgrade);
-    }
-
-    [ContextMenu("Test Tank Model Switch - HUGE")]
-    public void DebugSwitchToHuge()
-    {
-        var testUpgrade = new WheelUpgradeOption { upgradeName = "HUGE" };
-        ApplyTankModelTransformation(testUpgrade);
+        DebugLog("=== Component Reference Check ===");
+        DebugLog($"UpgradeWheelUI: {(upgradeWheelUI != null ? "Y" : "N")}");
+        DebugLog($"TankUpgradeSystem: {(tankUpgradeSystem != null ? "Y" : "N")}");
+        DebugLog($"UpgradeCanvas: {(upgradeCanvas != null ? "Y" : "N")}");
+        DebugLog($"TransitionMover: {(transitionMover != null ? "Y" : "N")}");
+        DebugLog($"DoubleheadModel: {(doubleheadModel != null ? "Y" : "N")}");
+        DebugLog($"FourheadModel: {(fourheadModel != null ? "Y" : "N")}");
+        DebugLog($"HugeModel: {(hugeModel != null ? "Y" : "N")}");
+        DebugLog($"SmallModel: {(smallModel != null ? "Y" : "N")}");
     }
 }
