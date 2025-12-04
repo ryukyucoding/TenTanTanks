@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// **************************
+// LINE 183 IS TESTING
+// **************************
 /// <summary>
 /// Enhanced Transition Mover - Standalone version that works with TransitionWheelUpgrade
 /// Can work independently or with upgrade system
@@ -169,7 +172,29 @@ public class EnhancedTransitionMover : MonoBehaviour
     {
         if (transitionUpgrade != null)
         {
-            string transitionType = nextScene == "Level3" ? "Level2To3" : "Level4To5";
+            string transitionType;
+
+            // Determine transition type based on target scene
+            if (nextScene == "Level3")
+            {
+                transitionType = "Level2To3";
+            }
+            else if (nextScene == "Level5")
+            {
+                transitionType = "Level4To5";
+            }
+            else if (nextScene == "Level1") // For testing - treat as Level 2¡÷3
+            {
+                transitionType = "Level2To3";
+                Debug.Log("[EnhancedTransitionMover] Using Level1 for testing - treating as Level 2¡÷3 transition");
+            }
+            else
+            {
+                // Default fallback
+                transitionType = "Level2To3";
+                Debug.Log("[EnhancedTransitionMover] Unknown target scene '" + nextScene + "', defaulting to Level 2¡÷3");
+            }
+
             transitionUpgrade.ShowUpgradePanel(transitionType);
             return true;
         }
