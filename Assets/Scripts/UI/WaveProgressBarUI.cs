@@ -25,13 +25,19 @@ public class WaveProgressBarUI : MonoBehaviour
     [SerializeField] private RectTransform waveMarksContainer;
 
     [Header("Prefab References")]
-    [Tooltip("Tank 圖示 Prefab")]
+    [Tooltip("Tank 圖示 Prefab（如果留空則不生成）")]
     [SerializeField] private GameObject tankIconPrefab;
 
-    [Tooltip("Wave Mark Prefab")]
+    [Tooltip("Wave Mark Prefab（如果留空則不生成）")]
     [SerializeField] private GameObject waveMarkPrefab;
 
     [Header("Settings")]
+    [Tooltip("是否自動生成坦克圖標標記（false = 手動在 Editor 中放置）")]
+    [SerializeField] private bool autoGenerateTankIcons = false;
+
+    [Tooltip("是否自動生成波次標記（false = 手動在 Editor 中放置）")]
+    [SerializeField] private bool autoGenerateWaveMarks = false;
+
     [Tooltip("是否在等待下一波時顯示進度條")]
     [SerializeField] private bool showDuringWaveDelay = true;
 
@@ -243,8 +249,8 @@ public class WaveProgressBarUI : MonoBehaviour
 
             Debug.Log($"[WaveProgressBar] Wave {i}: spawnTime={waveSpawnTime}s, timeRatio={timeRatio:F2}, remainingRatio={remainingRatio:F2}, xPos={xPosition:F1}, barWidth={barWidth:F1}");
 
-            // 生成 wave mark（如果有設定 prefab）
-            if (waveMarkPrefab != null && waveMarksContainer != null)
+            // 只在啟用自動生成時才生成 wave mark
+            if (autoGenerateWaveMarks && waveMarkPrefab != null && waveMarksContainer != null)
             {
                 GameObject waveMark = Instantiate(waveMarkPrefab, waveMarksContainer);
                 RectTransform markRect = waveMark.GetComponent<RectTransform>();
@@ -261,8 +267,8 @@ public class WaveProgressBarUI : MonoBehaviour
                 spawnedWaveMarks.Add(waveMark);
             }
 
-            // 生成 tank icons（標示敵人出現）
-            if (tankIconPrefab != null && tankIconsContainer != null)
+            // 只在啟用自動生成時才生成 tank icons
+            if (autoGenerateTankIcons && tankIconPrefab != null && tankIconsContainer != null)
             {
                 foreach (var enemy in wave.enemies)
                 {
