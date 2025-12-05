@@ -616,16 +616,40 @@ public class UpgradeWheelUI : MonoBehaviour
 
     #region Selection Handling
 
-    public void OnTier1Selected(WheelUpgradeOption option)
+    private void OnTier1Selected(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
         selectedTier2Option = null;
         currentState = UpgradeState.SelectingTier2;
 
-        DebugLog($"Tier 1 selected: {option.upgradeName}");
+        // Apply immediate visual transformation for tier 1
+        TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
+        if (transformManager != null)
+        {
+            string upgradeName = option.upgradeName.ToLower();
+            switch (upgradeName)
+            {
+                case "heavy":
+                    transformManager.SelectHeavyUpgrade();
+                    break;
+                case "rapid":
+                    transformManager.SelectRapidUpgrade();
+                    break;
+                case "balanced":
+                    transformManager.SelectBalancedUpgrade();
+                    break;
+            }
+            DebugLog($"Applied tier 1 transformation: {option.upgradeName}");
+        }
+
         UpdateButtonStates();
-        UpdateTitle($"Selected: {option.upgradeName}");
-        UpdateDescription($"Now select a Tier 2 upgrade for {option.upgradeName}");
+        UpdateTitle($"Tier 1: {option.upgradeName}");
+        UpdateDescription(option.description);
+
+        if (confirmButton != null)
+            confirmButton.gameObject.SetActive(false);
+
+        DebugLog($"Tier 1 selected: {option.upgradeName}");
     }
 
     public void OnTier2Selected(WheelUpgradeOption option)
