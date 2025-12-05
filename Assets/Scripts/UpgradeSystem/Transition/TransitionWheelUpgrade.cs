@@ -4,7 +4,7 @@ using WheelUpgradeSystem;
 
 /// <summary>
 /// Manages the transition scene upgrade system with tank movement and wheel display
-/// This is a FINAL COMPATIBLE version that includes ShowUpgradePanel method for EnhancedTransitionMover
+/// OPTIMIZED version that properly handles EnhancedTransitionMover's transition types
 /// Replace your existing script with this version
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
@@ -49,6 +49,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
     private TransitionState currentState = TransitionState.MovingToCenter;
     private WheelUpgradeOption selectedUpgrade;
+    private EnhancedTransitionMover enhancedTransitionMover; // Reference to the enhanced transition mover
 
     void Start()
     {
@@ -59,6 +60,10 @@ public class TransitionWheelUpgrade : MonoBehaviour
             tankUpgradeSystem = FindFirstObjectByType<TankUpgradeSystem>();
         if (confirmationDialog == null)
             confirmationDialog = FindFirstObjectByType<SimpleTransitionDialog>();
+
+        // NEW: Find EnhancedTransitionMover
+        if (enhancedTransitionMover == null)
+            enhancedTransitionMover = FindFirstObjectByType<EnhancedTransitionMover>();
 
         // NEW: Find player tank if not set
         if (playerTank == null)
@@ -89,30 +94,114 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // ADDED: Method that EnhancedTransitionMover is trying to call
+    #region ShowUpgradePanel Methods - OPTIMIZED for EnhancedTransitionMover
+
     /// <summary>
-    /// Show upgrade panel - called by EnhancedTransitionMover
-    /// This method provides compatibility with your existing EnhancedTransitionMover script
+    /// Show upgrade panel - MAIN METHOD called by EnhancedTransitionMover
+    /// Handles transition type strings like "Level2To3", "Level4To5"
+    /// </summary>
+    public void ShowUpgradePanel(string transitionType)
+    {
+        DebugLog($"ShowUpgradePanel called by EnhancedTransitionMover with transitionType: {transitionType}");
+
+        // Parse the transition type and set appropriate upgrade tier
+        ParseTransitionType(transitionType);
+
+        // Show the upgrade panel
+        ShowUpgradePanelInternal();
+    }
+
+    /// <summary>
+    /// Parse transition type string and set upgrade tier accordingly
+    /// </summary>
+    private void ParseTransitionType(string transitionType)
+    {
+        if (string.IsNullOrEmpty(transitionType))
+        {
+            DebugLog("Empty transition type, using default tier 1");
+            upgradeTier = 1;
+            return;
+        }
+
+        switch (transitionType.ToLower())
+        {
+            case "level2to3":
+                upgradeTier = 1; // First tier upgrades
+                upgradeLevel = 3;
+                DebugLog("Level 2¡÷3 transition: Using Tier 1 upgrades");
+                break;
+
+            case "level4to5":
+                upgradeTier = 2; // Second tier upgrades 
+                upgradeLevel = 5;
+                DebugLog("Level 4¡÷5 transition: Using Tier 2 upgrades");
+                break;
+
+            default:
+                // For testing or unknown types, default to tier 1
+                upgradeTier = 1;
+                upgradeLevel = 1;
+                DebugLog($"Unknown transition type '{transitionType}', defaulting to Tier 1");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Show upgrade panel - no arguments (for backward compatibility)
     /// </summary>
     public void ShowUpgradePanel()
     {
-        DebugLog("ShowUpgradePanel called by EnhancedTransitionMover");
+        DebugLog("ShowUpgradePanel() called with no arguments");
+        ShowUpgradePanelInternal();
+    }
 
-        // Force show the upgrade wheel regardless of level
-        upgradeLevel = 1; // Force to a level that shows upgrades
+    /// <summary>
+    /// Show upgrade panel - with int parameter (tier number)
+    /// </summary>
+    public void ShowUpgradePanel(int parameter)
+    {
+        DebugLog($"ShowUpgradePanel(int) called with parameter: {parameter}");
+
+        // Use the parameter as upgrade tier if it's valid
+        if (parameter >= 1 && parameter <= 2)
+        {
+            upgradeTier = parameter;
+        }
+
+        ShowUpgradePanelInternal();
+    }
+
+    /// <summary>
+    /// Show upgrade panel - with bool parameter (for enable/disable)
+    /// </summary>
+    public void ShowUpgradePanel(bool parameter)
+    {
+        DebugLog($"ShowUpgradePanel(bool) called with parameter: {parameter}");
+
+        if (parameter)
+        {
+            ShowUpgradePanelInternal();
+        }
+        else
+        {
+            DebugLog("ShowUpgradePanel called with false - skipping upgrade");
+            ContinueToExit();
+        }
+    }
+
+    /// <summary>
+    /// Internal method that actually shows the upgrade panel
+    /// </summary>
+    private void ShowUpgradePanelInternal()
+    {
+        DebugLog($"ShowUpgradePanelInternal - Tier {upgradeTier}, Level {upgradeLevel}");
+
+        // Force show the upgrade wheel
         currentState = TransitionState.ShowingWheel;
         ShowUpgradeWheel();
     }
 
-    // ADDED: Alternative method name that might be called
-    /// <summary>
-    /// Legacy method for backward compatibility
-    /// </summary>
-    public void ShowUpgrades()
-    {
-        DebugLog("ShowUpgrades called - redirecting to ShowUpgradePanel");
-        ShowUpgradePanel();
-    }
+    #endregion
 
     // NEW: Check if we should show upgrade wheel based on level
     private void CheckUpgradeCondition()
@@ -165,11 +254,11 @@ public class TransitionWheelUpgrade : MonoBehaviour
     private void ShowUpgradeWheel()
     {
         currentState = TransitionState.ShowingWheel;
-        DebugLog("Tank reached center, showing upgrade wheel");
+        DebugLog($"Tank reached center, showing upgrade wheel (Tier {upgradeTier})");
 
         if (upgradeWheelUI != null)
         {
-            // Set wheel to transition mode
+            // Set wheel to transition mode with correct tier
             upgradeWheelUI.SetTransitionMode(upgradeTier, "");
             upgradeWheelUI.ShowWheelForTransition();
         }
@@ -181,7 +270,6 @@ public class TransitionWheelUpgrade : MonoBehaviour
     }
 
     // NEW: Called by UpgradeWheelUI when an upgrade is selected
-    // THIS IS THE MISSING METHOD THAT WAS CAUSING THE ERROR
     public void OnUpgradeSelected(WheelUpgradeOption upgrade)
     {
         DebugLog($"Upgrade selected: {upgrade.upgradeName}");
@@ -243,6 +331,13 @@ public class TransitionWheelUpgrade : MonoBehaviour
     {
         DebugLog("Continuing tank movement to exit");
         currentState = TransitionState.MovingToExit;
+
+        // Notify EnhancedTransitionMover that upgrade is complete
+        if (enhancedTransitionMover != null)
+        {
+            DebugLog("Notifying EnhancedTransitionMover that upgrade is complete");
+            enhancedTransitionMover.ResumeMovement();
+        }
     }
 
     // NEW: Move tank towards exit position and load next scene
@@ -272,7 +367,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // NEW: Load the next scene - FIXED to use existing SceneTransitionManager methods
+    // NEW: Load the next scene
     private void LoadNextScene()
     {
         if (currentState != TransitionState.LoadingNextScene)
@@ -286,19 +381,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
     private void DoSceneLoad()
     {
-        // FIXED: Use existing SceneTransitionManager.LoadSceneWithTransition method
+        // Use existing SceneTransitionManager.LoadSceneWithTransition method
         DebugLog($"Using SceneTransitionManager.LoadSceneWithTransition for: {nextSceneName}");
         SceneTransitionManager.LoadSceneWithTransition(nextSceneName);
-    }
-
-    // ADDED: Public method to notify when upgrade is complete (for EnhancedTransitionMover)
-    /// <summary>
-    /// Called when upgrade process is complete - can be used by other scripts
-    /// </summary>
-    public void OnUpgradeComplete()
-    {
-        DebugLog("Upgrade process complete");
-        ContinueToExit();
     }
 
     // ADDED: Public method to check if upgrade is in progress
@@ -319,30 +404,34 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // NEW: Force skip upgrade (for testing)
+    #region Context Menu Testing
+
     [ContextMenu("Skip Upgrade")]
     public void SkipUpgrade()
     {
         ContinueToExit();
     }
 
-    // NEW: Force show upgrade wheel (for testing)
     [ContextMenu("Force Show Wheel")]
     public void ForceShowWheel()
     {
-        upgradeLevel = 1; // Force to level that needs upgrade
+        upgradeLevel = 1;
         currentState = TransitionState.MovingToCenter;
         CheckUpgradeCondition();
     }
 
-    // ADDED: Test ShowUpgradePanel method
-    [ContextMenu("Test ShowUpgradePanel")]
-    public void TestShowUpgradePanel()
+    [ContextMenu("Test Level2To3 Transition")]
+    public void TestLevel2To3()
     {
-        ShowUpgradePanel();
+        ShowUpgradePanel("Level2To3");
     }
 
-    // NEW: Set upgrade level for testing
+    [ContextMenu("Test Level4To5 Transition")]
+    public void TestLevel4To5()
+    {
+        ShowUpgradePanel("Level4To5");
+    }
+
     [ContextMenu("Set Level 1 (Testing)")]
     public void SetTestingLevel1()
     {
@@ -367,9 +456,11 @@ public class TransitionWheelUpgrade : MonoBehaviour
         DebugLog("Set to Level 5 for Tier 2 upgrades");
     }
 
+    #endregion
+
     void OnDrawGizmosSelected()
     {
-        // NEW: Draw positions for debugging
+        // Draw positions for debugging
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(centerStopPosition, 1f);
 
@@ -380,7 +471,4 @@ public class TransitionWheelUpgrade : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawLine(centerStopPosition, finalExitPosition);
     }
-
-    // Keep any existing methods you might have in your original script
-    // Add them here if they exist and are needed
 }
