@@ -18,7 +18,14 @@ public class SimpleTransitionDialog : MonoBehaviour
 
     [Header("Dialog Settings")]
     [SerializeField] private bool autoCreateUI = true;
-    [SerializeField] private Vector2 dialogSize = new Vector2(400, 200);
+    [SerializeField] private Vector2 dialogSize = new Vector2(500, 300);
+    [SerializeField] private string yesButtonText = "YES";
+    [SerializeField] private string noButtonText = "NO";
+
+    [Header("Styling")]
+    [SerializeField] private Color backgroundColor = new Color(0.1f, 0.1f, 0.1f, 0.9f);
+    [SerializeField] private Color buttonColor = new Color(0.2f, 0.6f, 1f, 1f);
+    [SerializeField] private Color textColor = Color.white;
 
     private WheelUpgradeOption currentUpgrade;
     private System.Action onConfirm;
@@ -40,6 +47,8 @@ public class SimpleTransitionDialog : MonoBehaviour
     /// </summary>
     private void CreateSimpleDialog()
     {
+        Debug.Log("[SimpleTransitionDialog] Auto-creating dialog UI...");
+
         // Find or create canvas
         Canvas canvas = FindObjectOfType<Canvas>();
         if (canvas == null)
@@ -48,103 +57,101 @@ public class SimpleTransitionDialog : MonoBehaviour
             return;
         }
 
-        // Create dialog panel
-        dialogPanel = new GameObject("ConfirmationDialog");
-        dialogPanel.transform.SetParent(canvas.transform, false);
+        // Create main dialog panel
+        GameObject panelGO = new GameObject("TransitionConfirmDialog");
+        panelGO.transform.SetParent(canvas.transform, false);
 
-        var image = dialogPanel.AddComponent<Image>();
-        image.color = new Color(0, 0, 0, 0.8f);
+        RectTransform panelRect = panelGO.AddComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.sizeDelta = Vector2.zero;
+        panelRect.anchoredPosition = Vector2.zero;
 
-        var rectTransform = dialogPanel.GetComponent<RectTransform>();
-        rectTransform.anchorMin = Vector2.zero;
-        rectTransform.anchorMax = Vector2.one;
-        rectTransform.sizeDelta = Vector2.zero;
-        rectTransform.anchoredPosition = Vector2.zero;
+        Image panelBg = panelGO.AddComponent<Image>();
+        panelBg.color = new Color(0f, 0f, 0f, 0.5f); // Semi-transparent background
 
-        // Create content panel
-        GameObject contentPanel = new GameObject("ContentPanel");
-        contentPanel.transform.SetParent(dialogPanel.transform, false);
+        // Create dialog box
+        GameObject dialogGO = new GameObject("DialogBox");
+        dialogGO.transform.SetParent(panelGO.transform, false);
 
-        var contentImage = contentPanel.AddComponent<Image>();
-        contentImage.color = new Color(0.2f, 0.2f, 0.2f, 0.95f);
+        RectTransform dialogRect = dialogGO.AddComponent<RectTransform>();
+        dialogRect.anchorMin = new Vector2(0.5f, 0.5f);
+        dialogRect.anchorMax = new Vector2(0.5f, 0.5f);
+        dialogRect.sizeDelta = dialogSize;
+        dialogRect.anchoredPosition = Vector2.zero;
 
-        var contentRect = contentPanel.GetComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0.5f, 0.5f);
-        contentRect.anchorMax = new Vector2(0.5f, 0.5f);
-        contentRect.sizeDelta = dialogSize;
-        contentRect.anchoredPosition = Vector2.zero;
+        Image dialogBg = dialogGO.AddComponent<Image>();
+        dialogBg.color = backgroundColor;
 
         // Create upgrade name text
-        GameObject nameObj = new GameObject("UpgradeName");
-        nameObj.transform.SetParent(contentPanel.transform, false);
-        upgradeNameText = nameObj.AddComponent<TextMeshProUGUI>();
-        upgradeNameText.text = "Upgrade Name";
-        upgradeNameText.fontSize = 24;
-        upgradeNameText.color = Color.yellow;
-        upgradeNameText.alignment = TextAlignmentOptions.Center;
-
-        var nameRect = nameObj.GetComponent<RectTransform>();
-        nameRect.anchorMin = new Vector2(0, 0.7f);
-        nameRect.anchorMax = new Vector2(1, 0.9f);
-        nameRect.sizeDelta = Vector2.zero;
-        nameRect.anchoredPosition = Vector2.zero;
+        upgradeNameText = CreateText("UpgradeName", dialogGO.transform, new Vector2(0, 80), "UPGRADE NAME", 24);
+        upgradeNameText.fontStyle = FontStyles.Bold;
 
         // Create message text
-        GameObject messageObj = new GameObject("Message");
-        messageObj.transform.SetParent(contentPanel.transform, false);
-        messageText = messageObj.AddComponent<TextMeshProUGUI>();
-        messageText.text = "Do you want to choose this upgrade?";
-        messageText.fontSize = 16;
-        messageText.color = Color.white;
-        messageText.alignment = TextAlignmentOptions.Center;
+        messageText = CreateText("Message", dialogGO.transform, new Vector2(0, 20), "Confirm this upgrade?", 18);
 
-        var messageRect = messageObj.GetComponent<RectTransform>();
-        messageRect.anchorMin = new Vector2(0, 0.4f);
-        messageRect.anchorMax = new Vector2(1, 0.7f);
-        messageRect.sizeDelta = Vector2.zero;
-        messageRect.anchoredPosition = Vector2.zero;
+        // Create buttons
+        yesButton = CreateButton("YesButton", dialogGO.transform, new Vector2(-100, -80), yesButtonText);
+        noButton = CreateButton("NoButton", dialogGO.transform, new Vector2(100, -80), noButtonText);
 
-        // Create Yes button
-        yesButton = CreateButton("YES", new Vector2(-50, -20), new Vector2(80, 40), Color.green);
-        yesButton.transform.SetParent(contentPanel.transform, false);
+        dialogPanel = panelGO;
 
-        // Create No button  
-        noButton = CreateButton("NO", new Vector2(50, -20), new Vector2(80, 40), Color.red);
-        noButton.transform.SetParent(contentPanel.transform, false);
-
-        Debug.Log("[SimpleTransitionDialog] Auto-created dialog UI");
+        Debug.Log("[SimpleTransitionDialog] Dialog UI created successfully!");
     }
 
-    private Button CreateButton(string text, Vector2 position, Vector2 size, Color color)
+    private TextMeshProUGUI CreateText(string name, Transform parent, Vector2 position, string text, int fontSize)
     {
-        GameObject buttonObj = new GameObject($"Button_{text}");
+        GameObject textGO = new GameObject(name);
+        textGO.transform.SetParent(parent, false);
 
-        var image = buttonObj.AddComponent<Image>();
-        image.color = color;
+        RectTransform textRect = textGO.AddComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0.5f, 0.5f);
+        textRect.anchorMax = new Vector2(0.5f, 0.5f);
+        textRect.sizeDelta = new Vector2(400, 50);
+        textRect.anchoredPosition = position;
 
-        var button = buttonObj.AddComponent<Button>();
+        TextMeshProUGUI tmp = textGO.AddComponent<TextMeshProUGUI>();
+        tmp.text = text;
+        tmp.fontSize = fontSize;
+        tmp.color = textColor;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.fontStyle = FontStyles.Normal;
 
-        var rectTransform = buttonObj.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.sizeDelta = size;
-        rectTransform.anchoredPosition = position;
+        return tmp;
+    }
 
-        // Add text
-        GameObject textObj = new GameObject("Text");
-        textObj.transform.SetParent(buttonObj.transform, false);
+    private Button CreateButton(string name, Transform parent, Vector2 position, string text)
+    {
+        GameObject buttonGO = new GameObject(name);
+        buttonGO.transform.SetParent(parent, false);
 
-        var textComponent = textObj.AddComponent<TextMeshProUGUI>();
-        textComponent.text = text;
-        textComponent.fontSize = 16;
-        textComponent.color = Color.white;
-        textComponent.alignment = TextAlignmentOptions.Center;
+        RectTransform buttonRect = buttonGO.AddComponent<RectTransform>();
+        buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
+        buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
+        buttonRect.sizeDelta = new Vector2(120, 50);
+        buttonRect.anchoredPosition = position;
 
-        var textRect = textObj.GetComponent<RectTransform>();
+        Image buttonImg = buttonGO.AddComponent<Image>();
+        buttonImg.color = buttonColor;
+
+        Button button = buttonGO.AddComponent<Button>();
+
+        // Create button text
+        GameObject textGO = new GameObject("Text");
+        textGO.transform.SetParent(buttonGO.transform, false);
+
+        RectTransform textRect = textGO.AddComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
         textRect.sizeDelta = Vector2.zero;
         textRect.anchoredPosition = Vector2.zero;
+
+        TextMeshProUGUI buttonText = textGO.AddComponent<TextMeshProUGUI>();
+        buttonText.text = text;
+        buttonText.fontSize = 16;
+        buttonText.color = Color.white;
+        buttonText.alignment = TextAlignmentOptions.Center;
+        buttonText.fontStyle = FontStyles.Bold;
 
         return button;
     }
@@ -225,6 +232,18 @@ public class SimpleTransitionDialog : MonoBehaviour
     [ContextMenu("Test Hide Dialog")]
     public void TestHideDialog()
     {
+        HideDialog();
+    }
+
+    [ContextMenu("Force Create UI")]
+    public void ForceCreateUI()
+    {
+        if (dialogPanel != null)
+        {
+            DestroyImmediate(dialogPanel);
+        }
+        CreateSimpleDialog();
+        SetupButtons();
         HideDialog();
     }
 }
