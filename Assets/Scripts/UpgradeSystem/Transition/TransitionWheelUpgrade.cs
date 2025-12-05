@@ -4,9 +4,8 @@ using WheelUpgradeSystem;
 using TMPro;
 
 /// <summary>
-/// ENGLISH UPGRADE SYSTEM WITH CUSTOM FONT
-/// Simple English dialog, no emojis, clear descriptions
-/// Y = YES (only way to close), detailed upgrade descriptions, custom font styling
+/// COMPREHENSIVE FIX FOR DIVIDER LINES AND FONT ISSUES
+/// Fixes secondary divider scaling and ensures proper font application
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
@@ -26,6 +25,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
+    [SerializeField] private bool enableScaleDebug = true; // Extra debug for scale issues
 
     private enum UpgradeState
     {
@@ -44,13 +44,13 @@ public class TransitionWheelUpgrade : MonoBehaviour
     private TextMeshProUGUI dialogTitle;
     private TextMeshProUGUI dialogDescription;
     private TextMeshProUGUI dialogInstruction;
-    private UnityEngine.UI.Image dialogBackground;
 
     void Start()
     {
-        DebugLog("Enhanced English Upgrade System Started");
+        DebugLog("Enhanced English Upgrade System with Comprehensive Fixes Started");
 
-        LoadCustomFont();
+        // Load custom font with better detection
+        LoadCustomFontWithFallback();
 
         if (upgradeWheelUI == null)
             upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
@@ -73,54 +73,85 @@ public class TransitionWheelUpgrade : MonoBehaviour
             }
         }
 
-        CreateEnhancedDialogWithCustomFont();
+        CreateEnhancedDialogWithBetterFont();
         DisableWheelCloser();
 
-        DebugLog("Components found:");
+        DebugLog("Components Status:");
         DebugLog("  - UpgradeWheelUI: " + (upgradeWheelUI != null ? "Found" : "Missing"));
         DebugLog("  - Custom Font: " + (customFont != null ? "Loaded (" + customFont.name + ")" : "Missing"));
         DebugLog("  - TankUpgradeSystem: " + (tankUpgradeSystem != null ? "Found" : "Missing"));
     }
 
-    private void LoadCustomFont()
+    /// <summary>
+    /// Enhanced font loading with multiple fallback strategies
+    /// </summary>
+    private void LoadCustomFontWithFallback()
     {
+        if (customFont != null)
+        {
+            DebugLog("Custom font already assigned: " + customFont.name);
+            return;
+        }
+
+        DebugLog("Loading custom font...");
+
+        // Strategy 1: Direct Resources load
+        customFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
+
         if (customFont == null)
         {
-            customFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
+            // Strategy 2: Alternative paths
+            string[] fontPaths = {
+                "MinecraftTen-VGORe SDF",
+                "Fonts/MinecraftTen-VGORe SDF",
+                "MinecraftTen-VGORe",
+                "Minecraft"
+            };
 
-            if (customFont == null)
+            foreach (string path in fontPaths)
             {
-                string[] fontPaths = {
-                    "MinecraftTen-VGORe SDF",
-                    "Fonts/MinecraftTen-VGORe SDF",
-                    "Assets/Fonts/MinecraftTen-VGORe SDF"
-                };
-
-                foreach (string path in fontPaths)
+                customFont = Resources.Load<TMP_FontAsset>(path);
+                if (customFont != null)
                 {
-                    customFont = Resources.Load<TMP_FontAsset>(path);
-                    if (customFont != null)
-                    {
-                        DebugLog("Found custom font at: " + path);
-                        break;
-                    }
+                    DebugLog("Found font via path: " + path);
+                    break;
                 }
             }
+        }
 
-            if (customFont == null)
+        if (customFont == null)
+        {
+            // Strategy 3: Find any TMP font with "minecraft" in name
+            TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            foreach (var font in allFonts)
             {
-                DebugLog("Custom font not found, using default font");
-                var allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-                if (allFonts.Length > 0)
+                if (font.name.ToLower().Contains("minecraft"))
                 {
-                    customFont = allFonts[0];
-                    DebugLog("Using fallback font: " + customFont.name);
+                    customFont = font;
+                    DebugLog("Found Minecraft font by search: " + font.name);
+                    break;
                 }
             }
-            else
+        }
+
+        if (customFont == null)
+        {
+            // Strategy 4: Use any available TMP font
+            TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            if (allFonts.Length > 0)
             {
-                DebugLog("Loaded custom font: " + customFont.name);
+                customFont = allFonts[0];
+                DebugLog("Using fallback TMP font: " + customFont.name);
             }
+        }
+
+        if (customFont != null)
+        {
+            DebugLog("FONT LOADED SUCCESSFULLY: " + customFont.name);
+        }
+        else
+        {
+            DebugLog("WARNING: No TMP font found - dialog will use default");
         }
     }
 
@@ -171,7 +202,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         currentState = UpgradeState.SelectingUpgrade;
 
         ActivateWheelComponents();
-        FixAllScaleIssues();
+        FixAllScaleIssuesComprehensive(); // Enhanced scale fixing
 
         if (upgradeWheelUI != null)
         {
@@ -213,33 +244,89 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    private void FixAllScaleIssues()
+    /// <summary>
+    /// COMPREHENSIVE scale fixing that handles all divider types
+    /// </summary>
+    private void FixAllScaleIssuesComprehensive()
     {
-        if (upgradeWheelUI == null) return;
+        if (upgradeWheelUI == null)
+        {
+            DebugLog("Cannot fix scales - upgradeWheelUI is null");
+            return;
+        }
 
-        DebugLog("Fixing Scale Issues");
+        DebugLog("=== COMPREHENSIVE SCALE FIXING ===");
+
+        // Fix main UI scale
         upgradeWheelUI.transform.localScale = Vector3.one;
+        if (enableScaleDebug) DebugLog("Reset UpgradeWheelUI scale");
 
+        // Fix wheel container scale
         if (wheelContainer != null)
+        {
             wheelContainer.localScale = Vector3.one;
+            if (enableScaleDebug) DebugLog("Reset wheel container scale");
+        }
 
-        FixChildScales(upgradeWheelUI.transform);
-        DebugLog("Scale issues fixed");
+        // Fix ALL children with comprehensive pattern matching
+        FixAllChildScalesComprehensive(upgradeWheelUI.transform, 0);
+
+        DebugLog("=== COMPREHENSIVE SCALE FIXING COMPLETE ===");
     }
 
-    private void FixChildScales(Transform parent)
+    /// <summary>
+    /// Enhanced recursive scale fixing with specific divider detection
+    /// </summary>
+    private void FixAllChildScalesComprehensive(Transform parent, int depth)
     {
+        if (depth > 5) return; // Prevent infinite recursion
+
         for (int i = 0; i < parent.childCount; i++)
         {
             Transform child = parent.GetChild(i);
+            string childName = child.name.ToLower();
 
-            if (child.localScale != Vector3.one)
+            // Check if this is ANY type of divider or line
+            bool isDividerOrLine =
+                childName.Contains("divider") ||
+                childName.Contains("line") ||
+                childName.Contains("separator") ||
+                childName.Contains("border") ||
+                childName.Contains("rim") ||
+                childName.Contains("outline") ||
+                child.GetComponent<UnityEngine.UI.Image>() != null; // Any UI Image could be a divider
+
+            if (isDividerOrLine || child.localScale != Vector3.one)
             {
+                Vector3 oldScale = child.localScale;
                 child.localScale = Vector3.one;
-                DebugLog("Fixed scale: " + child.name);
+
+                if (enableScaleDebug)
+                {
+                    DebugLog("Fixed scale for: " + child.name + " (was: " + oldScale + ")");
+                }
+
+                // Special handling for UI Images (potential dividers)
+                var image = child.GetComponent<UnityEngine.UI.Image>();
+                if (image != null)
+                {
+                    // Reset any transform modifications that might cause line extension
+                    var rectTransform = child.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        // Don't modify size, just ensure scale is correct
+                        rectTransform.localScale = Vector3.one;
+
+                        if (enableScaleDebug)
+                        {
+                            DebugLog("Reset RectTransform scale for image: " + child.name);
+                        }
+                    }
+                }
             }
 
-            FixChildScales(child);
+            // Recursively fix children
+            FixAllChildScalesComprehensive(child, depth + 1);
         }
     }
 
@@ -250,54 +337,111 @@ public class TransitionWheelUpgrade : MonoBehaviour
         selectedUpgrade = upgrade;
         currentState = UpgradeState.ConfirmingUpgrade;
 
-        ShowDetailedConfirmationWithCustomFont(upgrade);
+        ShowDetailedConfirmationWithBetterFont(upgrade);
         DebugLog("Waiting for Y/N input");
     }
 
-    private void ShowDetailedConfirmationWithCustomFont(WheelUpgradeOption upgrade)
+    /// <summary>
+    /// Enhanced dialog display with better font handling
+    /// </summary>
+    private void ShowDetailedConfirmationWithBetterFont(WheelUpgradeOption upgrade)
     {
-        if (dialogPanel == null) return;
+        if (dialogPanel == null)
+        {
+            DebugLog("Dialog panel is null - cannot show confirmation");
+            return;
+        }
 
         string detailedDescription = GetDetailedUpgradeDescription(upgrade.upgradeName);
 
+        // Update all text with proper font application
         if (dialogTitle != null)
         {
             dialogTitle.text = "Tank Upgrade: " + upgrade.upgradeName;
-            ApplyCustomFontStyling(dialogTitle, titleFontSize, Color.yellow);
+            ApplyCustomFontWithVerification(dialogTitle, titleFontSize, Color.yellow, "Title");
         }
 
         if (dialogDescription != null)
         {
             dialogDescription.text = detailedDescription;
-            ApplyCustomFontStyling(dialogDescription, descriptionFontSize, Color.white);
+            ApplyCustomFontWithVerification(dialogDescription, descriptionFontSize, Color.white, "Description");
         }
 
         if (dialogInstruction != null)
         {
             dialogInstruction.text = "Press Y to Confirm | Press N to Cancel";
-            ApplyCustomFontStyling(dialogInstruction, instructionFontSize, Color.cyan);
+            ApplyCustomFontWithVerification(dialogInstruction, instructionFontSize, Color.cyan, "Instruction");
         }
 
         dialogPanel.SetActive(true);
-        DebugLog("Showing dialog for: " + upgrade.upgradeName);
+        DebugLog("Dialog shown for: " + upgrade.upgradeName);
+
+        // Verify font application after a frame
+        Invoke("VerifyFontApplication", 0.1f);
     }
 
-    private void ApplyCustomFontStyling(TextMeshProUGUI textComponent, int fontSize, Color color)
+    /// <summary>
+    /// Apply font with verification and logging
+    /// </summary>
+    private void ApplyCustomFontWithVerification(TextMeshProUGUI textComponent, int fontSize, Color color, string componentName)
     {
-        if (textComponent == null) return;
+        if (textComponent == null)
+        {
+            DebugLog("Cannot apply font to " + componentName + " - component is null");
+            return;
+        }
 
+        // Apply custom font
         if (customFont != null)
         {
             textComponent.font = customFont;
+            DebugLog("Applied custom font to " + componentName + ": " + customFont.name);
+        }
+        else
+        {
+            DebugLog("WARNING: No custom font available for " + componentName);
         }
 
+        // Apply other properties
         textComponent.fontSize = fontSize;
         textComponent.color = color;
         textComponent.fontStyle = FontStyles.Bold;
         textComponent.richText = true;
         textComponent.alignment = TextAlignmentOptions.Center;
+
+        // Add outline for better readability
         textComponent.outlineWidth = 0.2f;
         textComponent.outlineColor = Color.black;
+
+        // Force refresh the text component
+        textComponent.ForceMeshUpdate();
+
+        DebugLog("Font application complete for " + componentName);
+    }
+
+    /// <summary>
+    /// Verify that fonts were applied correctly
+    /// </summary>
+    private void VerifyFontApplication()
+    {
+        DebugLog("=== FONT APPLICATION VERIFICATION ===");
+
+        if (dialogTitle != null)
+        {
+            DebugLog("Title font: " + (dialogTitle.font != null ? dialogTitle.font.name : "NULL"));
+        }
+
+        if (dialogDescription != null)
+        {
+            DebugLog("Description font: " + (dialogDescription.font != null ? dialogDescription.font.name : "NULL"));
+        }
+
+        if (dialogInstruction != null)
+        {
+            DebugLog("Instruction font: " + (dialogInstruction.font != null ? dialogInstruction.font.name : "NULL"));
+        }
+
+        DebugLog("=== VERIFICATION COMPLETE ===");
     }
 
     private string GetDetailedUpgradeDescription(string upgradeName)
@@ -402,13 +546,16 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    #region Enhanced Dialog with Custom Font
+    #region Enhanced Dialog Creation
 
-    private void CreateEnhancedDialogWithCustomFont()
+    /// <summary>
+    /// Create dialog with better font handling and verification
+    /// </summary>
+    private void CreateEnhancedDialogWithBetterFont()
     {
-        DebugLog("Creating enhanced dialog with custom font...");
+        DebugLog("Creating dialog with enhanced font handling...");
 
-        GameObject dialogCanvasGO = new GameObject("CustomFontConfirmationCanvas");
+        GameObject dialogCanvasGO = new GameObject("EnhancedConfirmationCanvas");
         dialogCanvas = dialogCanvasGO.AddComponent<Canvas>();
         dialogCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         dialogCanvas.sortingOrder = 2000;
@@ -419,7 +566,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
         dialogCanvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-        dialogPanel = new GameObject("CustomFontConfirmationPanel");
+        dialogPanel = new GameObject("EnhancedConfirmationPanel");
         dialogPanel.transform.SetParent(dialogCanvas.transform, false);
 
         var panelImage = dialogPanel.AddComponent<UnityEngine.UI.Image>();
@@ -439,15 +586,15 @@ public class TransitionWheelUpgrade : MonoBehaviour
         shadow.effectColor = Color.black;
         shadow.effectDistance = new Vector2(8, -8);
 
-        CreateCustomFontText("CustomTitle", dialogPanel, new Vector2(0, 200), titleFontSize, Color.yellow, out dialogTitle);
-        CreateCustomFontText("CustomDescription", dialogPanel, Vector2.zero, descriptionFontSize, Color.white, out dialogDescription);
-        CreateCustomFontText("CustomInstruction", dialogPanel, new Vector2(0, -220), instructionFontSize, Color.cyan, out dialogInstruction);
+        CreateBetterFontText("EnhancedTitle", dialogPanel, new Vector2(0, 200), titleFontSize, Color.yellow, out dialogTitle);
+        CreateBetterFontText("EnhancedDescription", dialogPanel, Vector2.zero, descriptionFontSize, Color.white, out dialogDescription);
+        CreateBetterFontText("EnhancedInstruction", dialogPanel, new Vector2(0, -220), instructionFontSize, Color.cyan, out dialogInstruction);
 
         HideDialog();
-        DebugLog("Created enhanced dialog with custom font");
+        DebugLog("Enhanced dialog creation complete");
     }
 
-    private void CreateCustomFontText(string name, GameObject parent, Vector2 position, int fontSize, Color color, out TextMeshProUGUI textComponent)
+    private void CreateBetterFontText(string name, GameObject parent, Vector2 position, int fontSize, Color color, out TextMeshProUGUI textComponent)
     {
         GameObject textGO = new GameObject(name);
         textGO.transform.SetParent(parent.transform, false);
@@ -455,9 +602,15 @@ public class TransitionWheelUpgrade : MonoBehaviour
         textComponent = textGO.AddComponent<TextMeshProUGUI>();
         textComponent.text = "";
 
+        // Apply font immediately during creation
         if (customFont != null)
         {
             textComponent.font = customFont;
+            DebugLog("Applied font during creation: " + customFont.name + " to " + name);
+        }
+        else
+        {
+            DebugLog("WARNING: No custom font available during creation of " + name);
         }
 
         textComponent.fontSize = fontSize;
@@ -489,7 +642,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
     {
         if (enableDebugLogs)
         {
-            Debug.Log("[EnglishUpgrade] " + message);
+            Debug.Log("[ComprehensiveFix] " + message);
         }
     }
 
@@ -498,16 +651,21 @@ public class TransitionWheelUpgrade : MonoBehaviour
         return currentState != UpgradeState.Hidden;
     }
 
-    [ContextMenu("Test Custom Font")]
-    public void TestCustomFont()
+    [ContextMenu("Test Font Loading")]
+    public void TestFontLoading()
     {
-        DebugLog("Custom Font Test: " + (customFont != null ? customFont.name : "NOT LOADED"));
+        LoadCustomFontWithFallback();
     }
 
-    [ContextMenu("Test Heavy with Custom Font")]
-    public void TestHeavyWithCustomFont()
+    [ContextMenu("Test Scale Fixing")]
+    public void TestScaleFixing()
     {
-        var testUpgrade = new WheelUpgradeOption("Heavy", "Test Heavy", 1);
-        OnUpgradeSelected(testUpgrade);
+        FixAllScaleIssuesComprehensive();
+    }
+
+    [ContextMenu("Test Font Verification")]
+    public void TestFontVerification()
+    {
+        VerifyFontApplication();
     }
 }
