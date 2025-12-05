@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using WheelUpgradeSystem;
-using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// FINAL IMPROVED KEYBOARD UPGRADE SYSTEM
-/// Y = YES (only way to close), detailed upgrade descriptions, prominent dialog
-/// No ESC, no click-to-close, clear upgrade explanations
+/// ENGLISH UPGRADE SYSTEM WITH CUSTOM FONT
+/// Simple English dialog, no emojis, clear descriptions
+/// Y = YES (only way to close), detailed upgrade descriptions, custom font styling
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
@@ -15,18 +15,23 @@ public class TransitionWheelUpgrade : MonoBehaviour
     [SerializeField] private Canvas upgradeCanvas;
     [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
 
+    [Header("Custom Font Settings")]
+    [SerializeField] private TMP_FontAsset customFont;
+    [SerializeField] private int titleFontSize = 42;
+    [SerializeField] private int descriptionFontSize = 24;
+    [SerializeField] private int instructionFontSize = 32;
+
     [Header("Enhanced UI")]
-    [SerializeField] private GameObject confirmationDialog; // Enhanced dialog
+    [SerializeField] private GameObject confirmationDialog;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
-    // State management
     private enum UpgradeState
     {
-        Hidden,           // No wheel showing
-        SelectingUpgrade, // Wheel is showing, waiting for upgrade selection
-        ConfirmingUpgrade // Upgrade selected, waiting for Y confirmation
+        Hidden,
+        SelectingUpgrade,
+        ConfirmingUpgrade
     }
 
     private UpgradeState currentState = UpgradeState.Hidden;
@@ -34,19 +39,19 @@ public class TransitionWheelUpgrade : MonoBehaviour
     private EnhancedTransitionMover enhancedTransitionMover;
     private Transform wheelContainer;
 
-    // Enhanced UI References
     private Canvas dialogCanvas;
     private GameObject dialogPanel;
-    private Text dialogTitle;
-    private Text dialogDescription;
-    private Text dialogInstruction;
-    private Image dialogBackground;
+    private TextMeshProUGUI dialogTitle;
+    private TextMeshProUGUI dialogDescription;
+    private TextMeshProUGUI dialogInstruction;
+    private UnityEngine.UI.Image dialogBackground;
 
     void Start()
     {
-        DebugLog("=== Enhanced Keyboard Upgrade System Started ===");
+        DebugLog("Enhanced English Upgrade System Started");
 
-        // Auto-find components
+        LoadCustomFont();
+
         if (upgradeWheelUI == null)
             upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
         if (tankUpgradeSystem == null)
@@ -68,16 +73,55 @@ public class TransitionWheelUpgrade : MonoBehaviour
             }
         }
 
-        // Create enhanced confirmation dialog
-        CreateEnhancedDialog();
-
-        // IMPORTANT: Disable existing wheel closer to prevent click-to-close
+        CreateEnhancedDialogWithCustomFont();
         DisableWheelCloser();
 
-        DebugLog($"Components found:");
-        DebugLog($"  - UpgradeWheelUI: {(upgradeWheelUI != null ? "Y" : "N")}");
-        DebugLog($"  - UpgradeCanvas: {(upgradeCanvas != null ? "Y" : "N")}");
-        DebugLog($"  - TankUpgradeSystem: {(tankUpgradeSystem != null ? "Y" : "N")}");
+        DebugLog("Components found:");
+        DebugLog("  - UpgradeWheelUI: " + (upgradeWheelUI != null ? "Found" : "Missing"));
+        DebugLog("  - Custom Font: " + (customFont != null ? "Loaded (" + customFont.name + ")" : "Missing"));
+        DebugLog("  - TankUpgradeSystem: " + (tankUpgradeSystem != null ? "Found" : "Missing"));
+    }
+
+    private void LoadCustomFont()
+    {
+        if (customFont == null)
+        {
+            customFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
+
+            if (customFont == null)
+            {
+                string[] fontPaths = {
+                    "MinecraftTen-VGORe SDF",
+                    "Fonts/MinecraftTen-VGORe SDF",
+                    "Assets/Fonts/MinecraftTen-VGORe SDF"
+                };
+
+                foreach (string path in fontPaths)
+                {
+                    customFont = Resources.Load<TMP_FontAsset>(path);
+                    if (customFont != null)
+                    {
+                        DebugLog("Found custom font at: " + path);
+                        break;
+                    }
+                }
+            }
+
+            if (customFont == null)
+            {
+                DebugLog("Custom font not found, using default font");
+                var allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+                if (allFonts.Length > 0)
+                {
+                    customFont = allFonts[0];
+                    DebugLog("Using fallback font: " + customFont.name);
+                }
+            }
+            else
+            {
+                DebugLog("Loaded custom font: " + customFont.name);
+            }
+        }
     }
 
     void Update()
@@ -85,14 +129,10 @@ public class TransitionWheelUpgrade : MonoBehaviour
         HandleKeyboardInput();
     }
 
-    /// <summary>
-    /// Handle keyboard input - ONLY Y key when confirming
-    /// </summary>
     private void HandleKeyboardInput()
     {
         if (Keyboard.current == null) return;
 
-        // ONLY handle Y key when confirming upgrade
         if (currentState == UpgradeState.ConfirmingUpgrade)
         {
             if (Keyboard.current.yKey.wasPressedThisFrame)
@@ -100,67 +140,48 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 DebugLog("Y pressed - confirming upgrade");
                 ConfirmUpgrade();
             }
-            // N key to cancel (return to selection)
             else if (Keyboard.current.nKey.wasPressedThisFrame)
             {
                 DebugLog("N pressed - canceling upgrade");
                 CancelUpgrade();
             }
         }
-
-        // NO ESC KEY HANDLING - removed as requested
     }
 
-    /// <summary>
-    /// Disable existing wheel closer to prevent unwanted closing
-    /// </summary>
     private void DisableWheelCloser()
     {
         var wheelCloser = FindFirstObjectByType<UpgradeWheelCloser>();
         if (wheelCloser != null)
         {
             wheelCloser.enabled = false;
-            DebugLog("Disabled UpgradeWheelCloser to prevent click-to-close");
+            DebugLog("Disabled UpgradeWheelCloser");
         }
     }
 
-    /// <summary>
-    /// Main method called by EnhancedTransitionMover
-    /// </summary>
     public void ShowUpgradePanel(string transitionType)
     {
-        DebugLog($"ShowUpgradePanel called with: {transitionType}");
+        DebugLog("ShowUpgradePanel called with: " + transitionType);
         ShowUpgradeWheel();
     }
 
-    /// <summary>
-    /// Show the upgrade wheel
-    /// </summary>
     private void ShowUpgradeWheel()
     {
-        DebugLog("=== Showing Upgrade Wheel ===");
+        DebugLog("Showing Upgrade Wheel");
 
         currentState = UpgradeState.SelectingUpgrade;
 
-        // Activate all necessary components
         ActivateWheelComponents();
-
-        // Fix scaling issues
         FixAllScaleIssues();
 
-        // Show wheel
         if (upgradeWheelUI != null)
         {
             upgradeWheelUI.SetTransitionMode(1, "");
             upgradeWheelUI.ShowWheelForTransition();
         }
 
-        DebugLog("Wheel should now be visible - waiting for upgrade selection");
+        DebugLog("Wheel visible - waiting for selection");
     }
 
-    /// <summary>
-    /// Activate all wheel components properly
-    /// </summary>
     private void ActivateWheelComponents()
     {
         if (upgradeWheelUI != null)
@@ -175,7 +196,6 @@ public class TransitionWheelUpgrade : MonoBehaviour
             DebugLog("Activated UpgradeCanvas");
         }
 
-        // Find and activate wheel container
         if (upgradeWheelUI != null)
         {
             string[] containerNames = { "UpgradeWheelContainer", "WheelContainer", "Wheel Container" };
@@ -186,29 +206,24 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 if (wheelContainer != null)
                 {
                     wheelContainer.gameObject.SetActive(true);
-                    DebugLog($"Activated wheel container: {wheelContainer.name}");
+                    DebugLog("Activated wheel container: " + wheelContainer.name);
                     break;
                 }
             }
         }
     }
 
-    /// <summary>
-    /// Fix all scaling issues
-    /// </summary>
     private void FixAllScaleIssues()
     {
         if (upgradeWheelUI == null) return;
 
-        DebugLog("=== Fixing Scale Issues ===");
-
+        DebugLog("Fixing Scale Issues");
         upgradeWheelUI.transform.localScale = Vector3.one;
 
         if (wheelContainer != null)
             wheelContainer.localScale = Vector3.one;
 
         FixChildScales(upgradeWheelUI.transform);
-
         DebugLog("Scale issues fixed");
     }
 
@@ -221,145 +236,143 @@ public class TransitionWheelUpgrade : MonoBehaviour
             if (child.localScale != Vector3.one)
             {
                 child.localScale = Vector3.one;
-                DebugLog($"Fixed scale: {child.name}");
+                DebugLog("Fixed scale: " + child.name);
             }
 
             FixChildScales(child);
         }
     }
 
-    /// <summary>
-    /// Called when upgrade is selected - show detailed confirmation
-    /// </summary>
     public void OnUpgradeSelected(WheelUpgradeOption upgrade)
     {
-        DebugLog($"=== Upgrade Selected: {upgrade.upgradeName} ===");
+        DebugLog("Upgrade Selected: " + upgrade.upgradeName);
 
         selectedUpgrade = upgrade;
         currentState = UpgradeState.ConfirmingUpgrade;
 
-        // Show detailed confirmation dialog
-        ShowDetailedConfirmation(upgrade);
-
+        ShowDetailedConfirmationWithCustomFont(upgrade);
         DebugLog("Waiting for Y/N input");
     }
 
-    /// <summary>
-    /// Show enhanced confirmation dialog with detailed descriptions
-    /// </summary>
-    private void ShowDetailedConfirmation(WheelUpgradeOption upgrade)
+    private void ShowDetailedConfirmationWithCustomFont(WheelUpgradeOption upgrade)
     {
         if (dialogPanel == null) return;
 
-        // Get detailed description based on upgrade type
         string detailedDescription = GetDetailedUpgradeDescription(upgrade.upgradeName);
 
-        // Update dialog content
         if (dialogTitle != null)
-            dialogTitle.text = $"選擇升級: {upgrade.upgradeName}";
+        {
+            dialogTitle.text = "Tank Upgrade: " + upgrade.upgradeName;
+            ApplyCustomFontStyling(dialogTitle, titleFontSize, Color.yellow);
+        }
 
         if (dialogDescription != null)
+        {
             dialogDescription.text = detailedDescription;
+            ApplyCustomFontStyling(dialogDescription, descriptionFontSize, Color.white);
+        }
 
         if (dialogInstruction != null)
-            dialogInstruction.text = "按 Y 確認 | 按 N 取消";
+        {
+            dialogInstruction.text = "Press Y to Confirm | Press N to Cancel";
+            ApplyCustomFontStyling(dialogInstruction, instructionFontSize, Color.cyan);
+        }
 
-        // Show dialog
         dialogPanel.SetActive(true);
-
-        DebugLog($"Showing detailed confirmation for: {upgrade.upgradeName}");
+        DebugLog("Showing dialog for: " + upgrade.upgradeName);
     }
 
-    /// <summary>
-    /// Get detailed description for each upgrade type
-    /// </summary>
+    private void ApplyCustomFontStyling(TextMeshProUGUI textComponent, int fontSize, Color color)
+    {
+        if (textComponent == null) return;
+
+        if (customFont != null)
+        {
+            textComponent.font = customFont;
+        }
+
+        textComponent.fontSize = fontSize;
+        textComponent.color = color;
+        textComponent.fontStyle = FontStyles.Bold;
+        textComponent.richText = true;
+        textComponent.alignment = TextAlignmentOptions.Center;
+        textComponent.outlineWidth = 0.2f;
+        textComponent.outlineColor = Color.black;
+    }
+
     private string GetDetailedUpgradeDescription(string upgradeName)
     {
         switch (upgradeName.ToLower())
         {
             case "heavy":
-                return "重型升級\n\n" +
-                       "- 砲管將變得更大更粗\n" +
-                       "- 子彈威力大幅增加\n" +
-                       "- 射擊速度較慢\n" +
-                       "- 適合對付裝甲敵人\n\n" +
-                       "這是一個專注於火力的升級選擇。";
+                return "<size=28><color=orange>Heavy Tank Upgrade</color></size>\n\n" +
+                       "CANNON CHANGES:\n" +
+                       "- Cannon becomes bigger and thicker\n" +
+                       "- Bullets are much more powerful\n" +
+                       "- Slower firing speed\n" +
+                       "- Perfect for armored enemies\n\n" +
+                       "This upgrade focuses on raw firepower.";
 
             case "rapid":
-                return "快速升級\n\n" +
-                       "- 砲管將變得更小更細\n" +
-                       "- 子彈較小但發射快速\n" +
-                       "- 射擊速度大幅提升\n" +
-                       "- 適合對付大量敵人\n\n" +
-                       "這是一個專注於速度的升級選擇。";
+                return "<size=28><color=lightblue>Rapid Fire Upgrade</color></size>\n\n" +
+                       "CANNON CHANGES:\n" +
+                       "- Cannon becomes smaller and thinner\n" +
+                       "- Bullets are smaller but fire rapidly\n" +
+                       "- Much faster firing speed\n" +
+                       "- Great against many enemies\n\n" +
+                       "This upgrade focuses on attack speed.";
 
             case "balanced":
-                return "平衡升級\n\n" +
-                       "- 砲管尺寸保持不變\n" +
-                       "- 子彈威力保持相同\n" +
-                       "- 獲得額外的第二門砲管\n" +
-                       "- 雙砲管同時射擊\n\n" +
-                       "這是一個專注於多重攻擊的升級選擇。";
+                return "<size=28><color=purple>Balanced Upgrade</color></size>\n\n" +
+                       "CANNON CHANGES:\n" +
+                       "- Cannon size stays the same\n" +
+                       "- Bullet power remains unchanged\n" +
+                       "- You get a second cannon\n" +
+                       "- Both cannons fire together\n\n" +
+                       "This upgrade focuses on multiple attacks.";
 
             default:
-                return $"{upgradeName} 升級\n\n" +
-                       "這個升級將改善你的坦克性能。\n" +
-                       "詳細效果請查看升級說明。";
+                return "<size=28>" + upgradeName + " Upgrade</size>\n\n" +
+                       "This upgrade will improve your tank.\n" +
+                       "Check the upgrade details for more info.";
         }
     }
 
-    /// <summary>
-    /// Y key pressed - confirm the upgrade
-    /// </summary>
     private void ConfirmUpgrade()
     {
-        DebugLog($"=== UPGRADE CONFIRMED: {selectedUpgrade.upgradeName} ===");
+        DebugLog("UPGRADE CONFIRMED: " + selectedUpgrade.upgradeName);
 
-        // Hide confirmation dialog
         HideDialog();
 
-        // Apply upgrade
         if (tankUpgradeSystem != null && selectedUpgrade != null)
         {
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
-            DebugLog($"Applied upgrade: {selectedUpgrade.upgradeName}");
+            DebugLog("Applied upgrade: " + selectedUpgrade.upgradeName);
         }
 
-        // Hide wheel completely (ONLY way to close)
         HideWheelCompletely();
-
-        // Resume gameplay
         ResumeGameplay();
 
-        DebugLog("=== UPGRADE PROCESS COMPLETE ===");
+        DebugLog("UPGRADE PROCESS COMPLETE");
     }
 
-    /// <summary>
-    /// N key pressed - cancel upgrade and return to selection
-    /// </summary>
     private void CancelUpgrade()
     {
-        DebugLog("=== Upgrade Canceled ===");
+        DebugLog("Upgrade Canceled");
 
         selectedUpgrade = null;
         currentState = UpgradeState.SelectingUpgrade;
 
-        // Hide dialog and return to wheel selection
         HideDialog();
-
         DebugLog("Returned to upgrade selection");
     }
 
-    /// <summary>
-    /// Hide wheel completely - ONLY called when Y is pressed
-    /// </summary>
     private void HideWheelCompletely()
     {
-        DebugLog("=== HIDING WHEEL COMPLETELY (Y PRESSED) ===");
+        DebugLog("HIDING WHEEL COMPLETELY");
 
         currentState = UpgradeState.Hidden;
 
-        // Hide everything
         if (upgradeWheelUI != null)
         {
             upgradeWheelUI.HideWheel();
@@ -377,13 +390,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
 
         HideDialog();
-
-        DebugLog("=== HIDE COMPLETE (ONLY Y CAN CLOSE) ===");
+        DebugLog("HIDE COMPLETE");
     }
 
-    /// <summary>
-    /// Resume normal gameplay
-    /// </summary>
     private void ResumeGameplay()
     {
         if (enhancedTransitionMover != null)
@@ -393,82 +402,77 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    #region Enhanced Confirmation Dialog
+    #region Enhanced Dialog with Custom Font
 
-    /// <summary>
-    /// Create prominent, beautiful confirmation dialog
-    /// </summary>
-    private void CreateEnhancedDialog()
+    private void CreateEnhancedDialogWithCustomFont()
     {
-        DebugLog("Creating enhanced confirmation dialog...");
+        DebugLog("Creating enhanced dialog with custom font...");
 
-        // Create dialog canvas
-        GameObject dialogCanvasGO = new GameObject("ConfirmationDialogCanvas");
+        GameObject dialogCanvasGO = new GameObject("CustomFontConfirmationCanvas");
         dialogCanvas = dialogCanvasGO.AddComponent<Canvas>();
         dialogCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        dialogCanvas.sortingOrder = 2000; // Above everything else
+        dialogCanvas.sortingOrder = 2000;
 
-        var canvasScaler = dialogCanvasGO.AddComponent<CanvasScaler>();
-        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        var canvasScaler = dialogCanvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
+        canvasScaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvasScaler.referenceResolution = new Vector2(1920, 1080);
 
-        dialogCanvasGO.AddComponent<GraphicRaycaster>();
+        dialogCanvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-        // Create dialog panel
-        dialogPanel = new GameObject("ConfirmationPanel");
+        dialogPanel = new GameObject("CustomFontConfirmationPanel");
         dialogPanel.transform.SetParent(dialogCanvas.transform, false);
 
-        var panelImage = dialogPanel.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.95f); // Nearly opaque dark background
+        var panelImage = dialogPanel.AddComponent<UnityEngine.UI.Image>();
+        panelImage.color = new Color(0.05f, 0.05f, 0.05f, 0.97f);
 
         var panelRect = dialogPanel.GetComponent<RectTransform>();
         panelRect.anchorMin = new Vector2(0.5f, 0.5f);
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-        panelRect.sizeDelta = new Vector2(800, 500);
+        panelRect.sizeDelta = new Vector2(900, 600);
         panelRect.anchoredPosition = Vector2.zero;
 
-        // Add border
-        var outline = dialogPanel.AddComponent<Outline>();
+        var outline = dialogPanel.AddComponent<UnityEngine.UI.Outline>();
         outline.effectColor = Color.white;
-        outline.effectDistance = new Vector2(3, 3);
+        outline.effectDistance = new Vector2(4, 4);
 
-        // Create title text
-        CreateDialogText("ConfirmationTitle", dialogPanel, new Vector2(0, 150), 36, Color.yellow, TextAnchor.MiddleCenter, out dialogTitle);
+        var shadow = dialogPanel.AddComponent<UnityEngine.UI.Shadow>();
+        shadow.effectColor = Color.black;
+        shadow.effectDistance = new Vector2(8, -8);
 
-        // Create description text  
-        CreateDialogText("ConfirmationDescription", dialogPanel, Vector2.zero, 20, Color.white, TextAnchor.MiddleCenter, out dialogDescription);
+        CreateCustomFontText("CustomTitle", dialogPanel, new Vector2(0, 200), titleFontSize, Color.yellow, out dialogTitle);
+        CreateCustomFontText("CustomDescription", dialogPanel, Vector2.zero, descriptionFontSize, Color.white, out dialogDescription);
+        CreateCustomFontText("CustomInstruction", dialogPanel, new Vector2(0, -220), instructionFontSize, Color.cyan, out dialogInstruction);
 
-        // Create instruction text
-        CreateDialogText("ConfirmationInstruction", dialogPanel, new Vector2(0, -180), 28, Color.cyan, TextAnchor.MiddleCenter, out dialogInstruction);
-
-        // Hide initially
         HideDialog();
-
-        DebugLog("Created enhanced confirmation dialog");
+        DebugLog("Created enhanced dialog with custom font");
     }
 
-    private void CreateDialogText(string name, GameObject parent, Vector2 position, int fontSize, Color color, TextAnchor alignment, out Text textComponent)
+    private void CreateCustomFontText(string name, GameObject parent, Vector2 position, int fontSize, Color color, out TextMeshProUGUI textComponent)
     {
         GameObject textGO = new GameObject(name);
         textGO.transform.SetParent(parent.transform, false);
 
-        textComponent = textGO.AddComponent<Text>();
+        textComponent = textGO.AddComponent<TextMeshProUGUI>();
         textComponent.text = "";
-        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        if (customFont != null)
+        {
+            textComponent.font = customFont;
+        }
+
         textComponent.fontSize = fontSize;
         textComponent.color = color;
-        textComponent.alignment = alignment;
+        textComponent.fontStyle = FontStyles.Bold;
+        textComponent.alignment = TextAlignmentOptions.Center;
+        textComponent.richText = true;
+        textComponent.outlineWidth = 0.3f;
+        textComponent.outlineColor = Color.black;
 
         var textRect = textComponent.GetComponent<RectTransform>();
         textRect.anchorMin = new Vector2(0.5f, 0.5f);
         textRect.anchorMax = new Vector2(0.5f, 0.5f);
-        textRect.sizeDelta = new Vector2(750, fontSize == 20 ? 300 : 60);
+        textRect.sizeDelta = new Vector2(850, fontSize == descriptionFontSize ? 350 : 80);
         textRect.anchoredPosition = position;
-
-        // Add shadow for better readability
-        var shadow = textGO.AddComponent<Shadow>();
-        shadow.effectColor = Color.black;
-        shadow.effectDistance = new Vector2(2, -2);
     }
 
     private void HideDialog()
@@ -485,41 +489,25 @@ public class TransitionWheelUpgrade : MonoBehaviour
     {
         if (enableDebugLogs)
         {
-            Debug.Log($"[EnhancedUpgrade] {message}");
+            Debug.Log("[EnglishUpgrade] " + message);
         }
     }
 
-    // Public methods for compatibility
     public bool IsUpgradeInProgress()
     {
         return currentState != UpgradeState.Hidden;
     }
 
-    // Testing methods
-    [ContextMenu("Force Show Wheel")]
-    public void ForceShowWheel()
+    [ContextMenu("Test Custom Font")]
+    public void TestCustomFont()
     {
-        ShowUpgradeWheel();
+        DebugLog("Custom Font Test: " + (customFont != null ? customFont.name : "NOT LOADED"));
     }
 
-    [ContextMenu("Test Heavy Description")]
-    public void TestHeavyDescription()
+    [ContextMenu("Test Heavy with Custom Font")]
+    public void TestHeavyWithCustomFont()
     {
         var testUpgrade = new WheelUpgradeOption("Heavy", "Test Heavy", 1);
-        OnUpgradeSelected(testUpgrade);
-    }
-
-    [ContextMenu("Test Rapid Description")]
-    public void TestRapidDescription()
-    {
-        var testUpgrade = new WheelUpgradeOption("Rapid", "Test Rapid", 1);
-        OnUpgradeSelected(testUpgrade);
-    }
-
-    [ContextMenu("Test Balanced Description")]
-    public void TestBalancedDescription()
-    {
-        var testUpgrade = new WheelUpgradeOption("Balanced", "Test Balanced", 1);
         OnUpgradeSelected(testUpgrade);
     }
 }
