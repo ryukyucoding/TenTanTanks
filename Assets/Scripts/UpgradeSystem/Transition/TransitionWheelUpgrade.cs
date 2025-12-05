@@ -4,7 +4,7 @@ using WheelUpgradeSystem;
 
 /// <summary>
 /// Manages the transition scene upgrade system with tank movement and wheel display
-/// This is a COMPATIBLE version that uses existing SceneTransitionManager methods
+/// This is a FINAL COMPATIBLE version that includes ShowUpgradePanel method for EnhancedTransitionMover
 /// Replace your existing script with this version
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
@@ -87,6 +87,31 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 MoveTankToExit();
                 break;
         }
+    }
+
+    // ADDED: Method that EnhancedTransitionMover is trying to call
+    /// <summary>
+    /// Show upgrade panel - called by EnhancedTransitionMover
+    /// This method provides compatibility with your existing EnhancedTransitionMover script
+    /// </summary>
+    public void ShowUpgradePanel()
+    {
+        DebugLog("ShowUpgradePanel called by EnhancedTransitionMover");
+
+        // Force show the upgrade wheel regardless of level
+        upgradeLevel = 1; // Force to a level that shows upgrades
+        currentState = TransitionState.ShowingWheel;
+        ShowUpgradeWheel();
+    }
+
+    // ADDED: Alternative method name that might be called
+    /// <summary>
+    /// Legacy method for backward compatibility
+    /// </summary>
+    public void ShowUpgrades()
+    {
+        DebugLog("ShowUpgrades called - redirecting to ShowUpgradePanel");
+        ShowUpgradePanel();
     }
 
     // NEW: Check if we should show upgrade wheel based on level
@@ -266,6 +291,25 @@ public class TransitionWheelUpgrade : MonoBehaviour
         SceneTransitionManager.LoadSceneWithTransition(nextSceneName);
     }
 
+    // ADDED: Public method to notify when upgrade is complete (for EnhancedTransitionMover)
+    /// <summary>
+    /// Called when upgrade process is complete - can be used by other scripts
+    /// </summary>
+    public void OnUpgradeComplete()
+    {
+        DebugLog("Upgrade process complete");
+        ContinueToExit();
+    }
+
+    // ADDED: Public method to check if upgrade is in progress
+    /// <summary>
+    /// Check if upgrade system is currently showing
+    /// </summary>
+    public bool IsUpgradeInProgress()
+    {
+        return currentState == TransitionState.ShowingWheel || currentState == TransitionState.WaitingForConfirmation;
+    }
+
     // NEW: Debug logging helper
     private void DebugLog(string message)
     {
@@ -289,6 +333,13 @@ public class TransitionWheelUpgrade : MonoBehaviour
         upgradeLevel = 1; // Force to level that needs upgrade
         currentState = TransitionState.MovingToCenter;
         CheckUpgradeCondition();
+    }
+
+    // ADDED: Test ShowUpgradePanel method
+    [ContextMenu("Test ShowUpgradePanel")]
+    public void TestShowUpgradePanel()
+    {
+        ShowUpgradePanel();
     }
 
     // NEW: Set upgrade level for testing
