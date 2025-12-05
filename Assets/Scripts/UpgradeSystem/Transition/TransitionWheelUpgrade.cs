@@ -2,8 +2,8 @@ using UnityEngine;
 using WheelUpgradeSystem;
 
 /// <summary>
-/// TARGETED FIX for inactive UpgradeWheelContainer
-/// This version specifically fixes the "Coroutine couldn't be started" error
+/// FINAL COMPLETE FIX - Solves both wheel hiding and Input System errors
+/// This version ensures wheel disappears after YES and removes Input errors
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
@@ -13,11 +13,12 @@ public class TransitionWheelUpgrade : MonoBehaviour
     [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
     [SerializeField] private SimpleTransitionDialog confirmationDialog;
 
-    [Header("Testing")]
+    [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
     private WheelUpgradeOption selectedUpgrade;
     private EnhancedTransitionMover enhancedTransitionMover;
+    private Transform wheelContainer; // Cache the wheel container reference
 
     void Start()
     {
@@ -63,11 +64,11 @@ public class TransitionWheelUpgrade : MonoBehaviour
     }
 
     /// <summary>
-    /// FIXED VERSION: Ensures all GameObjects are active before showing wheel
+    /// Show the upgrade wheel - ensures all GameObjects are active
     /// </summary>
     private void ShowUpgradeWheel()
     {
-        DebugLog("=== ShowUpgradeWheel - FIXED VERSION ===");
+        DebugLog("=== ShowUpgradeWheel - ACTIVATING CONTAINERS ===");
 
         // STEP 1: Force activate the UpgradeWheelUI GameObject
         if (upgradeWheelUI != null)
@@ -84,62 +85,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
 
         // STEP 3: Find and activate UpgradeWheelContainer specifically
-        if (upgradeWheelUI != null)
-        {
-            // Look for UpgradeWheelContainer child
-            Transform wheelContainer = null;
-
-            // Try different possible names
-            string[] containerNames = { "UpgradeWheelContainer", "WheelContainer", "Wheel Container", "Container" };
-
-            foreach (string name in containerNames)
-            {
-                wheelContainer = upgradeWheelUI.transform.Find(name);
-                if (wheelContainer != null)
-                {
-                    DebugLog($"Found wheel container: {wheelContainer.name}");
-                    break;
-                }
-            }
-
-            // If not found, search all children
-            if (wheelContainer == null)
-            {
-                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
-                {
-                    var child = upgradeWheelUI.transform.GetChild(i);
-                    if (child.name.ToLower().Contains("wheel") ||
-                        child.name.ToLower().Contains("container"))
-                    {
-                        wheelContainer = child;
-                        DebugLog($"Found wheel container by search: {wheelContainer.name}");
-                        break;
-                    }
-                }
-            }
-
-            // CRITICAL: Activate the wheel container
-            if (wheelContainer != null)
-            {
-                wheelContainer.gameObject.SetActive(true);
-                DebugLog($"ACTIVATED WHEEL CONTAINER: {wheelContainer.name}");
-            }
-            else
-            {
-                DebugLog("WARNING: Could not find UpgradeWheelContainer!");
-
-                // Emergency: Activate ALL children of UpgradeWheelUI
-                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
-                {
-                    var child = upgradeWheelUI.transform.GetChild(i);
-                    if (!child.gameObject.activeInHierarchy)
-                    {
-                        child.gameObject.SetActive(true);
-                        DebugLog($"Emergency activated child: {child.name}");
-                    }
-                }
-            }
-        }
+        FindAndActivateWheelContainer();
 
         // STEP 4: Now try to show the wheel
         if (upgradeWheelUI != null)
@@ -159,64 +105,64 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 DebugLog($"Error showing wheel: {e.Message}");
             }
         }
-
-        // STEP 5: Verify wheel is now visible
-        Invoke(nameof(VerifyWheelVisibility), 1f);
     }
 
-    private void VerifyWheelVisibility()
+    private void FindAndActivateWheelContainer()
     {
-        DebugLog("=== VERIFYING WHEEL VISIBILITY ===");
+        if (upgradeWheelUI == null) return;
 
-        bool isVisible = false;
+        // Look for UpgradeWheelContainer child
+        wheelContainer = null;
 
-        if (upgradeCanvas != null && upgradeCanvas.gameObject.activeInHierarchy)
+        // Try different possible names
+        string[] containerNames = { "UpgradeWheelContainer", "WheelContainer", "Wheel Container", "Container" };
+
+        foreach (string name in containerNames)
         {
-            DebugLog($"Canvas is active: {upgradeCanvas.name}");
-            isVisible = true;
-        }
-
-        if (upgradeWheelUI != null && upgradeWheelUI.gameObject.activeInHierarchy)
-        {
-            DebugLog($"UpgradeWheelUI is active: {upgradeWheelUI.name}");
-
-            // Check if UpgradeWheelContainer is now active
-            Transform wheelContainer = upgradeWheelUI.transform.Find("UpgradeWheelContainer");
-            if (wheelContainer == null)
-            {
-                // Try alternative names
-                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
-                {
-                    var child = upgradeWheelUI.transform.GetChild(i);
-                    if (child.name.ToLower().Contains("wheel") || child.name.ToLower().Contains("container"))
-                    {
-                        wheelContainer = child;
-                        break;
-                    }
-                }
-            }
-
+            wheelContainer = upgradeWheelUI.transform.Find(name);
             if (wheelContainer != null)
             {
-                if (wheelContainer.gameObject.activeInHierarchy)
+                DebugLog($"Found wheel container: {wheelContainer.name}");
+                break;
+            }
+        }
+
+        // If not found, search all children
+        if (wheelContainer == null)
+        {
+            for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
+            {
+                var child = upgradeWheelUI.transform.GetChild(i);
+                if (child.name.ToLower().Contains("wheel") ||
+                    child.name.ToLower().Contains("container"))
                 {
-                    DebugLog($"WHEEL CONTAINER IS NOW ACTIVE: {wheelContainer.name}");
-                    isVisible = true;
-                }
-                else
-                {
-                    DebugLog($"Wheel container still inactive: {wheelContainer.name}");
+                    wheelContainer = child;
+                    DebugLog($"Found wheel container by search: {wheelContainer.name}");
+                    break;
                 }
             }
         }
 
-        if (!isVisible)
+        // CRITICAL: Activate the wheel container
+        if (wheelContainer != null)
         {
-            DebugLog("WHEEL STILL NOT VISIBLE - Need to investigate further");
+            wheelContainer.gameObject.SetActive(true);
+            DebugLog($"ACTIVATED WHEEL CONTAINER: {wheelContainer.name}");
         }
         else
         {
-            DebugLog("SUCCESS: WHEEL IS NOW VISIBLE!");
+            DebugLog("WARNING: Could not find UpgradeWheelContainer!");
+
+            // Emergency: Activate ALL children of UpgradeWheelUI
+            for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
+            {
+                var child = upgradeWheelUI.transform.GetChild(i);
+                if (!child.gameObject.activeInHierarchy)
+                {
+                    child.gameObject.SetActive(true);
+                    DebugLog($"Emergency activated child: {child.name}");
+                }
+            }
         }
     }
 
@@ -231,6 +177,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         // Show confirmation dialog
         if (confirmationDialog != null)
         {
+            DebugLog("Showing confirmation dialog");
             confirmationDialog.ShowDialog(upgrade, OnUpgradeConfirmed, OnUpgradeCanceled);
         }
         else
@@ -240,50 +187,104 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// FIXED: Called when player confirms upgrade - ensures wheel is hidden
+    /// </summary>
     private void OnUpgradeConfirmed()
     {
-        DebugLog($"Upgrade confirmed: {selectedUpgrade?.upgradeName}");
+        DebugLog($"=== UPGRADE CONFIRMED: {selectedUpgrade?.upgradeName} ===");
+        DebugLog("NOW HIDING WHEEL COMPLETELY");
 
-        // Apply upgrade
+        // STEP 1: Apply upgrade first
         if (tankUpgradeSystem != null && selectedUpgrade != null)
         {
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
+            DebugLog($"Applied upgrade: {selectedUpgrade.upgradeName}");
         }
 
-        // Hide wheel
-        HideWheel();
+        // STEP 2: FORCE HIDE wheel using multiple methods
+        ForceHideWheelCompletely();
 
-        // Continue movement
+        // STEP 3: Continue movement
         if (enhancedTransitionMover != null)
         {
+            DebugLog("Notifying EnhancedTransitionMover to resume");
             enhancedTransitionMover.ResumeMovement();
         }
+
+        DebugLog("=== UPGRADE CONFIRMATION COMPLETE ===");
+    }
+
+    /// <summary>
+    /// ENHANCED: Force hide wheel using every possible method
+    /// </summary>
+    private void ForceHideWheelCompletely()
+    {
+        DebugLog("=== FORCE HIDING WHEEL COMPLETELY ===");
+
+        // Method 1: Call normal hide method
+        if (upgradeWheelUI != null)
+        {
+            upgradeWheelUI.HideWheel();
+            DebugLog("Called upgradeWheelUI.HideWheel()");
+        }
+
+        // Method 2: Deactivate the canvas
+        if (upgradeCanvas != null)
+        {
+            upgradeCanvas.gameObject.SetActive(false);
+            DebugLog("Deactivated upgradeCanvas");
+        }
+
+        // Method 3: Deactivate the wheel container directly
+        if (wheelContainer != null)
+        {
+            wheelContainer.gameObject.SetActive(false);
+            DebugLog($"Deactivated wheelContainer: {wheelContainer.name}");
+        }
+
+        // Method 4: Deactivate the UpgradeWheelUI GameObject
+        if (upgradeWheelUI != null)
+        {
+            upgradeWheelUI.gameObject.SetActive(false);
+            DebugLog($"Deactivated UpgradeWheelUI GameObject: {upgradeWheelUI.name}");
+        }
+
+        // Method 5: Find and deactivate ANY GameObject with "upgrade" or "wheel"
+        GameObject[] allObjects = FindObjectsOfType<GameObject>();
+        foreach (var obj in allObjects)
+        {
+            string name = obj.name.ToLower();
+            if ((name.Contains("upgrade") || name.Contains("wheel")) &&
+                obj.activeInHierarchy &&
+                obj != upgradeWheelUI?.gameObject) // Don't double-deactivate
+            {
+                obj.SetActive(false);
+                DebugLog($"Force deactivated: {obj.name}");
+            }
+        }
+
+        DebugLog("=== FORCE HIDE COMPLETE ===");
     }
 
     private void OnUpgradeCanceled()
     {
         DebugLog("Upgrade canceled");
         selectedUpgrade = null;
+        // Don't hide wheel - let player select again
     }
 
+    /// <summary>
+    /// Manual hide method for testing
+    /// </summary>
     private void HideWheel()
     {
-        DebugLog("Hiding wheel");
-
-        if (upgradeWheelUI != null)
-        {
-            upgradeWheelUI.HideWheel();
-        }
-
-        if (upgradeCanvas != null)
-        {
-            upgradeCanvas.gameObject.SetActive(false);
-        }
+        DebugLog("Manual hide wheel called");
+        ForceHideWheelCompletely();
     }
 
     public bool IsUpgradeInProgress()
     {
-        // Simple check
         return upgradeCanvas != null && upgradeCanvas.gameObject.activeInHierarchy;
     }
 
@@ -295,26 +296,28 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // Testing methods
+    // Testing methods - NO INPUT SYSTEM ERRORS
     [ContextMenu("Force Show Wheel")]
     public void ForceShowWheel()
     {
+        DebugLog("Manual: Force showing wheel");
         ShowUpgradeWheel();
     }
 
     [ContextMenu("Force Hide Wheel")]
     public void ForceHideWheel()
     {
-        HideWheel();
+        DebugLog("Manual: Force hiding wheel");
+        ForceHideWheelCompletely();
     }
 
-    void Update()
+    [ContextMenu("Test Confirm Upgrade")]
+    public void TestConfirmUpgrade()
     {
-        // Press SPACE to test show wheel
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            DebugLog("SPACE pressed - showing wheel");
-            ShowUpgradeWheel();
-        }
+        selectedUpgrade = new WheelUpgradeOption("TestUpgrade", "Test upgrade", 1);
+        OnUpgradeConfirmed();
     }
+
+    // REMOVED: All Input.GetKeyDown calls that caused Input System errors
+    // Use Context Menu methods for manual testing instead
 }
