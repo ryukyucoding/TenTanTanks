@@ -4,7 +4,7 @@ using WheelUpgradeSystem;
 
 /// <summary>
 /// Manages the transition scene upgrade system with tank movement and wheel display
-/// OPTIMIZED version that properly handles EnhancedTransitionMover's transition types
+/// FIXED version that properly handles dialog callbacks and wheel hiding
 /// Replace your existing script with this version
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
@@ -283,34 +283,51 @@ public class TransitionWheelUpgrade : MonoBehaviour
     // NEW: Show confirmation dialog for the selected upgrade
     private void ShowConfirmationDialog(WheelUpgradeOption upgrade)
     {
+        DebugLog($"Attempting to show confirmation dialog for: {upgrade.upgradeName}");
+
         if (confirmationDialog != null)
         {
+            DebugLog("Using SimpleTransitionDialog for confirmation");
             confirmationDialog.ShowDialog(upgrade, OnUpgradeConfirmed, OnUpgradeCanceled);
         }
         else
         {
-            Debug.LogWarning("No confirmation dialog found, auto-confirming upgrade");
-            OnUpgradeConfirmed();
+            // Try to find any dialog component
+            var anyDialog = FindFirstObjectByType<SimpleTransitionDialog>();
+            if (anyDialog != null)
+            {
+                DebugLog("Found SimpleTransitionDialog in scene, using it");
+                confirmationDialog = anyDialog;
+                confirmationDialog.ShowDialog(upgrade, OnUpgradeConfirmed, OnUpgradeCanceled);
+            }
+            else
+            {
+                Debug.LogWarning("No confirmation dialog found, auto-confirming upgrade");
+                OnUpgradeConfirmed();
+            }
         }
     }
 
-    // NEW: Called when player confirms the upgrade
+    // FIXED: Called when player confirms the upgrade
     private void OnUpgradeConfirmed()
     {
-        DebugLog($"Upgrade confirmed: {selectedUpgrade.upgradeName}");
+        DebugLog($"Upgrade confirmed: {selectedUpgrade?.upgradeName}");
 
-        // Apply the upgrade
+        // STEP 1: Hide the wheel first
+        HideUpgradeWheel();
+
+        // STEP 2: Apply the upgrade
         if (tankUpgradeSystem != null && selectedUpgrade != null)
         {
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
             DebugLog($"Applied upgrade to tank: {selectedUpgrade.upgradeName}");
         }
 
-        // Continue to exit
+        // STEP 3: Continue to exit
         ContinueToExit();
     }
 
-    // NEW: Called when player cancels the upgrade
+    // FIXED: Called when player cancels the upgrade
     private void OnUpgradeCanceled()
     {
         DebugLog("Upgrade canceled, showing wheel again");
@@ -319,10 +336,29 @@ public class TransitionWheelUpgrade : MonoBehaviour
         currentState = TransitionState.ShowingWheel;
         selectedUpgrade = null;
 
-        // Show wheel again
+        // Show wheel again (don't hide it)
         if (upgradeWheelUI != null)
         {
             upgradeWheelUI.ShowWheelForTransition();
+        }
+    }
+
+    // NEW: Hide the upgrade wheel properly
+    private void HideUpgradeWheel()
+    {
+        DebugLog("Hiding upgrade wheel");
+
+        if (upgradeWheelUI != null)
+        {
+            upgradeWheelUI.HideWheel();
+            DebugLog("Called upgradeWheelUI.HideWheel()");
+        }
+
+        // Also hide the upgrade canvas if it exists
+        if (upgradeCanvas != null)
+        {
+            upgradeCanvas.gameObject.SetActive(false);
+            DebugLog("Deactivated upgrade canvas");
         }
     }
 
@@ -409,6 +445,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
     [ContextMenu("Skip Upgrade")]
     public void SkipUpgrade()
     {
+        HideUpgradeWheel();
         ContinueToExit();
     }
 
@@ -418,6 +455,21 @@ public class TransitionWheelUpgrade : MonoBehaviour
         upgradeLevel = 1;
         currentState = TransitionState.MovingToCenter;
         CheckUpgradeCondition();
+    }
+
+    [ContextMenu("Test Upgrade Confirmation")]
+    public void TestUpgradeConfirmation()
+    {
+        // Create a test upgrade
+        var testUpgrade = new WheelUpgradeOption("TestUpgrade", "This is a test upgrade", 1);
+        selectedUpgrade = testUpgrade;
+        OnUpgradeConfirmed();
+    }
+
+    [ContextMenu("Test Hide Wheel")]
+    public void TestHideWheel()
+    {
+        HideUpgradeWheel();
     }
 
     [ContextMenu("Test Level2To3 Transition")]
