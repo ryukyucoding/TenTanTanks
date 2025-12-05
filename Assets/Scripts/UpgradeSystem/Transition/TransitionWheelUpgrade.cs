@@ -1,552 +1,292 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using WheelUpgradeSystem;
 
 /// <summary>
-/// Manages the transition scene upgrade system with tank movement and wheel display
-/// BALANCED version - shows wheel normally, force hides ONLY after YES clicked
-/// Replace your existing script with this version
+/// TARGETED FIX for inactive UpgradeWheelContainer
+/// This version specifically fixes the "Coroutine couldn't be started" error
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
-    [Header("Existing UI References")]
+    [Header("Required References")]
     [SerializeField] private UpgradeWheelUI upgradeWheelUI;
-    [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
     [SerializeField] private Canvas upgradeCanvas;
-    [SerializeField] private GameObject transitionMover;  // Keep your existing references
-    [SerializeField] private GameObject doubleheadModel; // Keep your existing references
-
-    [Header("Tank Movement - NEW")]
-    [SerializeField] private Transform playerTank;
-    [SerializeField] private float tankMoveSpeed = 5f;
-    [SerializeField] private Vector3 centerStopPosition = Vector3.zero;
-    [SerializeField] private Vector3 finalExitPosition = new Vector3(10f, 0f, 0f);
-    [SerializeField] private float stopDistance = 0.5f;
-
-    [Header("Upgrade System - NEW")]
-    [SerializeField] private int upgradeLevel = 1; // Set to 1 for testing
-    [SerializeField] private int upgradeTier = 1; // Which tier to show (1 or 2)
-
-    [Header("Confirmation Dialog - NEW")]
+    [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
     [SerializeField] private SimpleTransitionDialog confirmationDialog;
 
-    [Header("Scene Transition - NEW")]
-    [SerializeField] private string nextSceneName = "Level1";
-    [SerializeField] private float delayBeforeSceneLoad = 1f;
-
-    [Header("Debug")]
+    [Header("Testing")]
     [SerializeField] private bool enableDebugLogs = true;
 
-    // NEW: State management for tank movement and upgrade process
-    private enum TransitionState
-    {
-        MovingToCenter,
-        ShowingWheel,
-        WaitingForConfirmation,
-        MovingToExit,
-        LoadingNextScene
-    }
-
-    private TransitionState currentState = TransitionState.MovingToCenter;
     private WheelUpgradeOption selectedUpgrade;
-    private EnhancedTransitionMover enhancedTransitionMover; // Reference to the enhanced transition mover
+    private EnhancedTransitionMover enhancedTransitionMover;
 
     void Start()
     {
-        // Initialize existing components (keep your existing logic)
+        DebugLog("=== TransitionWheelUpgrade Started ===");
+
+        // Auto-find components
         if (upgradeWheelUI == null)
             upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
         if (tankUpgradeSystem == null)
             tankUpgradeSystem = FindFirstObjectByType<TankUpgradeSystem>();
         if (confirmationDialog == null)
             confirmationDialog = FindFirstObjectByType<SimpleTransitionDialog>();
-
-        // NEW: Find EnhancedTransitionMover
         if (enhancedTransitionMover == null)
             enhancedTransitionMover = FindFirstObjectByType<EnhancedTransitionMover>();
 
-        // NEW: Find player tank if not set
-        if (playerTank == null)
+        if (upgradeCanvas == null)
         {
-            GameObject tankGO = GameObject.FindGameObjectWithTag("Player");
-            if (tankGO != null)
-                playerTank = tankGO.transform;
+            Canvas[] canvases = FindObjectsOfType<Canvas>(true);
+            foreach (var canvas in canvases)
+            {
+                if (canvas.name.ToLower().Contains("upgrade") ||
+                    canvas.name.ToLower().Contains("wheel"))
+                {
+                    upgradeCanvas = canvas;
+                    break;
+                }
+            }
         }
 
-        // FIXED: Only fix scaling issues, don't hide anything on start
-        FixWheelScalingOnly();
-
-        // NEW: Check if this level should show upgrades
-        CheckUpgradeCondition();
-
-        DebugLog($"TransitionWheelUpgrade started. State: {currentState}");
+        DebugLog($"Components found:");
+        DebugLog($"  - UpgradeWheelUI: {(upgradeWheelUI != null ? "Y" : "N")}");
+        DebugLog($"  - UpgradeCanvas: {(upgradeCanvas != null ? "Y" : "N")}");
+        DebugLog($"  - TankUpgradeSystem: {(tankUpgradeSystem != null ? "Y" : "N")}");
     }
 
-    void Update()
+    /// <summary>
+    /// Main method called by EnhancedTransitionMover
+    /// </summary>
+    public void ShowUpgradePanel(string transitionType)
     {
-        // NEW: Handle tank movement states
-        switch (currentState)
-        {
-            case TransitionState.MovingToCenter:
-                MoveTankToCenter();
-                break;
-
-            case TransitionState.MovingToExit:
-                MoveTankToExit();
-                break;
-        }
+        DebugLog($"ShowUpgradePanel called with: {transitionType}");
+        ShowUpgradeWheel();
     }
 
-    // FIXED: Only fix scaling, don't hide anything
-    private void FixWheelScalingOnly()
+    /// <summary>
+    /// FIXED VERSION: Ensures all GameObjects are active before showing wheel
+    /// </summary>
+    private void ShowUpgradeWheel()
     {
+        DebugLog("=== ShowUpgradeWheel - FIXED VERSION ===");
+
+        // STEP 1: Force activate the UpgradeWheelUI GameObject
         if (upgradeWheelUI != null)
         {
-            // Find any divider lines or UI elements that might have scaling issues
-            Transform wheelContainer = upgradeWheelUI.transform.Find("WheelContainer");
+            upgradeWheelUI.gameObject.SetActive(true);
+            DebugLog($"Activated UpgradeWheelUI GameObject: {upgradeWheelUI.name}");
+        }
+
+        // STEP 2: Force activate the Canvas
+        if (upgradeCanvas != null)
+        {
+            upgradeCanvas.gameObject.SetActive(true);
+            DebugLog($"Activated UpgradeCanvas: {upgradeCanvas.name}");
+        }
+
+        // STEP 3: Find and activate UpgradeWheelContainer specifically
+        if (upgradeWheelUI != null)
+        {
+            // Look for UpgradeWheelContainer child
+            Transform wheelContainer = null;
+
+            // Try different possible names
+            string[] containerNames = { "UpgradeWheelContainer", "WheelContainer", "Wheel Container", "Container" };
+
+            foreach (string name in containerNames)
+            {
+                wheelContainer = upgradeWheelUI.transform.Find(name);
+                if (wheelContainer != null)
+                {
+                    DebugLog($"Found wheel container: {wheelContainer.name}");
+                    break;
+                }
+            }
+
+            // If not found, search all children
+            if (wheelContainer == null)
+            {
+                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
+                {
+                    var child = upgradeWheelUI.transform.GetChild(i);
+                    if (child.name.ToLower().Contains("wheel") ||
+                        child.name.ToLower().Contains("container"))
+                    {
+                        wheelContainer = child;
+                        DebugLog($"Found wheel container by search: {wheelContainer.name}");
+                        break;
+                    }
+                }
+            }
+
+            // CRITICAL: Activate the wheel container
+            if (wheelContainer != null)
+            {
+                wheelContainer.gameObject.SetActive(true);
+                DebugLog($"ACTIVATED WHEEL CONTAINER: {wheelContainer.name}");
+            }
+            else
+            {
+                DebugLog("WARNING: Could not find UpgradeWheelContainer!");
+
+                // Emergency: Activate ALL children of UpgradeWheelUI
+                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
+                {
+                    var child = upgradeWheelUI.transform.GetChild(i);
+                    if (!child.gameObject.activeInHierarchy)
+                    {
+                        child.gameObject.SetActive(true);
+                        DebugLog($"Emergency activated child: {child.name}");
+                    }
+                }
+            }
+        }
+
+        // STEP 4: Now try to show the wheel
+        if (upgradeWheelUI != null)
+        {
+            try
+            {
+                upgradeWheelUI.SetTransitionMode(1, "");
+                DebugLog("Called SetTransitionMode(1)");
+
+                upgradeWheelUI.ShowWheelForTransition();
+                DebugLog("Called ShowWheelForTransition()");
+
+                DebugLog("WHEEL SHOULD NOW BE VISIBLE!");
+            }
+            catch (System.Exception e)
+            {
+                DebugLog($"Error showing wheel: {e.Message}");
+            }
+        }
+
+        // STEP 5: Verify wheel is now visible
+        Invoke(nameof(VerifyWheelVisibility), 1f);
+    }
+
+    private void VerifyWheelVisibility()
+    {
+        DebugLog("=== VERIFYING WHEEL VISIBILITY ===");
+
+        bool isVisible = false;
+
+        if (upgradeCanvas != null && upgradeCanvas.gameObject.activeInHierarchy)
+        {
+            DebugLog($"Canvas is active: {upgradeCanvas.name}");
+            isVisible = true;
+        }
+
+        if (upgradeWheelUI != null && upgradeWheelUI.gameObject.activeInHierarchy)
+        {
+            DebugLog($"UpgradeWheelUI is active: {upgradeWheelUI.name}");
+
+            // Check if UpgradeWheelContainer is now active
+            Transform wheelContainer = upgradeWheelUI.transform.Find("UpgradeWheelContainer");
             if (wheelContainer == null)
             {
                 // Try alternative names
-                wheelContainer = upgradeWheelUI.transform.Find("Wheel Container");
-                if (wheelContainer == null)
+                for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
                 {
-                    // Try to find any child that looks like a container
-                    for (int i = 0; i < upgradeWheelUI.transform.childCount; i++)
+                    var child = upgradeWheelUI.transform.GetChild(i);
+                    if (child.name.ToLower().Contains("wheel") || child.name.ToLower().Contains("container"))
                     {
-                        var child = upgradeWheelUI.transform.GetChild(i);
-                        if (child.name.ToLower().Contains("wheel") || child.name.ToLower().Contains("container"))
-                        {
-                            wheelContainer = child;
-                            break;
-                        }
+                        wheelContainer = child;
+                        break;
                     }
                 }
             }
 
             if (wheelContainer != null)
             {
-                // ONLY reset scale to 1,1,1 to prevent duplicate/scaled lines - DON'T HIDE
-                wheelContainer.localScale = Vector3.one;
-                DebugLog("Fixed wheel container scaling (without hiding)");
-
-                // Look for divider lines and fix their scaling ONLY
-                var allChildren = wheelContainer.GetComponentsInChildren<Transform>(true); // Include inactive
-                foreach (var child in allChildren)
+                if (wheelContainer.gameObject.activeInHierarchy)
                 {
-                    if (child.name.ToLower().Contains("divider") ||
-                        child.name.ToLower().Contains("line") ||
-                        child.name.ToLower().Contains("separator"))
-                    {
-                        child.localScale = Vector3.one;
-                        DebugLog($"Fixed scaling for: {child.name} (without hiding)");
-                    }
+                    DebugLog($"WHEEL CONTAINER IS NOW ACTIVE: {wheelContainer.name}");
+                    isVisible = true;
+                }
+                else
+                {
+                    DebugLog($"Wheel container still inactive: {wheelContainer.name}");
                 }
             }
-            else
-            {
-                DebugLog("Warning: Could not find wheel container for scaling fix");
-            }
-        }
-    }
-
-    #region ShowUpgradePanel Methods - OPTIMIZED for EnhancedTransitionMover
-
-    /// <summary>
-    /// Show upgrade panel - MAIN METHOD called by EnhancedTransitionMover
-    /// Handles transition type strings like "Level2To3", "Level4To5"
-    /// </summary>
-    public void ShowUpgradePanel(string transitionType)
-    {
-        DebugLog($"ShowUpgradePanel called by EnhancedTransitionMover with transitionType: {transitionType}");
-
-        // Parse the transition type and set appropriate upgrade tier
-        ParseTransitionType(transitionType);
-
-        // Show the upgrade panel
-        ShowUpgradePanelInternal();
-    }
-
-    /// <summary>
-    /// Parse transition type string and set upgrade tier accordingly
-    /// </summary>
-    private void ParseTransitionType(string transitionType)
-    {
-        if (string.IsNullOrEmpty(transitionType))
-        {
-            DebugLog("Empty transition type, using default tier 1");
-            upgradeTier = 1;
-            return;
         }
 
-        switch (transitionType.ToLower())
+        if (!isVisible)
         {
-            case "level2to3":
-                upgradeTier = 1; // First tier upgrades
-                upgradeLevel = 3;
-                DebugLog("Level 2¡÷3 transition: Using Tier 1 upgrades");
-                break;
-
-            case "level4to5":
-                upgradeTier = 2; // Second tier upgrades 
-                upgradeLevel = 5;
-                DebugLog("Level 4¡÷5 transition: Using Tier 2 upgrades");
-                break;
-
-            default:
-                // For testing or unknown types, default to tier 1
-                upgradeTier = 1;
-                upgradeLevel = 1;
-                DebugLog($"Unknown transition type '{transitionType}', defaulting to Tier 1");
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Show upgrade panel - no arguments (for backward compatibility)
-    /// </summary>
-    public void ShowUpgradePanel()
-    {
-        DebugLog("ShowUpgradePanel() called with no arguments");
-        ShowUpgradePanelInternal();
-    }
-
-    /// <summary>
-    /// Show upgrade panel - with int parameter (tier number)
-    /// </summary>
-    public void ShowUpgradePanel(int parameter)
-    {
-        DebugLog($"ShowUpgradePanel(int) called with parameter: {parameter}");
-
-        // Use the parameter as upgrade tier if it's valid
-        if (parameter >= 1 && parameter <= 2)
-        {
-            upgradeTier = parameter;
-        }
-
-        ShowUpgradePanelInternal();
-    }
-
-    /// <summary>
-    /// Show upgrade panel - with bool parameter (for enable/disable)
-    /// </summary>
-    public void ShowUpgradePanel(bool parameter)
-    {
-        DebugLog($"ShowUpgradePanel(bool) called with parameter: {parameter}");
-
-        if (parameter)
-        {
-            ShowUpgradePanelInternal();
+            DebugLog("WHEEL STILL NOT VISIBLE - Need to investigate further");
         }
         else
         {
-            DebugLog("ShowUpgradePanel called with false - skipping upgrade");
-            ContinueToExit();
+            DebugLog("SUCCESS: WHEEL IS NOW VISIBLE!");
         }
     }
 
     /// <summary>
-    /// Internal method that actually shows the upgrade panel
+    /// Called when upgrade is selected
     /// </summary>
-    private void ShowUpgradePanelInternal()
-    {
-        DebugLog($"ShowUpgradePanelInternal - Tier {upgradeTier}, Level {upgradeLevel}");
-
-        // ONLY fix scaling before showing, don't hide anything
-        FixWheelScalingOnly();
-
-        // Force show the upgrade wheel
-        currentState = TransitionState.ShowingWheel;
-        ShowUpgradeWheel();
-    }
-
-    #endregion
-
-    // NEW: Check if we should show upgrade wheel based on level
-    private void CheckUpgradeCondition()
-    {
-        // For testing, always show at level 1
-        // In actual game, check: upgradeLevel == 3 || upgradeLevel == 5
-        bool shouldShowUpgrade = (upgradeLevel == 1) || (upgradeLevel == 3) || (upgradeLevel == 5);
-
-        if (!shouldShowUpgrade)
-        {
-            // Skip to moving to exit
-            currentState = TransitionState.MovingToExit;
-            DebugLog($"No upgrade needed at level {upgradeLevel}, continuing to exit");
-        }
-        else
-        {
-            DebugLog($"Upgrade required at level {upgradeLevel}, moving to center");
-        }
-    }
-
-    // NEW: Move tank towards center position and stop
-    private void MoveTankToCenter()
-    {
-        if (playerTank == null) return;
-
-        Vector3 direction = (centerStopPosition - playerTank.position).normalized;
-        float distance = Vector3.Distance(playerTank.position, centerStopPosition);
-
-        if (distance > stopDistance)
-        {
-            // Move tank towards center
-            playerTank.position += direction * tankMoveSpeed * Time.deltaTime;
-
-            // Rotate tank to face movement direction
-            if (direction != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                playerTank.rotation = Quaternion.Slerp(playerTank.rotation, targetRotation, Time.deltaTime * 2f);
-            }
-        }
-        else
-        {
-            // Reached center, show upgrade wheel
-            playerTank.position = centerStopPosition;
-            ShowUpgradeWheel();
-        }
-    }
-
-    // NEW: Show the upgrade wheel in transition mode
-    private void ShowUpgradeWheel()
-    {
-        currentState = TransitionState.ShowingWheel;
-        DebugLog($"Tank reached center, showing upgrade wheel (Tier {upgradeTier})");
-
-        if (upgradeWheelUI != null)
-        {
-            // ONLY fix scaling before showing, don't hide anything
-            FixWheelScalingOnly();
-
-            // Set wheel to transition mode with correct tier
-            upgradeWheelUI.SetTransitionMode(upgradeTier, "");
-            upgradeWheelUI.ShowWheelForTransition();
-
-            DebugLog("Wheel should now be visible");
-        }
-        else
-        {
-            Debug.LogError("UpgradeWheelUI not found! Cannot show upgrade wheel.");
-            ContinueToExit();
-        }
-    }
-
-    // NEW: Called by UpgradeWheelUI when an upgrade is selected
     public void OnUpgradeSelected(WheelUpgradeOption upgrade)
     {
-        DebugLog($"Upgrade selected: {upgrade.upgradeName}");
+        DebugLog($"OnUpgradeSelected: {upgrade.upgradeName}");
         selectedUpgrade = upgrade;
-        currentState = TransitionState.WaitingForConfirmation;
 
         // Show confirmation dialog
-        ShowConfirmationDialog(upgrade);
-    }
-
-    // NEW: Show confirmation dialog for the selected upgrade
-    private void ShowConfirmationDialog(WheelUpgradeOption upgrade)
-    {
-        DebugLog($"Attempting to show confirmation dialog for: {upgrade.upgradeName}");
-
         if (confirmationDialog != null)
         {
-            DebugLog("Using SimpleTransitionDialog for confirmation");
             confirmationDialog.ShowDialog(upgrade, OnUpgradeConfirmed, OnUpgradeCanceled);
         }
         else
         {
-            // Try to find any dialog component
-            var anyDialog = FindFirstObjectByType<SimpleTransitionDialog>();
-            if (anyDialog != null)
-            {
-                DebugLog("Found SimpleTransitionDialog in scene, using it");
-                confirmationDialog = anyDialog;
-                confirmationDialog.ShowDialog(upgrade, OnUpgradeConfirmed, OnUpgradeCanceled);
-            }
-            else
-            {
-                Debug.LogWarning("No confirmation dialog found, auto-confirming upgrade");
-                OnUpgradeConfirmed();
-            }
+            DebugLog("No dialog found, auto-confirming");
+            OnUpgradeConfirmed();
         }
     }
 
-    // FIXED: Called when player confirms the upgrade - ONLY HIDE HERE!
     private void OnUpgradeConfirmed()
     {
-        DebugLog($"Upgrade confirmed: {selectedUpgrade?.upgradeName} - NOW HIDING WHEEL");
+        DebugLog($"Upgrade confirmed: {selectedUpgrade?.upgradeName}");
 
-        // STEP 1: NOW we force hide the wheel (ONLY after YES clicked)
-        ForceHideUpgradeWheelAfterConfirm();
-
-        // STEP 2: Apply the upgrade
+        // Apply upgrade
         if (tankUpgradeSystem != null && selectedUpgrade != null)
         {
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
-            DebugLog($"Applied upgrade to tank: {selectedUpgrade.upgradeName}");
         }
 
-        // STEP 3: Continue to exit
-        ContinueToExit();
-    }
+        // Hide wheel
+        HideWheel();
 
-    // FIXED: Called when player cancels the upgrade
-    private void OnUpgradeCanceled()
-    {
-        DebugLog("Upgrade canceled, showing wheel again");
-
-        // Reset to showing wheel
-        currentState = TransitionState.ShowingWheel;
-        selectedUpgrade = null;
-
-        // Show wheel again (don't hide it)
-        if (upgradeWheelUI != null)
-        {
-            upgradeWheelUI.ShowWheelForTransition();
-        }
-    }
-
-    // FIXED: Force hide ONLY after YES is clicked
-    private void ForceHideUpgradeWheelAfterConfirm()
-    {
-        DebugLog("ForceHideUpgradeWheelAfterConfirm - hiding because YES was clicked");
-
-        // Method 1: Normal hide first
-        if (upgradeWheelUI != null)
-        {
-            upgradeWheelUI.HideWheel();
-            DebugLog("Called upgradeWheelUI.HideWheel()");
-
-            // Wait a moment then force hide if normal hide didn't work
-            Invoke(nameof(ForceHideIfStillVisible), 0.5f);
-        }
-
-        // Method 2: Hide the upgrade canvas
-        if (upgradeCanvas != null)
-        {
-            upgradeCanvas.gameObject.SetActive(false);
-            DebugLog("Deactivated upgrade canvas");
-        }
-    }
-
-    // FIXED: Backup force hide method (only if normal hide didn't work)
-    private void ForceHideIfStillVisible()
-    {
-        // Check if wheel is still visible
-        bool wheelStillVisible = false;
-
-        if (upgradeWheelUI != null && upgradeWheelUI.gameObject.activeInHierarchy)
-        {
-            wheelStillVisible = true;
-        }
-
-        if (upgradeCanvas != null && upgradeCanvas.gameObject.activeInHierarchy)
-        {
-            wheelStillVisible = true;
-        }
-
-        if (wheelStillVisible)
-        {
-            DebugLog("Wheel still visible after normal hide - using force hide as backup");
-
-            // Force hide everything upgrade-related
-            if (upgradeWheelUI != null)
-            {
-                upgradeWheelUI.gameObject.SetActive(false);
-            }
-
-            if (upgradeCanvas != null)
-            {
-                upgradeCanvas.gameObject.SetActive(false);
-            }
-
-            // Find any remaining upgrade UI elements
-            var upgradeObjects = FindObjectsOfType<Canvas>();
-            foreach (var canvas in upgradeObjects)
-            {
-                if (canvas.name.ToLower().Contains("upgrade") || canvas.name.ToLower().Contains("wheel"))
-                {
-                    canvas.gameObject.SetActive(false);
-                    DebugLog($"Force deactivated remaining canvas: {canvas.name}");
-                }
-            }
-        }
-        else
-        {
-            DebugLog("Wheel properly hidden with normal method - no force hide needed");
-        }
-    }
-
-    // NEW: Continue tank movement to exit
-    private void ContinueToExit()
-    {
-        DebugLog("Continuing tank movement to exit");
-        currentState = TransitionState.MovingToExit;
-
-        // Notify EnhancedTransitionMover that upgrade is complete
+        // Continue movement
         if (enhancedTransitionMover != null)
         {
-            DebugLog("Notifying EnhancedTransitionMover that upgrade is complete");
             enhancedTransitionMover.ResumeMovement();
         }
     }
 
-    // NEW: Move tank towards exit position and load next scene
-    private void MoveTankToExit()
+    private void OnUpgradeCanceled()
     {
-        if (playerTank == null) return;
+        DebugLog("Upgrade canceled");
+        selectedUpgrade = null;
+    }
 
-        Vector3 direction = (finalExitPosition - playerTank.position).normalized;
-        float distance = Vector3.Distance(playerTank.position, finalExitPosition);
+    private void HideWheel()
+    {
+        DebugLog("Hiding wheel");
 
-        if (distance > stopDistance)
+        if (upgradeWheelUI != null)
         {
-            // Move tank towards exit
-            playerTank.position += direction * tankMoveSpeed * Time.deltaTime;
-
-            // Rotate tank to face movement direction
-            if (direction != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                playerTank.rotation = Quaternion.Slerp(playerTank.rotation, targetRotation, Time.deltaTime * 2f);
-            }
+            upgradeWheelUI.HideWheel();
         }
-        else
+
+        if (upgradeCanvas != null)
         {
-            // Reached exit, load next scene
-            LoadNextScene();
+            upgradeCanvas.gameObject.SetActive(false);
         }
     }
 
-    // NEW: Load the next scene
-    private void LoadNextScene()
-    {
-        if (currentState != TransitionState.LoadingNextScene)
-        {
-            currentState = TransitionState.LoadingNextScene;
-            DebugLog($"Loading next scene: {nextSceneName}");
-
-            Invoke(nameof(DoSceneLoad), delayBeforeSceneLoad);
-        }
-    }
-
-    private void DoSceneLoad()
-    {
-        // Use existing SceneTransitionManager.LoadSceneWithTransition method
-        DebugLog($"Using SceneTransitionManager.LoadSceneWithTransition for: {nextSceneName}");
-        SceneTransitionManager.LoadSceneWithTransition(nextSceneName);
-    }
-
-    // ADDED: Public method to check if upgrade is in progress
-    /// <summary>
-    /// Check if upgrade system is currently showing
-    /// </summary>
     public bool IsUpgradeInProgress()
     {
-        return currentState == TransitionState.ShowingWheel || currentState == TransitionState.WaitingForConfirmation;
+        // Simple check
+        return upgradeCanvas != null && upgradeCanvas.gameObject.activeInHierarchy;
     }
 
-    // NEW: Debug logging helper
     private void DebugLog(string message)
     {
         if (enableDebugLogs)
@@ -555,93 +295,26 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    #region Context Menu Testing
-
-    [ContextMenu("Skip Upgrade")]
-    public void SkipUpgrade()
-    {
-        ForceHideUpgradeWheelAfterConfirm();
-        ContinueToExit();
-    }
-
+    // Testing methods
     [ContextMenu("Force Show Wheel")]
     public void ForceShowWheel()
     {
-        upgradeLevel = 1;
-        currentState = TransitionState.MovingToCenter;
-        CheckUpgradeCondition();
+        ShowUpgradeWheel();
     }
 
-    [ContextMenu("Test Upgrade Confirmation")]
-    public void TestUpgradeConfirmation()
+    [ContextMenu("Force Hide Wheel")]
+    public void ForceHideWheel()
     {
-        // Create a test upgrade
-        var testUpgrade = new WheelUpgradeOption("TestUpgrade", "This is a test upgrade", 1);
-        selectedUpgrade = testUpgrade;
-        OnUpgradeConfirmed();
+        HideWheel();
     }
 
-    [ContextMenu("Force Hide Wheel (Emergency Only)")]
-    public void EmergencyForceHideWheel()
+    void Update()
     {
-        ForceHideUpgradeWheelAfterConfirm();
-    }
-
-    [ContextMenu("Fix Wheel Scaling Only")]
-    public void TestFixWheelScaling()
-    {
-        FixWheelScalingOnly();
-    }
-
-    [ContextMenu("Test Level2To3 Transition")]
-    public void TestLevel2To3()
-    {
-        ShowUpgradePanel("Level2To3");
-    }
-
-    [ContextMenu("Test Level4To5 Transition")]
-    public void TestLevel4To5()
-    {
-        ShowUpgradePanel("Level4To5");
-    }
-
-    [ContextMenu("Set Level 1 (Testing)")]
-    public void SetTestingLevel1()
-    {
-        upgradeLevel = 1;
-        upgradeTier = 1;
-        DebugLog("Set to Level 1 for testing");
-    }
-
-    [ContextMenu("Set Level 3 (Tier 1 Upgrade)")]
-    public void SetLevel3()
-    {
-        upgradeLevel = 3;
-        upgradeTier = 1;
-        DebugLog("Set to Level 3 for Tier 1 upgrades");
-    }
-
-    [ContextMenu("Set Level 5 (Tier 2 Upgrade)")]
-    public void SetLevel5()
-    {
-        upgradeLevel = 5;
-        upgradeTier = 2;
-        DebugLog("Set to Level 5 for Tier 2 upgrades");
-    }
-
-    #endregion
-
-    void OnDrawGizmosSelected()
-    {
-        // Draw positions for debugging
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(centerStopPosition, 1f);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(finalExitPosition, 1f);
-
-        // Draw path
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(centerStopPosition, finalExitPosition);
+        // Press SPACE to test show wheel
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            DebugLog("SPACE pressed - showing wheel");
+            ShowUpgradeWheel();
+        }
     }
 }
