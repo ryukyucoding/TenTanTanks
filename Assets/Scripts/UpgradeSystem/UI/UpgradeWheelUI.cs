@@ -202,16 +202,60 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
+    // ENHANCED: More robust hide wheel method
     public void HideWheel()
     {
-        DebugLog("HideWheel called");
+        DebugLog("HideWheel called - starting hide process");
+
+        // Stop all running coroutines that might interfere
+        StopAllCoroutines();
+
         StartCoroutine(HideWheelAnimation());
+    }
+
+    // ENHANCED: Force hide wheel immediately (for emergencies)
+    public void ForceHideWheel()
+    {
+        DebugLog("ForceHideWheel called - immediate hide");
+
+        // Stop all coroutines
+        StopAllCoroutines();
+
+        // Immediately hide everything
+        if (upgradeCanvas != null)
+        {
+            upgradeCanvas.gameObject.SetActive(false);
+            DebugLog("Forcefully deactivated upgrade canvas");
+        }
+
+        if (wheelContainer != null)
+        {
+            wheelContainer.SetActive(false);
+            DebugLog("Forcefully deactivated wheel container");
+        }
+
+        // Hide this entire GameObject as well
+        gameObject.SetActive(false);
+        DebugLog("Forcefully deactivated UpgradeWheelUI GameObject");
+
+        ClearAllButtons();
     }
 
     private void HideWheelInstant()
     {
+        DebugLog("HideWheelInstant called");
+
         if (upgradeCanvas != null)
+        {
             upgradeCanvas.gameObject.SetActive(false);
+            DebugLog("Instantly deactivated upgrade canvas");
+        }
+
+        if (wheelContainer != null)
+        {
+            wheelContainer.SetActive(false);
+            DebugLog("Instantly deactivated wheel container");
+        }
 
         ClearAllButtons();
     }
@@ -223,7 +267,10 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Starting show animation");
 
         if (wheelContainer != null)
+        {
+            wheelContainer.SetActive(true);
             wheelContainer.transform.localScale = Vector3.zero;
+        }
 
         if (blurBackground != null)
         {
@@ -268,9 +315,13 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Show animation completed");
     }
 
+    // ENHANCED: More robust hide animation
     private IEnumerator HideWheelAnimation()
     {
         DebugLog("Starting hide animation");
+
+        // Immediately clear buttons to prevent interaction
+        ClearAllButtons();
 
         if (wheelContainer != null)
         {
@@ -285,6 +336,11 @@ public class UpgradeWheelUI : MonoBehaviour
                 RestoreCenterProperties();
                 yield return null;
             }
+
+            // Ensure it's completely hidden
+            wheelContainer.transform.localScale = Vector3.zero;
+            wheelContainer.SetActive(false);
+            DebugLog("Wheel container hidden and deactivated");
         }
 
         if (blurBackground != null)
@@ -304,8 +360,16 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
+        // Finally hide the canvas
         if (upgradeCanvas != null)
+        {
             upgradeCanvas.gameObject.SetActive(false);
+            DebugLog("Upgrade canvas deactivated");
+        }
+
+        // Also hide this GameObject
+        gameObject.SetActive(false);
+        DebugLog("UpgradeWheelUI GameObject deactivated");
 
         DebugLog("Hide animation completed");
     }
@@ -528,6 +592,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private void ClearAllButtons()
     {
+        DebugLog("Clearing all buttons");
+
         foreach (var button in tier1Buttons)
         {
             if (button != null && button.gameObject != null)
@@ -542,6 +608,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
         tier1Buttons.Clear();
         tier2Buttons.Clear();
+
+        DebugLog("All buttons cleared");
     }
 
     #endregion
@@ -846,6 +914,12 @@ public class UpgradeWheelUI : MonoBehaviour
     public void TestHideWheel()
     {
         HideWheel();
+    }
+
+    [ContextMenu("Force Hide Wheel")]
+    public void TestForceHideWheel()
+    {
+        ForceHideWheel();
     }
 
     [ContextMenu("Test Transition Mode Tier 1")]

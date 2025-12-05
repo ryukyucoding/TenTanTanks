@@ -4,7 +4,7 @@ using WheelUpgradeSystem;
 
 /// <summary>
 /// Manages the transition scene upgrade system with tank movement and wheel display
-/// FIXED version that properly handles dialog callbacks and wheel hiding
+/// FORCE HIDE version that guarantees the wheel disappears
 /// Replace your existing script with this version
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
@@ -73,6 +73,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 playerTank = tankGO.transform;
         }
 
+        // IMPORTANT: Fix any scaling issues on start
+        FixWheelScaling();
+
         // NEW: Check if this level should show upgrades
         CheckUpgradeCondition();
 
@@ -91,6 +94,33 @@ public class TransitionWheelUpgrade : MonoBehaviour
             case TransitionState.MovingToExit:
                 MoveTankToExit();
                 break;
+        }
+    }
+
+    // NEW: Fix wheel scaling issues
+    private void FixWheelScaling()
+    {
+        if (upgradeWheelUI != null)
+        {
+            // Find any divider lines or UI elements that might have scaling issues
+            Transform wheelContainer = upgradeWheelUI.transform.Find("WheelContainer");
+            if (wheelContainer != null)
+            {
+                // Reset scale to 1,1,1 to prevent duplicate/scaled lines
+                wheelContainer.localScale = Vector3.one;
+                DebugLog("Fixed wheel container scaling");
+
+                // Look for divider lines and fix their scaling
+                var dividerLines = wheelContainer.GetComponentsInChildren<Transform>();
+                foreach (var divider in dividerLines)
+                {
+                    if (divider.name.ToLower().Contains("divider") || divider.name.ToLower().Contains("line"))
+                    {
+                        divider.localScale = Vector3.one;
+                        DebugLog($"Fixed scaling for: {divider.name}");
+                    }
+                }
+            }
         }
     }
 
@@ -196,6 +226,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
     {
         DebugLog($"ShowUpgradePanelInternal - Tier {upgradeTier}, Level {upgradeLevel}");
 
+        // Fix scaling before showing
+        FixWheelScaling();
+
         // Force show the upgrade wheel
         currentState = TransitionState.ShowingWheel;
         ShowUpgradeWheel();
@@ -258,6 +291,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
         if (upgradeWheelUI != null)
         {
+            // Fix scaling before showing
+            FixWheelScaling();
+
             // Set wheel to transition mode with correct tier
             upgradeWheelUI.SetTransitionMode(upgradeTier, "");
             upgradeWheelUI.ShowWheelForTransition();
@@ -308,13 +344,13 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // FIXED: Called when player confirms the upgrade
+    // ENHANCED: Called when player confirms the upgrade - with FORCE HIDE
     private void OnUpgradeConfirmed()
     {
         DebugLog($"Upgrade confirmed: {selectedUpgrade?.upgradeName}");
 
-        // STEP 1: Hide the wheel first
-        HideUpgradeWheel();
+        // STEP 1: FORCE HIDE the wheel (multiple methods for guarantee)
+        ForceHideUpgradeWheel();
 
         // STEP 2: Apply the upgrade
         if (tankUpgradeSystem != null && selectedUpgrade != null)
@@ -327,7 +363,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         ContinueToExit();
     }
 
-    // FIXED: Called when player cancels the upgrade
+    // ENHANCED: Called when player cancels the upgrade
     private void OnUpgradeCanceled()
     {
         DebugLog("Upgrade canceled, showing wheel again");
@@ -343,23 +379,52 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
-    // NEW: Hide the upgrade wheel properly
-    private void HideUpgradeWheel()
+    // ENHANCED: Force hide upgrade wheel using multiple methods
+    private void ForceHideUpgradeWheel()
     {
-        DebugLog("Hiding upgrade wheel");
+        DebugLog("ForceHideUpgradeWheel - using multiple hiding methods");
 
+        // Method 1: Use the enhanced force hide method
         if (upgradeWheelUI != null)
         {
-            upgradeWheelUI.HideWheel();
-            DebugLog("Called upgradeWheelUI.HideWheel()");
+            upgradeWheelUI.ForceHideWheel();
+            DebugLog("Called upgradeWheelUI.ForceHideWheel()");
         }
 
-        // Also hide the upgrade canvas if it exists
+        // Method 2: Hide the upgrade canvas
         if (upgradeCanvas != null)
         {
             upgradeCanvas.gameObject.SetActive(false);
             DebugLog("Deactivated upgrade canvas");
         }
+
+        // Method 3: Find and hide any GameObject with "upgrade" or "wheel" in name
+        var upgradeObjects = FindObjectsOfType<GameObject>();
+        foreach (var obj in upgradeObjects)
+        {
+            string objName = obj.name.ToLower();
+            if (objName.Contains("upgrade") || objName.Contains("wheel"))
+            {
+                if (obj.activeInHierarchy)
+                {
+                    obj.SetActive(false);
+                    DebugLog($"Force deactivated: {obj.name}");
+                }
+            }
+        }
+
+        // Method 4: Try to find Canvas with upgrade UI and hide it
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        foreach (var canvas in canvases)
+        {
+            if (canvas.name.ToLower().Contains("upgrade") || canvas.name.ToLower().Contains("wheel"))
+            {
+                canvas.gameObject.SetActive(false);
+                DebugLog($"Force deactivated canvas: {canvas.name}");
+            }
+        }
+
+        DebugLog("Force hide upgrade wheel completed");
     }
 
     // NEW: Continue tank movement to exit
@@ -445,7 +510,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
     [ContextMenu("Skip Upgrade")]
     public void SkipUpgrade()
     {
-        HideUpgradeWheel();
+        ForceHideUpgradeWheel();
         ContinueToExit();
     }
 
@@ -466,10 +531,16 @@ public class TransitionWheelUpgrade : MonoBehaviour
         OnUpgradeConfirmed();
     }
 
-    [ContextMenu("Test Hide Wheel")]
-    public void TestHideWheel()
+    [ContextMenu("Force Hide Wheel")]
+    public void TestForceHideWheel()
     {
-        HideUpgradeWheel();
+        ForceHideUpgradeWheel();
+    }
+
+    [ContextMenu("Fix Wheel Scaling")]
+    public void TestFixWheelScaling()
+    {
+        FixWheelScaling();
     }
 
     [ContextMenu("Test Level2To3 Transition")]
