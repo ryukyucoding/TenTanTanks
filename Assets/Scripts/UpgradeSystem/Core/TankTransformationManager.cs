@@ -6,6 +6,7 @@ using WheelUpgradeSystem;
 /// COMPLETE TANK TRANSFORMATION SYSTEM
 /// Connects upgrade wheel choices to visual transformations and stat updates
 /// UPDATED: Now uses Huge_T1 prefab for heavy tanks (properly scaled)
+/// FIXED: Resolves old turret color and visibility issues
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -45,6 +46,9 @@ public class TankTransformationManager : MonoBehaviour
     private string currentUpgrade = "Basic";
     private TankConfiguration currentConfig;
 
+    // FIXED: Store original turret renderers to exclude from color changes
+    private List<Renderer> originalTurretRenderers = new List<Renderer>();
+
     void Start()
     {
         InitializeTransformationSystem();
@@ -65,6 +69,9 @@ public class TankTransformationManager : MonoBehaviour
 
         // Auto-load prefabs
         AutoLoadPrefabs();
+
+        // FIXED: Store original turret renderers before any transformations
+        StoreOriginalTurretRenderers();
 
         // Subscribe to upgrade events
         SubscribeToUpgradeEvents();
@@ -97,6 +104,8 @@ public class TankTransformationManager : MonoBehaviour
             originalTurret = tankBase.Find("Barrel");
             if (originalTurret == null)
                 originalTurret = tankBase.Find("Barrel.001");
+            if (originalTurret == null)
+                originalTurret = tankBase.Find("Turret");
         }
 
         // Find renderers
@@ -106,6 +115,36 @@ public class TankTransformationManager : MonoBehaviour
         }
 
         DebugLog($"Components found: TankController={tankController != null}, TankShooting={tankShooting != null}, UpgradeSystem={tankUpgradeSystem != null}");
+    }
+
+    // FIXED: Store original turret renderers to exclude from color changes
+    private void StoreOriginalTurretRenderers()
+    {
+        originalTurretRenderers.Clear();
+
+        if (originalTurret != null)
+        {
+            Renderer[] originalRenderers = originalTurret.GetComponentsInChildren<Renderer>();
+            originalTurretRenderers.AddRange(originalRenderers);
+            DebugLog($"Stored {originalRenderers.Length} original turret renderers for color exclusion");
+        }
+
+        // Also check for other possible original turret names
+        if (tankBase != null)
+        {
+            string[] possibleTurretNames = { "Turret", "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
+
+            foreach (string turretName in possibleTurretNames)
+            {
+                Transform turret = tankBase.Find(turretName);
+                if (turret != null && turret != originalTurret)
+                {
+                    Renderer[] renderers = turret.GetComponentsInChildren<Renderer>();
+                    originalTurretRenderers.AddRange(renderers);
+                    DebugLog($"Also stored renderers from {turretName}");
+                }
+            }
+        }
     }
 
     private void AutoLoadPrefabs()
@@ -168,26 +207,48 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab = null;
         }
 
-        // --- HIDE / DESTROY all original turret layers ---
+        // --- COMPLETELY DESTROY all original turret components ---
+        // FIXED: More thorough search and complete removal
         if (tankBase != null)
         {
-            Transform originalTurretObj = tankBase.Find("Turret");
-            if (originalTurretObj != null)
+            // 找尋並銷毀所有可能的原始砲管組件
+            string[] possibleTurretNames = { "Turret", "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
+
+            bool foundAndDestroyed = false;
+            foreach (string turretName in possibleTurretNames)
             {
-                Debug.Log($"[Debug] Found original turret: {originalTurretObj.name}");
-                Destroy(originalTurretObj.gameObject);
-                Debug.Log($"[Debug] Destroyed original turret object");
+                Transform turretToDestroy = tankBase.Find(turretName);
+                if (turretToDestroy != null)
+                {
+                    Debug.Log($"[Debug] Found and destroying original turret: {turretToDestroy.name}");
+
+                    // FIXED: Remove from originalTurretRenderers list before destroying
+                    Renderer[] renderersToRemove = turretToDestroy.GetComponentsInChildren<Renderer>();
+                    foreach (var renderer in renderersToRemove)
+                    {
+                        originalTurretRenderers.Remove(renderer);
+                    }
+
+                    DestroyImmediate(turretToDestroy.gameObject);
+                    foundAndDestroyed = true;
+                }
+            }
+
+            if (foundAndDestroyed)
+            {
+                // 更新 originalTurret 參考為 null（因為已經被銷毀了）
+                originalTurret = null;
+                Debug.Log("[Debug] Original turret references cleared");
             }
             else
             {
-                Debug.LogWarning("[Debug] No original Turret object found under tankBase!");
+                Debug.LogWarning("[Debug] No original turrets found to destroy");
             }
         }
         else
         {
             Debug.LogWarning("[Debug] tankBase is null!");
         }
-
 
         // clear fire points
         currentFirePoints.Clear();
@@ -246,8 +307,6 @@ public class TankTransformationManager : MonoBehaviour
 
         Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
     }
-
-
 
     private GameObject GetPrefabForUpgrade(string upgradeName)
     {
@@ -379,6 +438,7 @@ public class TankTransformationManager : MonoBehaviour
         }
     }
 
+    // FIXED: Exclude original turret renderers from color changes
     private void ApplyColorChanges(string upgradeName)
     {
         if (currentConfig == null) return;
@@ -387,9 +447,19 @@ public class TankTransformationManager : MonoBehaviour
         {
             if (renderer == null) continue;
 
-            // skip original turret’s renderer
-            if (originalTurret != null && renderer.transform.IsChildOf(originalTurret))
+            // FIXED: Skip original turret's renderers (prevents white color issue)
+            if (originalTurretRenderers.Contains(renderer))
+            {
+                DebugLog($"Skipping original turret renderer: {renderer.name}");
                 continue;
+            }
+
+            // FIXED: Skip renderers that are children of original turret
+            if (originalTurret != null && renderer.transform.IsChildOf(originalTurret))
+            {
+                DebugLog($"Skipping child of original turret: {renderer.name}");
+                continue;
+            }
 
             renderer.material.color = currentConfig.tankColor;
         }
@@ -511,6 +581,7 @@ public class TankTransformationManager : MonoBehaviour
         DebugLog($"Current Upgrade: {currentUpgrade}");
         DebugLog($"Current Prefab: {(currentTurretPrefab != null ? currentTurretPrefab.name : "None")}");
         DebugLog($"Fire Points: {currentFirePoints.Count}");
+        DebugLog($"Original Turret Renderers Stored: {originalTurretRenderers.Count}");
         if (currentConfig != null)
         {
             DebugLog($"Move Speed: x{currentConfig.moveSpeedMultiplier}");
