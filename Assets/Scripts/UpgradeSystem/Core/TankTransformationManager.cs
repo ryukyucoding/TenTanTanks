@@ -16,8 +16,8 @@ public class TankTransformationManager : MonoBehaviour
 
     [Header("Tank Prefabs - Tier 1")]
     [SerializeField] private GameObject hugeTier1Prefab;
-    [SerializeField] private GameObject rapidSinglePrefab;
-    [SerializeField] private GameObject balancedDoublePrefab;
+    [SerializeField] private GameObject smallTier1Prefab;
+    [SerializeField] private GameObject balancedTier1Prefab;
 
     [Header("Tank Prefabs - Tier 2 Heavy")]
     [SerializeField] private GameObject heavyTripleFrontPrefab;
@@ -213,12 +213,12 @@ public class TankTransformationManager : MonoBehaviour
     {
         if (hugeTier1Prefab == null)
             hugeTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Huge_T1");
-        if (rapidSinglePrefab == null)
-            rapidSinglePrefab = Resources.Load<GameObject>("TankPrefabs/Rapid_Single");
-        if (balancedDoublePrefab == null)
-            balancedDoublePrefab = Resources.Load<GameObject>("TankPrefabs/Balanced_Double");
+        if (smallTier1Prefab == null)
+            smallTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Small_T1");
+        if (balancedTier1Prefab == null)
+            balancedTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Balanced_T1");
 
-        DebugLog($"Prefabs loaded: Huge_T1={hugeTier1Prefab != null}, Rapid={rapidSinglePrefab != null}, Balanced={balancedDoublePrefab != null}");
+        DebugLog($"Prefabs loaded: Huge_T1={hugeTier1Prefab != null}, Small_T1={smallTier1Prefab != null}, Balanced_T1={balancedTier1Prefab != null}");
     }
 
     private void SubscribeToUpgradeEvents()
@@ -372,9 +372,9 @@ public class TankTransformationManager : MonoBehaviour
             case "heavy":
                 return hugeTier1Prefab;
             case "rapid":
-                return rapidSinglePrefab;
+                return smallTier1Prefab;
             case "balanced":
-                return balancedDoublePrefab;
+                return balancedTier1Prefab;
             default:
                 return null;
         }
