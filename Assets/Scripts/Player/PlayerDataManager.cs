@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 玩家數據管理器 - 跨場景持久化玩家的升級數據
+/// UPDATED: Simplified tank transformation loading to avoid FindFirstObjectByType issues
 /// </summary>
 public class PlayerDataManager : MonoBehaviour
 {
@@ -47,35 +48,13 @@ public class PlayerDataManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Load tank transformation and apply it
+    /// REMOVED: The problematic LoadTankTransformation method that used FindFirstObjectByType
+    /// Now each TankTransformationManager loads its own transformation directly using GetCurrentTankTransformation()
     /// </summary>
-    public void LoadTankTransformation()
-    {
-        if (!string.IsNullOrEmpty(currentTankTransformation) && currentTankTransformation != "Basic")
-        {
-            var transformManager = FindFirstObjectByType<TankTransformationManager>();
-            if (transformManager != null)
-            {
-                // Apply the saved transformation
-                switch (currentTankTransformation.ToLower())
-                {
-                    case "heavy":
-                        transformManager.SelectHeavyUpgrade();
-                        break;
-                    case "rapid":
-                        transformManager.SelectRapidUpgrade();
-                        break;
-                    case "balanced":
-                        transformManager.SelectBalancedUpgrade();
-                        break;
-                }
-                Debug.Log($"✓ Loaded and applied tank transformation: {currentTankTransformation}");
-            }
-        }
-    }
 
     /// <summary>
     /// Get current tank transformation name
+    /// Each TankTransformationManager calls this directly in their Start() method
     /// </summary>
     public string GetCurrentTankTransformation()
     {

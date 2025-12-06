@@ -5,7 +5,7 @@ using WheelUpgradeSystem;
 /// <summary>
 /// COMPLETE TANK TRANSFORMATION SYSTEM
 /// Connects upgrade wheel choices to visual transformations and stat updates
-/// UPDATED: Now uses Huge_T1 prefab for heavy tanks (properly scaled)
+/// UPDATED: Now properly loads saved tank transformations across scenes
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -49,11 +49,8 @@ public class TankTransformationManager : MonoBehaviour
     {
         InitializeTransformationSystem();
 
-        // Auto-load saved transformation
-        if (PlayerDataManager.Instance != null)
-        {
-            PlayerDataManager.Instance.LoadTankTransformation();
-        }
+        // IMPROVED: Load saved transformation directly on this tank
+        LoadSavedTransformation();
     }
 
     private void InitializeTransformationSystem()
@@ -70,6 +67,34 @@ public class TankTransformationManager : MonoBehaviour
         SubscribeToUpgradeEvents();
 
         DebugLog("Tank Transformation System Ready!");
+    }
+
+    /// <summary>
+    /// IMPROVED: Directly load saved transformation on this specific tank
+    /// Instead of using FindFirstObjectByType which can find the wrong tank
+    /// </summary>
+    private void LoadSavedTransformation()
+    {
+        if (PlayerDataManager.Instance == null)
+        {
+            DebugLog("No PlayerDataManager found - keeping Basic tank");
+            return;
+        }
+
+        string savedTransformation = PlayerDataManager.Instance.GetCurrentTankTransformation();
+
+        if (string.IsNullOrEmpty(savedTransformation) || savedTransformation == "Basic")
+        {
+            DebugLog($"No saved transformation or Basic tank - keeping original");
+            return;
+        }
+
+        DebugLog($"Loading saved tank transformation: {savedTransformation}");
+
+        // Apply the saved transformation directly
+        OnUpgradeSelected(savedTransformation);
+
+        DebugLog($"Successfully applied saved transformation: {savedTransformation}");
     }
 
     private void AutoFindComponents()
