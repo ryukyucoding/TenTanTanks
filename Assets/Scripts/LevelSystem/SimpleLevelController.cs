@@ -643,22 +643,30 @@ public class SimpleLevelController : MonoBehaviour
     
     public void OnEnemyDestroyed()
     {
-        if (!isWaveActive) return;
-
-        enemiesKilledInWave++;
+        // 總是計算總擊殺數，不管波次是否活躍
         totalEnemiesKilled++;
-        Debug.Log($"敵人被消滅: {enemiesKilledInWave}/{enemiesSpawnedInWave} (總進度: {totalEnemiesKilled}/{totalEnemiesInLevel})");
-
+        Debug.Log($"[SimpleLevelController] 敵人被消滅！總進度: {totalEnemiesKilled}/{totalEnemiesInLevel}");
+        
         // 檢查是否所有敵人都被消滅（勝利條件）
         if (totalEnemiesKilled >= totalEnemiesInLevel)
         {
-            Debug.Log("[SimpleLevelController] 所有敵人已被消滅，關卡完成！");
+            Debug.Log("[SimpleLevelController] ✅ 所有敵人已被消滅，關卡完成！");
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.Victory();
             }
             return;
         }
+
+        // 只有在波次活躍時才計算波次擊殺數
+        if (!isWaveActive)
+        {
+            Debug.LogWarning($"[SimpleLevelController] 波次未活躍，但敵人被消滅了（這可能是正常的）");
+            return;
+        }
+
+        enemiesKilledInWave++;
+        Debug.Log($"  - 本波進度: {enemiesKilledInWave}/{enemiesSpawnedInWave}");
 
         // 檢查當前波是否完成
         if (enemiesKilledInWave >= enemiesSpawnedInWave)

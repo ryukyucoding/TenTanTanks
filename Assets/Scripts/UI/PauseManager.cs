@@ -26,13 +26,6 @@ public class PauseManager : MonoBehaviour
     public void PauseGame()
     {
         if (isPaused) return;
-        
-        if (pausePanel == null)
-        {
-            Debug.LogError("[PauseManager] pausePanel 未設置！請在 Inspector 中賦值。");
-            return;
-        }
-        
         Time.timeScale = 0f;
         pausePanel.SetActive(true);
         isPaused = true;
@@ -41,20 +34,12 @@ public class PauseManager : MonoBehaviour
         if (upgradeUI != null)
         {
             upgradeUI.ShowUpgradeUI();
-            Debug.Log("[PauseManager] 遊戲暫停，顯示升級 UI");
         }
     }
 
     public void ResumeGame()
     {
         if (!isPaused) return;
-        
-        if (pausePanel == null)
-        {
-            Debug.LogError("[PauseManager] pausePanel 未設置！請在 Inspector 中賦值。");
-            return;
-        }
-        
         Time.timeScale = 1f;
         pausePanel.SetActive(false);
         isPaused = false;
@@ -63,21 +48,12 @@ public class PauseManager : MonoBehaviour
         if (upgradeUI != null)
         {
             upgradeUI.HideUpgradeUI();
-            Debug.Log("[PauseManager] 遊戲恢復");
         }
     }
 
     public void QuitToMenu()
     {
         Time.timeScale = 1f;          // 確保恢復流程
-
-        // 重置玩家數據（生命值和升級數據）
-        if (PlayerDataManager.Instance != null)
-        {
-            PlayerDataManager.Instance.ResetData();
-            Debug.Log("[PauseManager] 返回主選單，已重置玩家數據");
-        }
-
-        SceneManager.LoadScene("Menu-new");
+        SceneManager.LoadScene("Menu");
     }
 }
