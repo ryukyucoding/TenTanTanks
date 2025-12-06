@@ -155,87 +155,74 @@ public class TankTransformationManager : MonoBehaviour
         }
     }
 
-    public void ApplyVisualTransformation(string upgradeName)
+    private void ApplyVisualTransformation(string upgradeName, float desiredScale = 0.05f)
     {
-        Debug.Log($"Applying visual transformation: {upgradeName}");
+        DebugLog($"Applying visual transformation: {upgradeName}");
 
-        // remove turret prefab
+        // 1. Remove current turret prefab
         if (currentTurretPrefab != null)
         {
             DestroyImmediate(currentTurretPrefab);
             currentTurretPrefab = null;
         }
 
-        // hide original turret
+        // 2. Hide original turret
         if (originalTurret != null)
             originalTurret.gameObject.SetActive(false);
 
-        // clear fire points
+        // 3. Clear current fire points
         currentFirePoints.Clear();
 
-        // get original configs and prefab
+        // 4. Get configuration and prefab
         currentConfig = GetTankConfiguration(upgradeName);
         if (currentConfig == null)
         {
-            Debug.LogWarning($"No configuration found for {upgradeName}");
-            if (originalTurret != null)
-                originalTurret.gameObject.SetActive(true);
+            DebugLog($"No configuration found for: {upgradeName}");
             return;
         }
 
         GameObject prefabToUse = GetPrefabForUpgrade(upgradeName);
         if (prefabToUse == null)
         {
-            Debug.LogWarning($"No prefab found for {upgradeName}. Using original turret.");
+            DebugLog($"No prefab found for: {upgradeName}. Using original turret.");
             if (originalTurret != null)
                 originalTurret.gameObject.SetActive(true);
             return;
         }
 
-        // Instantiate turret prefab
-        currentTurretPrefab = Instantiate(prefabToUse);
-        currentTurretPrefab.name = $"Turret_{upgradeName}";
+        // 5. Instantiate prefab as child of original turret's parent
+        currentTurretPrefab = Instantiate(prefabToUse, originalTurret.parent);
+        currentTurretPrefab.name = $"TurretConfig_{upgradeName}";
 
-        // place it to the original turret
-        if (originalTurret != null)
-        {
-            currentTurretPrefab.transform.position = originalTurret.position;
-            currentTurretPrefab.transform.rotation = originalTurret.rotation;
-            currentTurretPrefab.transform.localScale = originalTurret.lossyScale;
-        }
-
-        // Force local reset
-        currentTurretPrefab.transform.SetParent(originalTurret.parent); // usually tank body
+        // 6. Match position & rotation
         currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
         currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
-        currentTurretPrefab.transform.localScale = Vector3.one * 0.05f;
 
-        // find tags
-        currentFirePoints.AddRange(currentTurretPrefab.GetComponentsInChildren<Transform>());
+        // 7. Normalize scale recursively
+        float rootScale = currentTurretPrefab.transform.localScale.x; // assume uniform
+        float scaleFactor = desiredScale / rootScale;
 
-        // find tags
-        List<Transform> firePointTransforms = new List<Transform>();
-        foreach (var t in currentFirePoints)
+        void ScaleRecursive(Transform t, float f)
         {
-            if (t.CompareTag("FirePoint") || t.name.Contains("FirePoint"))
-            {
-                firePointTransforms.Add(t);
-            }
+            t.localScale *= f;
+            foreach (Transform child in t)
+                ScaleRecursive(child, f);
         }
-        currentFirePoints = firePointTransforms;
 
-        // update TankController turret and TankShooting fire points
-        if (tankController != null)
-            tankController.SetTurret(currentTurretPrefab.transform);
+        ScaleRecursive(currentTurretPrefab.transform, scaleFactor);
 
-        if (tankShooting != null)
-            tankShooting.SetFirePoints(currentFirePoints);
+        // 8. Store reference for turret control
+        tankController.SetTurret(currentTurretPrefab.transform);
 
-        // optional
+        // 9. Find fire points in the new prefab
+        FindFirePointsInConfiguration();
+
+        // 10. Apply color/visual changes
         ApplyColorChanges(upgradeName);
 
-        Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
+        DebugLog($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
     }
+
 
 
     private GameObject GetPrefabForUpgrade(string upgradeName)
