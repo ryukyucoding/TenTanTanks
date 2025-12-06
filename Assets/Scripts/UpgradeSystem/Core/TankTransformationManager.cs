@@ -203,8 +203,10 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab.transform.localScale = originalTurret.lossyScale;
         }
 
-        // put to base
-        currentTurretPrefab.transform.SetParent(tankBase, worldPositionStays: true);
+        // Force local reset so it attaches EXACTLY like the original turret
+        currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
+        currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
+        currentTurretPrefab.transform.localScale = Vector3.one; // or originalTurret.localScale
 
         // Find fire points in the new configuration
         FindFirePointsInConfiguration();
