@@ -130,30 +130,54 @@ public class TankTransformationManager : MonoBehaviour
                 DebugLog("Auto-found tank base: " + tankBase.name);
         }
 
-        // FIXED: Find the parent Turret object, not individual barrels
+        // CRITICAL DEBUG: Show all children first
+        if (tankBase != null)
+        {
+            DebugLog("=== ALL ARMTANK CHILDREN ===");
+            for (int i = 0; i < tankBase.childCount; i++)
+            {
+                Transform child = tankBase.GetChild(i);
+                DebugLog($"Child {i}: {child.name} (active: {child.gameObject.activeSelf})");
+            }
+        }
+
+        // FIXED: Find ALL turret objects and identify the original one
         if (originalTurret == null && tankBase != null)
         {
-            // Priority 1: Look for parent "Turret" object
-            originalTurret = tankBase.Find("Turret");
+            // Look for the FIRST Turret object (should be the original)
+            Transform[] allTurrets = tankBase.GetComponentsInChildren<Transform>();
+            Transform firstTurret = null;
+
+            foreach (Transform t in allTurrets)
+            {
+                if (t.name == "Turret" && t.parent == tankBase)
+                {
+                    if (firstTurret == null)
+                    {
+                        firstTurret = t;
+                        DebugLog($"Found first Turret: {t.name} at position {t.localPosition}");
+                    }
+                    else
+                    {
+                        DebugLog($"Found additional Turret: {t.name} at position {t.localPosition}");
+                    }
+                }
+            }
+
+            originalTurret = firstTurret;
+
             if (originalTurret != null)
             {
-                DebugLog("Found original Turret parent: " + originalTurret.name);
+                DebugLog($"Set originalTurret to: {originalTurret.name}");
+                DebugLog($"Original turret has {originalTurret.childCount} children");
+                for (int i = 0; i < originalTurret.childCount; i++)
+                {
+                    DebugLog($"  Child {i}: {originalTurret.GetChild(i).name}");
+                }
             }
             else
             {
-                // Priority 2: Look for "Barrel" objects
-                originalTurret = tankBase.Find("Barrel");
-                if (originalTurret == null)
-                    originalTurret = tankBase.Find("Barrel.001");
-
-                if (originalTurret != null)
-                {
-                    DebugLog("Found original turret barrel: " + originalTurret.name);
-                }
-                else
-                {
-                    DebugLog("WARNING: No original turret found!");
-                }
+                DebugLog("WARNING: No original Turret found!");
             }
         }
 
@@ -202,7 +226,7 @@ public class TankTransformationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// FIXED: 完全取代砲管而不是添加兄弟物件
+    /// FIXED: 強力清除所有Turret然後創建新的
     /// </summary>
     public void ApplyVisualTransformation(string upgradeName)
     {
@@ -234,46 +258,61 @@ public class TankTransformationManager : MonoBehaviour
             return;
         }
 
-        // FIXED: Complete turret replacement logic
-        if (upgradeName.ToLower() == "basic")
+        // NUCLEAR OPTION: Find and destroy ALL Turret objects
+        if (tankBase != null)
         {
-            // Restore original turret
-            if (originalTurret != null)
+            DebugLog("=== BEFORE CLEANING ===");
+            for (int i = 0; i < tankBase.childCount; i++)
             {
-                originalTurret.gameObject.SetActive(true);
-                DebugLog("Restored original turret");
+                Transform child = tankBase.GetChild(i);
+                DebugLog($"Child {i}: {child.name}");
             }
-        }
-        else
-        {
-            // FIXED: Completely destroy and replace original turret
-            if (originalTurret != null && originalTurretParent != null)
+
+            // Find ALL direct children named "Turret"
+            List<Transform> turretsToDestroy = new List<Transform>();
+            for (int i = 0; i < tankBase.childCount; i++)
             {
-                DebugLog($"Completely destroying original turret: {originalTurret.name}");
+                Transform child = tankBase.GetChild(i);
+                if (child.name == "Turret")
+                {
+                    turretsToDestroy.Add(child);
+                    DebugLog($"Marked for destruction: {child.name}");
+                }
+            }
 
-                // Store position/rotation before destroying
-                Vector3 replacePosition = originalTurret.localPosition;
-                Quaternion replaceRotation = originalTurret.localRotation;
-                Transform parent = originalTurret.parent;
+            // Destroy all found turrets
+            foreach (Transform turret in turretsToDestroy)
+            {
+                DebugLog($"DESTROYING: {turret.name}");
+                DestroyImmediate(turret.gameObject);
+            }
 
-                // Destroy the original turret completely
-                DestroyImmediate(originalTurret.gameObject);
-                originalTurret = null;  // Clear reference
+            DebugLog($"Destroyed {turretsToDestroy.Count} turret(s)");
+        }
 
-                // Create new turret prefab
-                currentTurretPrefab = Instantiate(prefabToUse);
-                currentTurretPrefab.name = "Turret";  // FIXED: Name it "Turret" to replace original
+        // Now create the new turret (only if not Basic)
+        if (upgradeName.ToLower() != "basic")
+        {
+            // Create new turret prefab
+            currentTurretPrefab = Instantiate(prefabToUse);
+            currentTurretPrefab.name = "Turret";  // Name it "Turret"
 
-                // Position it in the same place as original
-                currentTurretPrefab.transform.SetParent(parent, false);
-                currentTurretPrefab.transform.localPosition = replacePosition;
-                currentTurretPrefab.transform.localRotation = replaceRotation;
-                currentTurretPrefab.transform.localScale = Vector3.one;
+            // Position it correctly
+            currentTurretPrefab.transform.SetParent(tankBase, false);
+            currentTurretPrefab.transform.localPosition = originalTurretPosition;
+            currentTurretPrefab.transform.localRotation = originalTurretRotation;
+            currentTurretPrefab.transform.localScale = Vector3.one;
 
-                DebugLog($"New turret '{currentTurretPrefab.name}' created at position: {replacePosition}");
+            DebugLog($"New turret '{currentTurretPrefab.name}' created at position: {originalTurretPosition}");
 
-                // Update references to point to the new turret
-                originalTurret = currentTurretPrefab.transform;
+            // Update reference
+            originalTurret = currentTurretPrefab.transform;
+
+            DebugLog("=== AFTER CREATING NEW TURRET ===");
+            for (int i = 0; i < tankBase.childCount; i++)
+            {
+                Transform child = tankBase.GetChild(i);
+                DebugLog($"Child {i}: {child.name}");
             }
         }
 
