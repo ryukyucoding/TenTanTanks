@@ -20,15 +20,16 @@ public class TankTransformationManager : MonoBehaviour
     [SerializeField] private GameObject balancedTier1Prefab;
 
     [Header("Tank Prefabs - Tier 2 Heavy")]
-    [SerializeField] private GameObject heavyTripleFrontPrefab;
-    [SerializeField] private GameObject heavyTripleCirclePrefab;
+    [SerializeField] private GameObject hugeTier2FrontPrefab;
+    [SerializeField] private GameObject hugeTier2AroundPrefab;
 
     [Header("Tank Prefabs - Tier 2 Rapid")]
-    [SerializeField] private GameObject rapidTripleFrontPrefab;
-    [SerializeField] private GameObject rapidTripleCirclePrefab;
+    [SerializeField] private GameObject smallTier2FrontPrefab;
+    [SerializeField] private GameObject smallTier2AroundPrefab;
 
     [Header("Tank Prefabs - Tier 2 Balanced")]
-    [SerializeField] private GameObject balancedQuadPrefab;
+    [SerializeField] private GameObject balancedTier2FrontPrefab;
+    [SerializeField] private GameObject balancedTier2AroundPrefab;
 
     [Header("Tank Base References")]
     [SerializeField] private Transform tankBase;
