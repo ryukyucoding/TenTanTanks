@@ -47,6 +47,12 @@ public class TankTransformationManager : MonoBehaviour
     void Start()
     {
         InitializeTransformationSystem();
+
+        // Auto-load saved transformation
+        if (PlayerDataManager.Instance != null)
+        {
+            PlayerDataManager.Instance.LoadTankTransformation();
+        }
     }
 
     private void InitializeTransformationSystem()
@@ -141,6 +147,12 @@ public class TankTransformationManager : MonoBehaviour
         currentUpgrade = upgradeName;
 
         DebugLog($"TRANSFORMATION COMPLETE: {upgradeName}");
+
+        // Save to PlayerDataManager for persistence
+        if (PlayerDataManager.Instance != null)
+        {
+            PlayerDataManager.Instance.SaveTankTransformation(upgradeName);
+        }
     }
 
     private void ApplyVisualTransformation(string upgradeName)
@@ -194,8 +206,8 @@ public class TankTransformationManager : MonoBehaviour
         // Find fire points in the new configuration
         FindFirePointsInConfiguration();
 
-        // Apply tank color changes
-        ApplyColorChanges();
+        // Apply tank color changes - FIXED: Pass upgradeName parameter
+        ApplyColorChanges(upgradeName);
 
         DebugLog($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
     }
@@ -297,24 +309,28 @@ public class TankTransformationManager : MonoBehaviour
         DebugLog($"Stat changes complete for: {upgradeName}");
     }
 
-    private void ApplyColorChanges()
+    // FIXED: ApplyColorChanges method with upgradeName parameter
+    private void ApplyColorChanges(string upgradeName)
     {
-        if (currentConfig == null) return;
+        // Skip color changes - keep original tank colors
+        DebugLog($"Skipping color change for: {upgradeName} (keeping original colors)");
+        return;
 
-        // Apply color only to tank body, not turrets
-        foreach (var renderer in tankRenderers)
-        {
-            if (renderer != null && renderer.material != null)
-            {
-                if (!renderer.name.ToLower().Contains("barrel") &&
-                    !renderer.name.ToLower().Contains("turret"))
-                {
-                    renderer.material.color = currentConfig.tankColor;
-                }
-            }
-        }
-
-        DebugLog($"Applied tank color: {currentConfig.tankColor}");
+        // Original color changing code (commented out)
+        // Apply color changes to tank body only  
+        // if (tankRenderers != null && tankRenderers.Length > 0)
+        // {
+        //     Color targetColor = Color.gray; // Heavy tanks are gray
+        //     foreach (Renderer renderer in tankRenderers)
+        //     {
+        //         if (renderer != null)
+        //         {
+        //             renderer.material.color = targetColor;
+        //             DebugLog($"Applied color to renderer: {renderer.name}");
+        //         }
+        //     }
+        //     DebugLog($"Applied tank color: {targetColor}");
+        // }
     }
 
     private void UpdateShootingSystem()

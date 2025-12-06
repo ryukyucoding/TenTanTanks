@@ -17,6 +17,9 @@ public class PlayerDataManager : MonoBehaviour
     public int currentHealth = 3;  // 玩家當前生命值
     public bool hasHealthData = false;  // 是否有保存的生命值數據
 
+    [Header("Tank Transformation")]
+    [SerializeField] private string currentTankTransformation = "Basic";  // Current tank visual style
+
     void Awake()
     {
         // 單例模式 + DontDestroyOnLoad
@@ -32,6 +35,53 @@ public class PlayerDataManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    #region Tank Transformation Methods
+    /// <summary>
+    /// Save tank transformation state
+    /// </summary>
+    public void SaveTankTransformation(string transformationName)
+    {
+        currentTankTransformation = transformationName;
+        Debug.Log($"✓ Saved tank transformation: {transformationName}");
+    }
+
+    /// <summary>
+    /// Load tank transformation and apply it
+    /// </summary>
+    public void LoadTankTransformation()
+    {
+        if (!string.IsNullOrEmpty(currentTankTransformation) && currentTankTransformation != "Basic")
+        {
+            var transformManager = FindFirstObjectByType<TankTransformationManager>();
+            if (transformManager != null)
+            {
+                // Apply the saved transformation
+                switch (currentTankTransformation.ToLower())
+                {
+                    case "heavy":
+                        transformManager.SelectHeavyUpgrade();
+                        break;
+                    case "rapid":
+                        transformManager.SelectRapidUpgrade();
+                        break;
+                    case "balanced":
+                        transformManager.SelectBalancedUpgrade();
+                        break;
+                }
+                Debug.Log($"✓ Loaded and applied tank transformation: {currentTankTransformation}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Get current tank transformation name
+    /// </summary>
+    public string GetCurrentTankTransformation()
+    {
+        return currentTankTransformation;
+    }
+    #endregion
 
     /// <summary>
     /// 保存玩家當前的升級數據
@@ -57,7 +107,7 @@ public class PlayerDataManager : MonoBehaviour
 
         // 檢查是否有任何保存的數據
         bool hasData = (moveSpeedLevel > 0 || bulletSpeedLevel > 0 || fireRateLevel > 0 || availableUpgradePoints > 0);
-        
+
         if (hasData)
         {
             // 直接設置等級（不消耗升級點數）
@@ -65,7 +115,7 @@ public class PlayerDataManager : MonoBehaviour
             Debug.Log($"✓ 載入玩家數據: 移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 點數 {availableUpgradePoints}");
             return true;
         }
-        
+
         Debug.Log("無保存的玩家數據");
         return false;
     }
@@ -81,6 +131,7 @@ public class PlayerDataManager : MonoBehaviour
         availableUpgradePoints = 0;
         currentHealth = 3;
         hasHealthData = false;
+        currentTankTransformation = "Basic";
         Debug.Log("✓ 玩家數據已重置");
     }
 
