@@ -171,20 +171,23 @@ public class TankTransformationManager : MonoBehaviour
         // --- HIDE / DESTROY all original turret layers ---
         if (tankBase != null)
         {
-            Transform[] barrels = tankBase.GetComponentsInChildren<Transform>(true);
-            foreach (Transform t in barrels)
+            Transform originalTurretObj = tankBase.Find("Turret");
+            if (originalTurretObj != null)
             {
-                if (t.name.Contains("Barrel"))
-                {
-                    // 修正材質顏色，避免白色
-                    Renderer r = t.GetComponent<Renderer>();
-                    if (r != null)
-                        r.material.color = Color.white; // 或使用 currentConfig.tankColor
-
-                    Destroy(t.gameObject);
-                }
+                Debug.Log($"[Debug] Found original turret: {originalTurretObj.name}");
+                Destroy(originalTurretObj.gameObject);
+                Debug.Log($"[Debug] Destroyed original turret object");
+            }
+            else
+            {
+                Debug.LogWarning("[Debug] No original Turret object found under tankBase!");
             }
         }
+        else
+        {
+            Debug.LogWarning("[Debug] tankBase is null!");
+        }
+
 
         // clear fire points
         currentFirePoints.Clear();
