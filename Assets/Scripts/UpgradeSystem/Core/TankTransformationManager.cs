@@ -204,12 +204,18 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab.transform.localScale = originalTurret.lossyScale;
         }
 
+        GameObject turretWrapper;
+
+        // Instantiate the wrapper as an empty GameObject
+        turretWrapper = new GameObject("TurretWrapper");
+
         // Force local reset
-        currentTurretPrefab.transform.SetParent(originalTurret.parent); // usually tank body
-        currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
-        currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
-        currentTurretPrefab.transform.localScale = Vector3.one;      // reset
-        currentTurretPrefab.transform.localScale *= 0.05f;
+        turretWrapper.transform.SetParent(originalTurret.parent);
+        turretWrapper.transform.localPosition = originalTurret.localPosition;
+        turretWrapper.transform.localRotation = originalTurret.localRotation;
+        turretWrapper.transform.localScale = Vector3.one * 0.05f; // overall shrink
+
+
 
         // find tags
         currentFirePoints.AddRange(currentTurretPrefab.GetComponentsInChildren<Transform>());
