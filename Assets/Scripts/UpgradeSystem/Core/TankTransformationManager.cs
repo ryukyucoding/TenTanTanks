@@ -195,7 +195,17 @@ public class TankTransformationManager : MonoBehaviour
 
         // hide original turret
         if (originalTurret != null)
+        {
             originalTurret.gameObject.SetActive(false);
+            // Extra safety: also disable all renderers on the original turret
+            Renderer[] originalRenderers = originalTurret.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in originalRenderers)
+            {
+                if (renderer != null)
+                    renderer.enabled = false;
+            }
+            DebugLog($"Original turret hidden: {originalTurret.name}");
+        }
 
         // clear fire points
         currentFirePoints.Clear();
@@ -262,7 +272,7 @@ public class TankTransformationManager : MonoBehaviour
             tankShooting.SetFirePoints(currentFirePoints);
 
         // optional color changes
-        ApplyColorChanges(upgradeName);
+        // ApplyColorChanges(upgradeName);
 
         Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
     }
