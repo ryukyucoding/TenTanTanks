@@ -98,14 +98,27 @@ public class TankTransformationManager : MonoBehaviour
                 DebugLog("Auto-found tank base: " + tankBase.name);
         }
 
-        // Find original turret to hide
+        // FIXED: Find the PARENT Turret object, not just the Barrel
         if (originalTurret == null && tankBase != null)
         {
-            originalTurret = tankBase.Find("Barrel");
-            if (originalTurret == null)
-                originalTurret = tankBase.Find("Barrel.001");
-            if (originalTurret == null)
-                originalTurret = tankBase.Find("Turret");
+            // Priority order: look for the parent Turret object first
+            originalTurret = tankBase.Find("Turret");
+            if (originalTurret != null)
+            {
+                DebugLog("Found original Turret parent: " + originalTurret.name);
+            }
+            else
+            {
+                // Fallback to individual barrels if Turret parent not found
+                originalTurret = tankBase.Find("Barrel");
+                if (originalTurret == null)
+                    originalTurret = tankBase.Find("Barrel.001");
+
+                if (originalTurret != null)
+                {
+                    DebugLog("Found original turret component: " + originalTurret.name);
+                }
+            }
         }
 
         // Find renderers
@@ -115,6 +128,7 @@ public class TankTransformationManager : MonoBehaviour
         }
 
         DebugLog($"Components found: TankController={tankController != null}, TankShooting={tankShooting != null}, UpgradeSystem={tankUpgradeSystem != null}");
+        DebugLog($"Original turret found: {(originalTurret != null ? originalTurret.name : "None")}");
     }
 
     // FIXED: Store original turret renderers to exclude from color changes
@@ -207,42 +221,61 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab = null;
         }
 
-        // --- COMPLETELY DESTROY all original turret components ---
-        // FIXED: More thorough search and complete removal
+        // --- COMPLETELY DESTROY the parent Turret object ---
+        // FIXED: Target the parent Turret container, not individual components
         if (tankBase != null)
         {
-            // 找尋並銷毀所有可能的原始砲管組件
-            string[] possibleTurretNames = { "Turret", "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
-
-            bool foundAndDestroyed = false;
-            foreach (string turretName in possibleTurretNames)
+            // First try to find the main Turret parent
+            Transform turretParent = tankBase.Find("Turret");
+            if (turretParent != null)
             {
-                Transform turretToDestroy = tankBase.Find(turretName);
-                if (turretToDestroy != null)
+                Debug.Log($"[Debug] Found and destroying complete Turret structure: {turretParent.name}");
+
+                // Remove renderers from tracking before destroying
+                Renderer[] renderersToRemove = turretParent.GetComponentsInChildren<Renderer>();
+                foreach (var renderer in renderersToRemove)
                 {
-                    Debug.Log($"[Debug] Found and destroying original turret: {turretToDestroy.name}");
-
-                    // FIXED: Remove from originalTurretRenderers list before destroying
-                    Renderer[] renderersToRemove = turretToDestroy.GetComponentsInChildren<Renderer>();
-                    foreach (var renderer in renderersToRemove)
-                    {
-                        originalTurretRenderers.Remove(renderer);
-                    }
-
-                    DestroyImmediate(turretToDestroy.gameObject);
-                    foundAndDestroyed = true;
+                    originalTurretRenderers.Remove(renderer);
                 }
-            }
 
-            if (foundAndDestroyed)
-            {
-                // 更新 originalTurret 參考為 null（因為已經被銷毀了）
+                DestroyImmediate(turretParent.gameObject);
                 originalTurret = null;
-                Debug.Log("[Debug] Original turret references cleared");
+                Debug.Log("[Debug] Complete Turret structure destroyed");
             }
             else
             {
-                Debug.LogWarning("[Debug] No original turrets found to destroy");
+                // Fallback: destroy individual components if no parent structure
+                Debug.LogWarning("[Debug] No Turret parent found, cleaning individual components");
+                string[] possibleTurretNames = { "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
+
+                bool foundAndDestroyed = false;
+                foreach (string turretName in possibleTurretNames)
+                {
+                    Transform turretToDestroy = tankBase.Find(turretName);
+                    if (turretToDestroy != null)
+                    {
+                        Debug.Log($"[Debug] Found and destroying individual component: {turretToDestroy.name}");
+
+                        Renderer[] renderersToRemove = turretToDestroy.GetComponentsInChildren<Renderer>();
+                        foreach (var renderer in renderersToRemove)
+                        {
+                            originalTurretRenderers.Remove(renderer);
+                        }
+
+                        DestroyImmediate(turretToDestroy.gameObject);
+                        foundAndDestroyed = true;
+                    }
+                }
+
+                if (foundAndDestroyed)
+                {
+                    originalTurret = null;
+                    Debug.Log("[Debug] Individual turret components destroyed");
+                }
+                else
+                {
+                    Debug.LogWarning("[Debug] No original turrets found to destroy");
+                }
             }
         }
         else
@@ -268,19 +301,27 @@ public class TankTransformationManager : MonoBehaviour
             return;
         }
 
-        // --- Instantiate new turret ---
+        // --- Instantiate new turret to REPLACE the old Turret structure ---
+        // FIXED: Create the new turret with the correct name and position
         Vector3 spawnPos = tankBase != null ? tankBase.position : Vector3.zero;
         Quaternion spawnRot = tankBase != null ? tankBase.rotation : Quaternion.identity;
 
         currentTurretPrefab = Instantiate(prefabToUse, spawnPos, spawnRot);
-        currentTurretPrefab.name = $"Turret_{upgradeName}";
+
+        // FIXED: Name it "Turret" to maintain hierarchy consistency
+        currentTurretPrefab.name = "Turret";
 
         if (tankBase != null)
         {
-            currentTurretPrefab.transform.SetParent(tankBase, true);
+            // FIXED: Parent it directly to tankBase (ArmTank), not to originalTurret
+            currentTurretPrefab.transform.SetParent(tankBase, false);
+
+            // Set local transform to zero since we want it at the tank base position
             currentTurretPrefab.transform.localPosition = Vector3.zero;
             currentTurretPrefab.transform.localRotation = Quaternion.identity;
             currentTurretPrefab.transform.localScale = Vector3.one;
+
+            Debug.Log($"[Debug] New turret '{currentTurretPrefab.name}' created as child of {tankBase.name}");
         }
 
         // collect fire points
@@ -582,6 +623,29 @@ public class TankTransformationManager : MonoBehaviour
         DebugLog($"Current Prefab: {(currentTurretPrefab != null ? currentTurretPrefab.name : "None")}");
         DebugLog($"Fire Points: {currentFirePoints.Count}");
         DebugLog($"Original Turret Renderers Stored: {originalTurretRenderers.Count}");
+
+        // FIXED: Debug hierarchy structure
+        DebugLog("=== HIERARCHY STRUCTURE ===");
+        if (tankBase != null)
+        {
+            DebugLog($"Tank Base: {tankBase.name}");
+            for (int i = 0; i < tankBase.childCount; i++)
+            {
+                Transform child = tankBase.GetChild(i);
+                DebugLog($"  Child {i}: {child.name}");
+
+                // Show grandchildren for turret structures
+                if (child.name.Contains("Turret") || child.name.Contains("turret"))
+                {
+                    for (int j = 0; j < child.childCount; j++)
+                    {
+                        Transform grandChild = child.GetChild(j);
+                        DebugLog($"    Grandchild {j}: {grandChild.name}");
+                    }
+                }
+            }
+        }
+
         if (currentConfig != null)
         {
             DebugLog($"Move Speed: x{currentConfig.moveSpeedMultiplier}");
