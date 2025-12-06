@@ -86,7 +86,41 @@ public class TankTransformationManager : MonoBehaviour
         }
         else
         {
-            DebugLog("WARNING: No original turret found to store info!");
+            // Use default values if no original turret found
+            originalTurretPosition = Vector3.zero;
+            originalTurretRotation = Quaternion.identity;
+            originalTurretScale = Vector3.one;
+            originalTurretParent = transform; // PlayerTank level
+
+            DebugLog("No original turret found - using default position for new turret");
+        }
+
+        // FIXED: Force hide old turret components that might show up as white
+        if (tankBase != null)
+        {
+            DebugLog("=== FORCE HIDING OLD TURRET COMPONENTS ===");
+            string[] oldComponentNames = { "Barrel.001", "Barrel", "Turret", "FirePoint" };
+
+            foreach (string compName in oldComponentNames)
+            {
+                Transform oldComp = tankBase.Find(compName);
+                if (oldComp != null)
+                {
+                    DebugLog($"Force hiding old component: {oldComp.name}");
+                    oldComp.gameObject.SetActive(false);
+
+                    // Disable all renderers
+                    Renderer[] renderers = oldComp.GetComponentsInChildren<Renderer>();
+                    foreach (Renderer r in renderers)
+                    {
+                        if (r != null)
+                        {
+                            r.enabled = false;
+                            DebugLog($"Disabled renderer: {r.name}");
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -352,6 +386,41 @@ public class TankTransformationManager : MonoBehaviour
 
         Color newColor = currentConfig.tankColor;
 
+        DebugLog("=== APPLYING COLOR CHANGES ===");
+        DebugLog($"Target color: {newColor}");
+        DebugLog($"Total renderers found: {tankRenderers.Length}");
+
+        // FIXED: Also disable old turret components in ArmTank to prevent white coloring
+        if (tankBase != null)
+        {
+            // Hide/disable old turret components that might still be getting colored
+            Transform[] oldComponents = {
+                tankBase.Find("Barrel.001"),
+                tankBase.Find("Barrel"),
+                tankBase.Find("Turret")
+            };
+
+            foreach (Transform comp in oldComponents)
+            {
+                if (comp != null)
+                {
+                    DebugLog($"Disabling old component: {comp.name}");
+                    comp.gameObject.SetActive(false);
+
+                    // Also disable all renderers on this component
+                    Renderer[] oldRenderers = comp.GetComponentsInChildren<Renderer>();
+                    foreach (Renderer r in oldRenderers)
+                    {
+                        if (r != null)
+                        {
+                            r.enabled = false;
+                            DebugLog($"Disabled renderer on: {r.name}");
+                        }
+                    }
+                }
+            }
+        }
+
         foreach (Renderer renderer in tankRenderers)
         {
             if (renderer != null && renderer.material != null)
@@ -360,9 +429,18 @@ public class TankTransformationManager : MonoBehaviour
                 if (currentTurretPrefab != null &&
                     renderer.transform.IsChildOf(currentTurretPrefab.transform))
                 {
+                    DebugLog($"Skipping new turret renderer: {renderer.name}");
                     continue;
                 }
 
+                // Skip disabled renderers (old turret components)
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy)
+                {
+                    DebugLog($"Skipping disabled/inactive renderer: {renderer.name}");
+                    continue;
+                }
+
+                DebugLog($"Applying color to: {renderer.name} (was: {renderer.material.color})");
                 renderer.material.color = newColor;
             }
         }
