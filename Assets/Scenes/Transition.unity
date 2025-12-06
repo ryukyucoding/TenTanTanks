@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &30549227 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6611656069306511290, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 610276492}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &102319479
 GameObject:
   m_ObjectHideFlags: 0
@@ -493,14 +498,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TransitionWheelUpgrade
   upgradeWheelUI: {fileID: 1852038850}
-  tankUpgradeSystem: {fileID: 127472153}
   upgradeCanvas: {fileID: 102319482}
-  transitionMover: {fileID: 0}
-  doubleheadModel: {fileID: 561656193}
-  fourheadModel: {fileID: 696233252}
-  hugeModel: {fileID: 1977880743}
-  smallModel: {fileID: 1526681576}
+  tankUpgradeSystem: {fileID: 127472153}
+  customFont: {fileID: 0}
+  titleFontSize: 42
+  descriptionFontSize: 24
+  instructionFontSize: 32
+  confirmationDialog: {fileID: 0}
   enableDebugLogs: 1
+  enableScaleDebug: 1
 --- !u!1 &466274860
 GameObject:
   m_ObjectHideFlags: 0
@@ -899,6 +905,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
       insertIndex: -1
       addedObject: {fileID: 610276503}
+    - targetCorrespondingSourceObject: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 610276512}
   m_SourcePrefab: {fileID: 100100000, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
 --- !u!1 &610276493 stripped
 GameObject:
@@ -949,6 +958,57 @@ MonoBehaviour:
   - Level1
   - Level5
   transitionUpgrade: {fileID: 0}
+--- !u!114 &610276507 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 618302629183550047, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 610276492}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 610276493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88f92436aa7f67547ac6ea816457921e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankShooting
+--- !u!114 &610276508 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1926959128346804190, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 610276492}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 610276493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6898a30d215d35c439b5a331faafcd00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankController
+--- !u!114 &610276512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 610276493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7a15114f7e65ae4699f2a7e843c9466, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankTransformationManager
+  modularTankController: {fileID: 0}
+  tankController: {fileID: 610276508}
+  tankShooting: {fileID: 610276507}
+  tankUpgradeSystem: {fileID: 1483194380}
+  heavySinglePrefab: {fileID: 0}
+  rapidSinglePrefab: {fileID: 0}
+  balancedDoublePrefab: {fileID: 0}
+  heavyTripleFrontPrefab: {fileID: 0}
+  heavyTripleCirclePrefab: {fileID: 0}
+  rapidTripleFrontPrefab: {fileID: 0}
+  rapidTripleCirclePrefab: {fileID: 0}
+  balancedQuadPrefab: {fileID: 0}
+  tankBase: {fileID: 30549227}
+  originalTurret: {fileID: 1714976426}
+  tankRenderers:
+  - {fileID: 1945759455}
+  enableDebugLogs: 1
 --- !u!1 &660715371
 GameObject:
   m_ObjectHideFlags: 0
@@ -2232,6 +2292,11 @@ MonoBehaviour:
   noButton: {fileID: 0}
   autoCreateUI: 1
   dialogSize: {x: 400, y: 200}
+  yesButtonText: YES
+  noButtonText: NO
+  backgroundColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.9}
+  buttonColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!4 &1416206012
 Transform:
   m_ObjectHideFlags: 0
@@ -2242,6 +2307,78 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -100}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1483194379
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1483194381}
+  - component: {fileID: 1483194380}
+  m_Layer: 0
+  m_Name: TankUpgradeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1483194380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483194379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39a206bafcc23fe4e94c1ad055d09d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WheelUpgradeSystem.TankUpgradeSystem
+  availableUpgrades: []
+  currentUpgradePath: Basic
+  currentUpgradeOption:
+    upgradeName: Basic
+    description: Basic tank configuration
+    icon: {fileID: 0}
+    parentUpgradeName: 
+    tier: 1
+    damageMultiplier: 1
+    fireRateMultiplier: 1
+    bulletSizeMultiplier: 1
+    moveSpeedMultiplier: 1
+    healthBonus: 0
+    barrelPrefabName: 
+    tankColor: {r: 1, g: 1, b: 1, a: 1}
+    scaleMultiplier: {x: 1, y: 1, z: 1}
+  currentWheelStats:
+    damage: 1
+    fireRate: 1
+    bulletSpeed: 5
+    bulletSize: 1
+    moveSpeed: 5
+    rotationSpeed: 200
+    maxHealth: 5
+    armor: 0
+    hasShield: 0
+    hasDoubleShot: 0
+    hasRapidFire: 0
+--- !u!4 &1483194381
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483194379}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 983.4799, y: 0, z: -1035.6028}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2909,6 +3046,11 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!4 &1714976426 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6159632080371171642, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 610276492}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1805957811
 GameObject:
   m_ObjectHideFlags: 0
@@ -3457,6 +3599,11 @@ MonoBehaviour:
   rightTextScreenPosition: {x: 2100, y: 1100}
   displayDuration: 0.4
   fadeDuration: 0.25
+--- !u!137 &1945759455 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 494934731081455781, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
+  m_PrefabInstance: {fileID: 610276492}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1948823994
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4162,6 +4309,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5308638304007605019
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 972.8397
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -843.50366
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595930656974294198, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4478564191048007855, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
+      propertyPath: m_Name
+      value: Heavy_Single
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a0c7be8ae972e5b46ae13a5dd219f760, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4178,4 +4382,6 @@ SceneRoots:
   - {fileID: 1556485624}
   - {fileID: 102319483}
   - {fileID: 408710729}
+  - {fileID: 1483194381}
   - {fileID: 1416206012}
+  - {fileID: 5308638304007605019}

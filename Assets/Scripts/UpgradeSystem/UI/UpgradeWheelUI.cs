@@ -202,7 +202,6 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    // ENHANCED: More robust hide wheel method
     public void HideWheel()
     {
         DebugLog("HideWheel called - starting hide process");
@@ -211,34 +210,6 @@ public class UpgradeWheelUI : MonoBehaviour
         StopAllCoroutines();
 
         StartCoroutine(HideWheelAnimation());
-    }
-
-    // ENHANCED: Force hide wheel immediately (for emergencies)
-    public void ForceHideWheel()
-    {
-        DebugLog("ForceHideWheel called - immediate hide");
-
-        // Stop all coroutines
-        StopAllCoroutines();
-
-        // Immediately hide everything
-        if (upgradeCanvas != null)
-        {
-            upgradeCanvas.gameObject.SetActive(false);
-            DebugLog("Forcefully deactivated upgrade canvas");
-        }
-
-        if (wheelContainer != null)
-        {
-            wheelContainer.SetActive(false);
-            DebugLog("Forcefully deactivated wheel container");
-        }
-
-        // Hide this entire GameObject as well
-        gameObject.SetActive(false);
-        DebugLog("Forcefully deactivated UpgradeWheelUI GameObject");
-
-        ClearAllButtons();
     }
 
     private void HideWheelInstant()
@@ -259,6 +230,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
         ClearAllButtons();
     }
+
+    #endregion
 
     #region Animation Coroutines
 
@@ -315,7 +288,6 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Show animation completed");
     }
 
-    // ENHANCED: More robust hide animation
     private IEnumerator HideWheelAnimation()
     {
         DebugLog("Starting hide animation");
@@ -337,7 +309,6 @@ public class UpgradeWheelUI : MonoBehaviour
                 yield return null;
             }
 
-            // Ensure it's completely hidden
             wheelContainer.transform.localScale = Vector3.zero;
             wheelContainer.SetActive(false);
             DebugLog("Wheel container hidden and deactivated");
@@ -360,16 +331,11 @@ public class UpgradeWheelUI : MonoBehaviour
             blurBackground.color = endColor;
         }
 
-        // Finally hide the canvas
         if (upgradeCanvas != null)
         {
             upgradeCanvas.gameObject.SetActive(false);
             DebugLog("Upgrade canvas deactivated");
         }
-
-        // Also hide this GameObject
-        gameObject.SetActive(false);
-        DebugLog("UpgradeWheelUI GameObject deactivated");
 
         DebugLog("Hide animation completed");
     }
@@ -380,7 +346,7 @@ public class UpgradeWheelUI : MonoBehaviour
         allButtons.AddRange(tier1Buttons);
         allButtons.AddRange(tier2Buttons);
 
-        // Use CanvasGroup for fade animation instead of SetAlpha (which doesn't exist)
+        // Use CanvasGroup for fade animation
         foreach (var button in allButtons)
         {
             if (button != null)
@@ -420,8 +386,6 @@ public class UpgradeWheelUI : MonoBehaviour
         }
         canvasGroup.alpha = 1f;
     }
-
-    #endregion
 
     #endregion
 
@@ -575,7 +539,6 @@ public class UpgradeWheelUI : MonoBehaviour
             upgradeButton = buttonGO.AddComponent<WheelUpgradeButton>();
         }
 
-        // Use the existing Setup method instead of Initialize
         upgradeButton.Setup(option, () => onClickCallback(option));
         return upgradeButton;
     }
@@ -622,26 +585,6 @@ public class UpgradeWheelUI : MonoBehaviour
         selectedTier2Option = null;
         currentState = UpgradeState.SelectingTier2;
 
-        // Apply immediate visual transformation for tier 1
-        TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
-        if (transformManager != null)
-        {
-            string upgradeName = option.upgradeName.ToLower();
-            switch (upgradeName)
-            {
-                case "heavy":
-                    transformManager.SelectHeavyUpgrade();
-                    break;
-                case "rapid":
-                    transformManager.SelectRapidUpgrade();
-                    break;
-                case "balanced":
-                    transformManager.SelectBalancedUpgrade();
-                    break;
-            }
-            DebugLog($"Applied tier 1 transformation: {option.upgradeName}");
-        }
-
         UpdateButtonStates();
         UpdateTitle($"Tier 1: {option.upgradeName}");
         UpdateDescription(option.description);
@@ -652,7 +595,7 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog($"Tier 1 selected: {option.upgradeName}");
     }
 
-    public void OnTier2Selected(WheelUpgradeOption option)
+    private void OnTier2Selected(WheelUpgradeOption option)
     {
         selectedTier2Option = option;
         currentState = UpgradeState.Confirmed;
@@ -663,14 +606,45 @@ public class UpgradeWheelUI : MonoBehaviour
         UpdateDescription($"Confirm upgrade: {option.upgradeName}?");
     }
 
-    // Transition mode selection handlers
-    public void OnTier1SelectedTransition(WheelUpgradeOption option)
+    private void OnTier1SelectedTransition(WheelUpgradeOption option)
     {
         selectedTier1Option = option;
-        DebugLog($"Tier 1 selected in transition mode: {option.upgradeName}");
 
-        if (transitionAllowedTier == 1)
+        if (isTransitionMode && transitionAllowedTier == 1)
         {
+            UpdateButtonStatesTransition();
+            UpdateTitle($"Selected: {option.upgradeName}");
+            UpdateDescription(option.description);
+
+            if (confirmButton != null)
+                confirmButton.gameObject.SetActive(true);
+
+            DebugLog($"Tier 1 selected in transition mode: {option.upgradeName}");
+
+            //  Apply tank transformation immediately
+            TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
+            if (transformManager != null)
+            {
+                string upgradeName = option.upgradeName.ToLower();
+                switch (upgradeName)
+                {
+                    case "heavy":
+                        transformManager.SelectHeavyUpgrade();
+                        break;
+                    case "rapid":
+                        transformManager.SelectRapidUpgrade();
+                        break;
+                    case "balanced":
+                        transformManager.SelectBalancedUpgrade();
+                        break;
+                }
+                DebugLog($"Applied tank transformation: {option.upgradeName}");
+            }
+            else
+            {
+                Debug.LogError("TankTransformationManager not found! Tank appearance will not change.");
+            }
+
             // In transition mode, immediately trigger the transition manager
             var transitionManager = FindFirstObjectByType<TransitionWheelUpgrade>();
             if (transitionManager != null)
@@ -689,9 +663,9 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    public void OnTier2SelectedTransition(WheelUpgradeOption option)
+    private void OnTier2SelectedTransition(WheelUpgradeOption option)
     {
-        if (transitionAllowedTier == 2)
+        if (isTransitionMode && transitionAllowedTier == 2)
         {
             DebugLog($"Tier 2 selected in transition mode: {option.upgradeName}");
 
@@ -792,7 +766,6 @@ public class UpgradeWheelUI : MonoBehaviour
     {
         if (transitionAllowedTier == 1)
         {
-            // In tier 1 transition mode, only tier 1 buttons are selectable
             foreach (var button in tier1Buttons)
             {
                 if (button != null)
@@ -801,7 +774,6 @@ public class UpgradeWheelUI : MonoBehaviour
                 }
             }
 
-            // Tier 2 buttons are disabled/preview only
             foreach (var button in tier2Buttons)
             {
                 if (button != null)
@@ -812,7 +784,6 @@ public class UpgradeWheelUI : MonoBehaviour
         }
         else if (transitionAllowedTier == 2)
         {
-            // In tier 2 transition mode, tier 1 is locked, tier 2 is selectable
             foreach (var button in tier1Buttons)
             {
                 if (button != null)
@@ -938,12 +909,6 @@ public class UpgradeWheelUI : MonoBehaviour
     public void TestHideWheel()
     {
         HideWheel();
-    }
-
-    [ContextMenu("Force Hide Wheel")]
-    public void TestForceHideWheel()
-    {
-        ForceHideWheel();
     }
 
     [ContextMenu("Test Transition Mode Tier 1")]
