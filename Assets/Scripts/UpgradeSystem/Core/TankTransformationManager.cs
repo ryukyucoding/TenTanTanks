@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using WheelUpgradeSystem;
 
 /// <summary>
-/// COMPLETE TANK TRANSFORMATION SYSTEM
-/// Connects upgrade wheel choices to visual transformations and stat updates
-/// UPDATED: Now uses Huge_T1 prefab for heavy tanks (properly scaled)
-/// FIXED: Resolves old turret color and visibility issues
+/// FIXED TANK TRANSFORMATION SYSTEM
+/// 修復：新砲管現在會完全取代舊砲管，而不是作為兄弟物件
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -17,7 +15,7 @@ public class TankTransformationManager : MonoBehaviour
     [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
 
     [Header("Tank Prefabs - Tier 1")]
-    [SerializeField] private GameObject hugeTier1Prefab; // NEW - Your Huge_T1 prefab
+    [SerializeField] private GameObject hugeTier1Prefab;
     [SerializeField] private GameObject rapidSinglePrefab;
     [SerializeField] private GameObject balancedDoublePrefab;
 
@@ -46,37 +44,71 @@ public class TankTransformationManager : MonoBehaviour
     private string currentUpgrade = "Basic";
     private TankConfiguration currentConfig;
 
-    // FIXED: Store original turret renderers to exclude from color changes
-    private List<Renderer> originalTurretRenderers = new List<Renderer>();
+    // FIXED: Store original turret data for proper replacement
+    private Vector3 originalTurretPosition;
+    private Quaternion originalTurretRotation;
+    private Vector3 originalTurretScale;
+    private Transform originalTurretParent;
 
     void Start()
     {
         InitializeTransformationSystem();
-
-        // Auto-load saved transformation
-        if (PlayerDataManager.Instance != null)
-        {
-            PlayerDataManager.Instance.LoadTankTransformation();
-        }
+        LoadSavedTransformation();
     }
 
     private void InitializeTransformationSystem()
     {
         DebugLog("=== TANK TRANSFORMATION SYSTEM INITIALIZE ===");
 
-        // Auto-find components if not assigned
         AutoFindComponents();
-
-        // Auto-load prefabs
         AutoLoadPrefabs();
-
-        // FIXED: Store original turret renderers before any transformations
-        StoreOriginalTurretRenderers();
-
-        // Subscribe to upgrade events
         SubscribeToUpgradeEvents();
 
+        // FIXED: Store original turret information
+        StoreOriginalTurretInfo();
+
         DebugLog("Tank Transformation System Ready!");
+    }
+
+    /// <summary>
+    /// FIXED: Store original turret position/rotation/scale for proper replacement
+    /// </summary>
+    private void StoreOriginalTurretInfo()
+    {
+        if (originalTurret != null)
+        {
+            originalTurretPosition = originalTurret.localPosition;
+            originalTurretRotation = originalTurret.localRotation;
+            originalTurretScale = originalTurret.localScale;
+            originalTurretParent = originalTurret.parent;
+
+            DebugLog($"Stored original turret info: {originalTurret.name} at {originalTurretPosition}");
+        }
+        else
+        {
+            DebugLog("WARNING: No original turret found to store info!");
+        }
+    }
+
+    private void LoadSavedTransformation()
+    {
+        if (PlayerDataManager.Instance == null)
+        {
+            DebugLog("No PlayerDataManager found - keeping Basic tank");
+            return;
+        }
+
+        string savedTransformation = PlayerDataManager.Instance.GetCurrentTankTransformation();
+
+        if (string.IsNullOrEmpty(savedTransformation) || savedTransformation == "Basic")
+        {
+            DebugLog($"No saved transformation or Basic tank - keeping original");
+            return;
+        }
+
+        DebugLog($"Loading saved tank transformation: {savedTransformation}");
+        OnUpgradeSelected(savedTransformation);
+        DebugLog($"Successfully applied saved transformation: {savedTransformation}");
     }
 
     private void AutoFindComponents()
@@ -98,10 +130,10 @@ public class TankTransformationManager : MonoBehaviour
                 DebugLog("Auto-found tank base: " + tankBase.name);
         }
 
-        // FIXED: Find the PARENT Turret object, not just the Barrel
+        // FIXED: Find the parent Turret object, not individual barrels
         if (originalTurret == null && tankBase != null)
         {
-            // Priority order: look for the parent Turret object first
+            // Priority 1: Look for parent "Turret" object
             originalTurret = tankBase.Find("Turret");
             if (originalTurret != null)
             {
@@ -109,14 +141,18 @@ public class TankTransformationManager : MonoBehaviour
             }
             else
             {
-                // Fallback to individual barrels if Turret parent not found
+                // Priority 2: Look for "Barrel" objects
                 originalTurret = tankBase.Find("Barrel");
                 if (originalTurret == null)
                     originalTurret = tankBase.Find("Barrel.001");
 
                 if (originalTurret != null)
                 {
-                    DebugLog("Found original turret component: " + originalTurret.name);
+                    DebugLog("Found original turret barrel: " + originalTurret.name);
+                }
+                else
+                {
+                    DebugLog("WARNING: No original turret found!");
                 }
             }
         }
@@ -131,40 +167,8 @@ public class TankTransformationManager : MonoBehaviour
         DebugLog($"Original turret found: {(originalTurret != null ? originalTurret.name : "None")}");
     }
 
-    // FIXED: Store original turret renderers to exclude from color changes
-    private void StoreOriginalTurretRenderers()
-    {
-        originalTurretRenderers.Clear();
-
-        if (originalTurret != null)
-        {
-            Renderer[] originalRenderers = originalTurret.GetComponentsInChildren<Renderer>();
-            originalTurretRenderers.AddRange(originalRenderers);
-            DebugLog($"Stored {originalRenderers.Length} original turret renderers for color exclusion");
-        }
-
-        // Also check for other possible original turret names
-        if (tankBase != null)
-        {
-            string[] possibleTurretNames = { "Turret", "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
-
-            foreach (string turretName in possibleTurretNames)
-            {
-                Transform turret = tankBase.Find(turretName);
-                if (turret != null && turret != originalTurret)
-                {
-                    Renderer[] renderers = turret.GetComponentsInChildren<Renderer>();
-                    originalTurretRenderers.AddRange(renderers);
-                    DebugLog($"Also stored renderers from {turretName}");
-                }
-            }
-        }
-    }
-
     private void AutoLoadPrefabs()
     {
-        // Load from Resources if not assigned
-        // UPDATED: Load Huge_T1 instead of Heavy_Single
         if (hugeTier1Prefab == null)
             hugeTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Huge_T1");
         if (rapidSinglePrefab == null)
@@ -177,116 +181,45 @@ public class TankTransformationManager : MonoBehaviour
 
     private void SubscribeToUpgradeEvents()
     {
-        // This is where we connect to the upgrade wheel system
-        // We'll subscribe to upgrade selection events
         DebugLog("Subscribed to upgrade events");
     }
 
-    /// <summary>
-    /// MAIN METHOD: Called when user selects an upgrade from the wheel
-    /// This is the bridge between wheel selection and tank transformation
-    /// </summary>
     public void OnUpgradeSelected(string upgradeName)
     {
         DebugLog($"UPGRADE SELECTED: {upgradeName}");
 
-        // Apply visual transformation
         ApplyVisualTransformation(upgradeName);
-
-        // Apply stat changes
         ApplyStatChanges(upgradeName);
-
-        // Update shooting system
         UpdateShootingSystem();
 
         currentUpgrade = upgradeName;
-
         DebugLog($"TRANSFORMATION COMPLETE: {upgradeName}");
 
-        // Save to PlayerDataManager for persistence
         if (PlayerDataManager.Instance != null)
         {
             PlayerDataManager.Instance.SaveTankTransformation(upgradeName);
         }
     }
 
+    /// <summary>
+    /// FIXED: 完全取代砲管而不是添加兄弟物件
+    /// </summary>
     public void ApplyVisualTransformation(string upgradeName)
     {
         Debug.Log($"Applying visual transformation: {upgradeName}");
 
-        // remove previous turret prefab
+        // Remove previous turret prefab
         if (currentTurretPrefab != null)
         {
+            DebugLog("Destroying previous turret prefab");
             DestroyImmediate(currentTurretPrefab);
             currentTurretPrefab = null;
         }
 
-        // --- COMPLETELY DESTROY the parent Turret object ---
-        // FIXED: Target the parent Turret container, not individual components
-        if (tankBase != null)
-        {
-            // First try to find the main Turret parent
-            Transform turretParent = tankBase.Find("Turret");
-            if (turretParent != null)
-            {
-                Debug.Log($"[Debug] Found and destroying complete Turret structure: {turretParent.name}");
-
-                // Remove renderers from tracking before destroying
-                Renderer[] renderersToRemove = turretParent.GetComponentsInChildren<Renderer>();
-                foreach (var renderer in renderersToRemove)
-                {
-                    originalTurretRenderers.Remove(renderer);
-                }
-
-                DestroyImmediate(turretParent.gameObject);
-                originalTurret = null;
-                Debug.Log("[Debug] Complete Turret structure destroyed");
-            }
-            else
-            {
-                // Fallback: destroy individual components if no parent structure
-                Debug.LogWarning("[Debug] No Turret parent found, cleaning individual components");
-                string[] possibleTurretNames = { "Barrel", "Barrel.001", "OriginalTurret", "DefaultTurret" };
-
-                bool foundAndDestroyed = false;
-                foreach (string turretName in possibleTurretNames)
-                {
-                    Transform turretToDestroy = tankBase.Find(turretName);
-                    if (turretToDestroy != null)
-                    {
-                        Debug.Log($"[Debug] Found and destroying individual component: {turretToDestroy.name}");
-
-                        Renderer[] renderersToRemove = turretToDestroy.GetComponentsInChildren<Renderer>();
-                        foreach (var renderer in renderersToRemove)
-                        {
-                            originalTurretRenderers.Remove(renderer);
-                        }
-
-                        DestroyImmediate(turretToDestroy.gameObject);
-                        foundAndDestroyed = true;
-                    }
-                }
-
-                if (foundAndDestroyed)
-                {
-                    originalTurret = null;
-                    Debug.Log("[Debug] Individual turret components destroyed");
-                }
-                else
-                {
-                    Debug.LogWarning("[Debug] No original turrets found to destroy");
-                }
-            }
-        }
-        else
-        {
-            Debug.LogWarning("[Debug] tankBase is null!");
-        }
-
-        // clear fire points
+        // Clear fire points
         currentFirePoints.Clear();
 
-        // get tank configuration
+        // Get configuration and prefab
         currentConfig = GetTankConfiguration(upgradeName);
         if (currentConfig == null)
         {
@@ -297,116 +230,124 @@ public class TankTransformationManager : MonoBehaviour
         GameObject prefabToUse = GetPrefabForUpgrade(upgradeName);
         if (prefabToUse == null)
         {
-            Debug.LogWarning($"No prefab found for {upgradeName}. Using original turret.");
+            Debug.LogWarning($"No prefab found for {upgradeName}");
             return;
         }
 
-        // --- Instantiate new turret to REPLACE the old Turret structure ---
-        // FIXED: Create the new turret with the correct name and position
-        Vector3 spawnPos = tankBase != null ? tankBase.position : Vector3.zero;
-        Quaternion spawnRot = tankBase != null ? tankBase.rotation : Quaternion.identity;
-
-        currentTurretPrefab = Instantiate(prefabToUse, spawnPos, spawnRot);
-
-        // FIXED: Name it "Turret" to maintain hierarchy consistency
-        currentTurretPrefab.name = "Turret";
-
-        if (tankBase != null)
+        // FIXED: Complete turret replacement logic
+        if (upgradeName.ToLower() == "basic")
         {
-            // FIXED: Parent it directly to tankBase (ArmTank), not to originalTurret
-            currentTurretPrefab.transform.SetParent(tankBase, false);
-
-            // Set local transform to zero since we want it at the tank base position
-            currentTurretPrefab.transform.localPosition = Vector3.zero;
-            currentTurretPrefab.transform.localRotation = Quaternion.identity;
-            currentTurretPrefab.transform.localScale = Vector3.one;
-
-            Debug.Log($"[Debug] New turret '{currentTurretPrefab.name}' created as child of {tankBase.name}");
-        }
-
-        // collect fire points
-        currentFirePoints.AddRange(currentTurretPrefab.GetComponentsInChildren<Transform>());
-        List<Transform> firePointTransforms = new List<Transform>();
-        foreach (var t in currentFirePoints)
-        {
-            if (t.CompareTag("FirePoint") || t.name.Contains("FirePoint"))
+            // Restore original turret
+            if (originalTurret != null)
             {
-                firePointTransforms.Add(t);
+                originalTurret.gameObject.SetActive(true);
+                DebugLog("Restored original turret");
             }
         }
-        currentFirePoints = firePointTransforms;
+        else
+        {
+            // FIXED: Completely destroy and replace original turret
+            if (originalTurret != null && originalTurretParent != null)
+            {
+                DebugLog($"Completely destroying original turret: {originalTurret.name}");
 
-        // update tank shooting and controller
-        if (tankController != null)
+                // Store position/rotation before destroying
+                Vector3 replacePosition = originalTurret.localPosition;
+                Quaternion replaceRotation = originalTurret.localRotation;
+                Transform parent = originalTurret.parent;
+
+                // Destroy the original turret completely
+                DestroyImmediate(originalTurret.gameObject);
+                originalTurret = null;  // Clear reference
+
+                // Create new turret prefab
+                currentTurretPrefab = Instantiate(prefabToUse);
+                currentTurretPrefab.name = "Turret";  // FIXED: Name it "Turret" to replace original
+
+                // Position it in the same place as original
+                currentTurretPrefab.transform.SetParent(parent, false);
+                currentTurretPrefab.transform.localPosition = replacePosition;
+                currentTurretPrefab.transform.localRotation = replaceRotation;
+                currentTurretPrefab.transform.localScale = Vector3.one;
+
+                DebugLog($"New turret '{currentTurretPrefab.name}' created at position: {replacePosition}");
+
+                // Update references to point to the new turret
+                originalTurret = currentTurretPrefab.transform;
+            }
+        }
+
+        // Find fire points in the new turret
+        if (currentTurretPrefab != null)
+        {
+            Transform[] allTransforms = currentTurretPrefab.GetComponentsInChildren<Transform>();
+            foreach (Transform t in allTransforms)
+            {
+                if (t.CompareTag("FirePoint") || t.name.Contains("FirePoint"))
+                {
+                    currentFirePoints.Add(t);
+                    DebugLog($"Found fire point: {t.name}");
+                }
+            }
+        }
+
+        // Update tank controller turret reference
+        if (tankController != null && currentTurretPrefab != null)
+        {
             tankController.SetTurret(currentTurretPrefab.transform);
+            DebugLog("Updated TankController turret reference");
+        }
 
+        // Update shooting system
         if (tankShooting != null)
+        {
             tankShooting.SetFirePoints(currentFirePoints);
+            DebugLog("Updated TankShooting fire points");
+        }
 
-        // apply tank color
+        // Apply color changes
         ApplyColorChanges(upgradeName);
 
-        Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
+        Debug.Log($"Visual transformation complete for: {upgradeName}");
     }
 
     private GameObject GetPrefabForUpgrade(string upgradeName)
     {
         switch (upgradeName.ToLower())
         {
-            case "basic":
-                return null; // Use original
-
-            // TIER 1 - UPDATED: Heavy now uses Huge_T1
             case "heavy":
-                return hugeTier1Prefab; // CHANGED: Uses new properly scaled prefab
+                return hugeTier1Prefab;
             case "rapid":
                 return rapidSinglePrefab;
             case "balanced":
                 return balancedDoublePrefab;
-
-            // TIER 2 - HEAVY
-            case "superheavy_front":
-            case "superheavy-front":
-                return heavyTripleFrontPrefab;
-            case "superheavy_circle":
-            case "superheavy-circle":
-                return heavyTripleCirclePrefab;
-
-            // TIER 2 - RAPID
-            case "rapidfire_front":
-            case "rapidfire-front":
-                return rapidTripleFrontPrefab;
-            case "rapidfire_circle":
-            case "rapidfire-circle":
-                return rapidTripleCirclePrefab;
-
-            // TIER 2 - BALANCED
-            case "versatile":
-                return balancedQuadPrefab;
-
             default:
-                DebugLog($"Unknown upgrade name: {upgradeName}");
                 return null;
         }
     }
 
-    private void FindFirePointsInConfiguration()
+    private void ApplyColorChanges(string upgradeName)
     {
-        if (currentTurretPrefab == null) return;
+        if (currentConfig == null || tankRenderers == null) return;
 
-        // Find all FirePoint objects in the prefab
-        Transform[] allChildren = currentTurretPrefab.GetComponentsInChildren<Transform>();
+        Color newColor = currentConfig.tankColor;
 
-        foreach (Transform child in allChildren)
+        foreach (Renderer renderer in tankRenderers)
         {
-            if (child.name == "FirePoint" || child.name.Contains("FirePoint"))
+            if (renderer != null && renderer.material != null)
             {
-                currentFirePoints.Add(child);
-                DebugLog($"Found fire point: {child.name}");
+                // Skip renderers that are part of the new turret (they keep their own colors)
+                if (currentTurretPrefab != null &&
+                    renderer.transform.IsChildOf(currentTurretPrefab.transform))
+                {
+                    continue;
+                }
+
+                renderer.material.color = newColor;
             }
         }
 
-        DebugLog($"Total fire points found: {currentFirePoints.Count}");
+        DebugLog($"Applied color: {newColor} to tank body");
     }
 
     private void ApplyStatChanges(string upgradeName)
@@ -415,7 +356,6 @@ public class TankTransformationManager : MonoBehaviour
 
         DebugLog($"Applying stat changes for: {upgradeName}");
 
-        // Apply movement speed
         if (tankController != null)
         {
             float newMoveSpeed = 5f * currentConfig.moveSpeedMultiplier;
@@ -423,34 +363,26 @@ public class TankTransformationManager : MonoBehaviour
             DebugLog($"Move speed updated: {newMoveSpeed}");
         }
 
-        // Apply fire rate changes
         if (tankShooting != null)
         {
             float newFireRate = currentConfig.fireRateMultiplier;
             tankShooting.SetFireRate(newFireRate);
             DebugLog($"Fire rate updated: {newFireRate}");
-        }
 
-        // Apply bullet speed changes
-        if (tankShooting != null)
-        {
             float newBulletSpeed = 5f * currentConfig.bulletSpeedMultiplier;
             tankShooting.SetBulletSpeed(newBulletSpeed);
             DebugLog($"Bullet speed updated: {newBulletSpeed}");
         }
 
-        // Apply multi-turret shooting changes if available
         MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
         if (multiTurret != null)
         {
             multiTurret.SetFireRate(currentConfig.fireRateMultiplier);
             multiTurret.SetBulletSpeed(5f * currentConfig.bulletSpeedMultiplier);
-            DebugLog($"Multi-turret stats updated - Fire Rate: x{currentConfig.fireRateMultiplier}, Bullet Speed: x{currentConfig.bulletSpeedMultiplier}");
+            DebugLog($"Multi-turret stats updated");
         }
 
-        // Note: ModularTankController has GET methods for damage/bullet multipliers, not SET methods
-        // The damage multiplier will be applied when bullets are fired
-        DebugLog($"Tank configuration applied - Damage will be x{currentConfig.damageMultiplier} when bullets are created");
+        DebugLog($"Tank configuration applied - Damage will be x{currentConfig.damageMultiplier}");
     }
 
     private void UpdateShootingSystem()
@@ -463,55 +395,50 @@ public class TankTransformationManager : MonoBehaviour
             DebugLog("Fire points updated in TankShooting");
         }
 
-        // Update MultiTurretShooting component if available
-        // Note: MultiTurretShooting doesn't have SetFirePoints method, 
-        // it gets fire points from modularTank.GetAllFirePoints()
         MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
         if (multiTurret != null)
         {
-            DebugLog("MultiTurretShooting found - it will auto-update fire points from ModularTankController");
+            DebugLog("MultiTurretShooting component found - it will get fire points automatically");
         }
-
-        // Update modular tank controller with current turret if available
-        if (modularTankController != null && currentTurretPrefab != null)
-        {
-            DebugLog("ModularTankController will handle fire point detection automatically");
-        }
-    }
-
-    // FIXED: Exclude original turret renderers from color changes
-    private void ApplyColorChanges(string upgradeName)
-    {
-        if (currentConfig == null) return;
-
-        foreach (Renderer renderer in tankRenderers)
-        {
-            if (renderer == null) continue;
-
-            // FIXED: Skip original turret's renderers (prevents white color issue)
-            if (originalTurretRenderers.Contains(renderer))
-            {
-                DebugLog($"Skipping original turret renderer: {renderer.name}");
-                continue;
-            }
-
-            // FIXED: Skip renderers that are children of original turret
-            if (originalTurret != null && renderer.transform.IsChildOf(originalTurret))
-            {
-                DebugLog($"Skipping child of original turret: {renderer.name}");
-                continue;
-            }
-
-            renderer.material.color = currentConfig.tankColor;
-        }
-
-        DebugLog($"Tank color updated to: {currentConfig.tankColor}");
     }
 
     private TankConfiguration GetTankConfiguration(string upgradeName)
     {
         switch (upgradeName.ToLower())
         {
+            case "heavy":
+                return new TankConfiguration
+                {
+                    upgradeName = "Heavy",
+                    tankColor = new Color(0.8f, 0.2f, 0.2f),
+                    moveSpeedMultiplier = 0.7f,
+                    fireRateMultiplier = 0.8f,
+                    bulletSpeedMultiplier = 0.8f,
+                    damageMultiplier = 1.5f
+                };
+
+            case "rapid":
+                return new TankConfiguration
+                {
+                    upgradeName = "Rapid",
+                    tankColor = new Color(1f, 0.8f, 0.2f),
+                    moveSpeedMultiplier = 1.2f,
+                    fireRateMultiplier = 1.8f,
+                    bulletSpeedMultiplier = 1.4f,
+                    damageMultiplier = 0.6f
+                };
+
+            case "balanced":
+                return new TankConfiguration
+                {
+                    upgradeName = "Balanced",
+                    tankColor = new Color(0.3f, 0.7f, 1f),
+                    moveSpeedMultiplier = 1f,
+                    fireRateMultiplier = 1.3f,
+                    bulletSpeedMultiplier = 1f,
+                    damageMultiplier = 1f
+                };
+
             case "basic":
                 return new TankConfiguration
                 {
@@ -523,68 +450,23 @@ public class TankTransformationManager : MonoBehaviour
                     damageMultiplier = 1f
                 };
 
-            case "heavy":
-                return new TankConfiguration
-                {
-                    upgradeName = "Heavy",
-                    tankColor = new Color(0.8f, 0.2f, 0.2f), // Red
-                    moveSpeedMultiplier = 0.7f,    // 30% slower
-                    fireRateMultiplier = 0.8f,     // 20% slower firing
-                    bulletSpeedMultiplier = 0.9f,  // 10% slower bullets
-                    damageMultiplier = 1.5f        // 50% more damage
-                };
-
-            case "rapid":
-                return new TankConfiguration
-                {
-                    upgradeName = "Rapid",
-                    tankColor = new Color(1f, 0.8f, 0.2f), // Orange
-                    moveSpeedMultiplier = 1.3f,    // 30% faster
-                    fireRateMultiplier = 1.8f,     // 80% faster firing
-                    bulletSpeedMultiplier = 1.4f, // 40% faster bullets
-                    damageMultiplier = 0.6f       // 40% less damage
-                };
-
-            case "balanced":
-                return new TankConfiguration
-                {
-                    upgradeName = "Balanced",
-                    tankColor = new Color(0.3f, 0.7f, 1f), // Light blue
-                    moveSpeedMultiplier = 1f,     // Same speed
-                    fireRateMultiplier = 1.3f,    // 30% faster firing
-                    bulletSpeedMultiplier = 1f,   // Same speed
-                    damageMultiplier = 1f         // Same damage
-                };
-
-            // Add more configurations as needed...
-
             default:
                 DebugLog($"No configuration for: {upgradeName}");
                 return null;
         }
     }
 
-    // PUBLIC METHODS FOR UPGRADE WHEEL INTEGRATION
-
-    /// <summary>
-    /// Called by upgrade wheel when user selects Heavy
-    /// </summary>
+    // PUBLIC METHODS FOR UPGRADE WHEEL
     public void SelectHeavyUpgrade()
     {
         OnUpgradeSelected("Heavy");
     }
 
-    /// <summary>
-    /// Called by upgrade wheel when user selects Rapid
-    /// </summary>
     public void SelectRapidUpgrade()
     {
         OnUpgradeSelected("Rapid");
     }
 
-    /// <summary>
-    /// Called by upgrade wheel when user selects Balanced
-    /// </summary>
     public void SelectBalancedUpgrade()
     {
         OnUpgradeSelected("Balanced");
@@ -622,36 +504,22 @@ public class TankTransformationManager : MonoBehaviour
         DebugLog($"Current Upgrade: {currentUpgrade}");
         DebugLog($"Current Prefab: {(currentTurretPrefab != null ? currentTurretPrefab.name : "None")}");
         DebugLog($"Fire Points: {currentFirePoints.Count}");
-        DebugLog($"Original Turret Renderers Stored: {originalTurretRenderers.Count}");
-
-        // FIXED: Debug hierarchy structure
-        DebugLog("=== HIERARCHY STRUCTURE ===");
-        if (tankBase != null)
-        {
-            DebugLog($"Tank Base: {tankBase.name}");
-            for (int i = 0; i < tankBase.childCount; i++)
-            {
-                Transform child = tankBase.GetChild(i);
-                DebugLog($"  Child {i}: {child.name}");
-
-                // Show grandchildren for turret structures
-                if (child.name.Contains("Turret") || child.name.Contains("turret"))
-                {
-                    for (int j = 0; j < child.childCount; j++)
-                    {
-                        Transform grandChild = child.GetChild(j);
-                        DebugLog($"    Grandchild {j}: {grandChild.name}");
-                    }
-                }
-            }
-        }
-
         if (currentConfig != null)
         {
             DebugLog($"Move Speed: x{currentConfig.moveSpeedMultiplier}");
             DebugLog($"Fire Rate: x{currentConfig.fireRateMultiplier}");
             DebugLog($"Damage: x{currentConfig.damageMultiplier}");
             DebugLog($"Color: {currentConfig.tankColor}");
+        }
+
+        // Debug hierarchy
+        DebugLog("=== CURRENT HIERARCHY ===");
+        if (tankBase != null)
+        {
+            foreach (Transform child in tankBase)
+            {
+                DebugLog($"Child: {child.name} (active: {child.gameObject.activeSelf})");
+            }
         }
     }
 
