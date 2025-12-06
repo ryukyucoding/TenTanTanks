@@ -286,27 +286,38 @@ public class TransitionWheelUpgrade : MonoBehaviour
             Transform child = parent.GetChild(i);
             string childName = child.name.ToLower();
 
-            // Check if this is ANY type of divider or line
-            bool isDividerOrLine =
-                childName.Contains("divider") ||
-                childName.Contains("line") ||
-                childName.Contains("separator") ||
-                childName.Contains("border") ||
-                childName.Contains("rim") ||
-                childName.Contains("outline") ||
-                child.GetComponent<UnityEngine.UI.Image>() != null; // Any UI Image could be a divider
+            // IMPROVED: More specific detection to EXCLUDE divider lines and UI elements
+            bool isDividerLine = childName.Contains("division") ||
+                               childName.Contains("divider") ||
+                               childName.Contains("line") ||
+                               childName.Contains("primarydivider") ||
+                               childName.Contains("secondarydivider");
 
-            if (isDividerOrLine || child.localScale != Vector3.one)
+            // SKIP divider lines completely to preserve their intended size
+            if (isDividerLine)
+            {
+                if (enableScaleDebug)
+                {
+                    DebugLog($"SKIPPING divider line: {child.name} - preserving original scale: {child.localScale}");
+                }
+
+                // Still recursively check children of dividers, but don't change the divider itself
+                FixAllChildScalesComprehensive(child, depth + 1);
+                continue; // Skip this child's scale modification
+            }
+
+            // Only fix non-divider elements that have incorrect scale
+            if (child.localScale != Vector3.one)
             {
                 Vector3 oldScale = child.localScale;
                 child.localScale = Vector3.one;
 
                 if (enableScaleDebug)
                 {
-                    DebugLog("Fixed scale for: " + child.name + " (was: " + oldScale + ")");
+                    DebugLog($"Fixed scale for: {child.name} (was: {oldScale})");
                 }
 
-                // Special handling for UI Images (potential dividers)
+                // Special handling for UI Images (potential dividers we missed)
                 var image = child.GetComponent<UnityEngine.UI.Image>();
                 if (image != null)
                 {

@@ -6,6 +6,7 @@ using WheelUpgradeSystem;
 /// COMPLETE TANK TRANSFORMATION SYSTEM
 /// Connects upgrade wheel choices to visual transformations and stat updates
 /// UPDATED: Now properly loads saved tank transformations across scenes
+/// FIXED: Comprehensive turret hiding and debugging system
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -116,12 +117,36 @@ public class TankTransformationManager : MonoBehaviour
                 DebugLog("Auto-found tank base: " + tankBase.name);
         }
 
-        // Find original turret to hide
+        // IMPROVED: Better original turret finding with comprehensive search
         if (originalTurret == null && tankBase != null)
         {
-            originalTurret = tankBase.Find("Barrel");
+            // Try common barrel names
+            string[] barrelNames = { "Barrel", "Barrel.001", "Turret", "Gun", "Cannon" };
+
+            foreach (string name in barrelNames)
+            {
+                originalTurret = tankBase.Find(name);
+                if (originalTurret != null)
+                {
+                    DebugLog($"Found original turret: {name} at path: {GetTransformPath(originalTurret)}");
+                    break;
+                }
+            }
+
+            // If still not found, search all children
             if (originalTurret == null)
-                originalTurret = tankBase.Find("Barrel.001");
+            {
+                Transform[] allChildren = tankBase.GetComponentsInChildren<Transform>();
+                foreach (Transform child in allChildren)
+                {
+                    if (child.name.Contains("Barrel") || child.name.Contains("Turret"))
+                    {
+                        originalTurret = child;
+                        DebugLog($"Found original turret via search: {child.name} at path: {GetTransformPath(child)}");
+                        break;
+                    }
+                }
+            }
         }
 
         // Find renderers
@@ -131,6 +156,7 @@ public class TankTransformationManager : MonoBehaviour
         }
 
         DebugLog($"Components found: TankController={tankController != null}, TankShooting={tankShooting != null}, UpgradeSystem={tankUpgradeSystem != null}");
+        DebugLog($"Original Turret found: {originalTurret != null} - {(originalTurret != null ? originalTurret.name : "NONE")}");
     }
 
     private void AutoLoadPrefabs()
@@ -193,19 +219,8 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab = null;
         }
 
-        // hide original turret
-        if (originalTurret != null)
-        {
-            originalTurret.gameObject.SetActive(false);
-            // Extra safety: also disable all renderers on the original turret
-            Renderer[] originalRenderers = originalTurret.GetComponentsInChildren<Renderer>();
-            foreach (Renderer renderer in originalRenderers)
-            {
-                if (renderer != null)
-                    renderer.enabled = false;
-            }
-            DebugLog($"Original turret hidden: {originalTurret.name}");
-        }
+        // IMPROVED: More comprehensive original turret hiding
+        HideOriginalTurretCompletely();
 
         // clear fire points
         currentFirePoints.Clear();
@@ -271,10 +286,66 @@ public class TankTransformationManager : MonoBehaviour
         if (tankShooting != null)
             tankShooting.SetFirePoints(currentFirePoints);
 
-        // optional color changes
+        // DISABLED: Skip color changes to preserve original turret/tank colors
         // ApplyColorChanges(upgradeName);
 
         Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
+    }
+
+    /// <summary>
+    /// COMPREHENSIVE original turret hiding with triple protection
+    /// </summary>
+    private void HideOriginalTurretCompletely()
+    {
+        if (originalTurret == null)
+        {
+            DebugLog("WARNING: No original turret to hide - this may cause visual issues");
+            return;
+        }
+
+        DebugLog($"Hiding original turret: {originalTurret.name} at path: {GetTransformPath(originalTurret)}");
+
+        // METHOD 1: Deactivate the gameobject
+        originalTurret.gameObject.SetActive(false);
+        DebugLog("Method 1: Deactivated original turret GameObject");
+
+        // METHOD 2: Disable all renderers (backup safety - works even if SetActive fails)
+        Renderer[] originalRenderers = originalTurret.GetComponentsInChildren<Renderer>(true);
+        DebugLog($"Found {originalRenderers.Length} renderers to disable");
+
+        foreach (Renderer renderer in originalRenderers)
+        {
+            if (renderer != null)
+            {
+                renderer.enabled = false;
+                DebugLog($"Disabled renderer: {renderer.name}");
+            }
+        }
+
+        // METHOD 3: Move it far away (triple backup - in case both above methods fail)
+        originalTurret.localPosition = new Vector3(0, -1000, 0);
+        DebugLog("Method 3: Moved original turret far away as backup");
+
+        // METHOD 4: Set scale to zero (quadruple backup)
+        originalTurret.localScale = Vector3.zero;
+        DebugLog("Method 4: Set original turret scale to zero");
+
+        DebugLog($"Original turret '{originalTurret.name}' hidden with quadruple protection");
+    }
+
+    /// <summary>
+    /// Helper method to get the full transform path for debugging
+    /// </summary>
+    private string GetTransformPath(Transform transform)
+    {
+        string path = transform.name;
+        Transform parent = transform.parent;
+        while (parent != null)
+        {
+            path = parent.name + "/" + path;
+            parent = parent.parent;
+        }
+        return path;
     }
 
     private GameObject GetPrefabForUpgrade(string upgradeName)
@@ -409,6 +480,11 @@ public class TankTransformationManager : MonoBehaviour
 
     private void ApplyColorChanges(string upgradeName)
     {
+        // DISABLED: Skip all color changes to preserve original colors
+        DebugLog("Color changes disabled - preserving original tank and turret colors");
+        return;
+
+        /* OLD CODE - COMMENTED OUT:
         if (currentConfig == null) return;
 
         foreach (Renderer renderer in tankRenderers)
@@ -420,6 +496,7 @@ public class TankTransformationManager : MonoBehaviour
         }
 
         DebugLog($"Tank color updated to: {currentConfig.tankColor}");
+        */
     }
 
     private TankConfiguration GetTankConfiguration(string upgradeName)
@@ -527,6 +604,44 @@ public class TankTransformationManager : MonoBehaviour
     public void ResetToBasic()
     {
         OnUpgradeSelected("Basic");
+    }
+
+    [ContextMenu("Debug Turret References")]
+    public void DebugTurretReferences()
+    {
+        DebugLog("=== TURRET DEBUG ===");
+        DebugLog($"TankBase: {(tankBase != null ? tankBase.name : "NULL")}");
+        DebugLog($"Original Turret: {(originalTurret != null ? originalTurret.name : "NULL")}");
+
+        if (tankBase != null)
+        {
+            DebugLog("Searching for Barrel objects...");
+            Transform[] allChildren = tankBase.GetComponentsInChildren<Transform>();
+            foreach (Transform child in allChildren)
+            {
+                if (child.name.Contains("Barrel"))
+                {
+                    DebugLog($"Found: {child.name} - Active: {child.gameObject.activeInHierarchy}");
+                    DebugLog($"  Path: {GetTransformPath(child)}");
+
+                    // Check for renderers
+                    Renderer[] renderers = child.GetComponentsInChildren<Renderer>();
+                    DebugLog($"  Renderers: {renderers.Length}");
+                    foreach (Renderer r in renderers)
+                    {
+                        DebugLog($"    - {r.name}: enabled={r.enabled}");
+                    }
+                }
+            }
+        }
+
+        if (currentTurretPrefab != null)
+        {
+            DebugLog($"Current Turret Prefab: {currentTurretPrefab.name}");
+            DebugLog($"  Position: {currentTurretPrefab.transform.position}");
+            DebugLog($"  Local Position: {currentTurretPrefab.transform.localPosition}");
+            DebugLog($"  Scale: {currentTurretPrefab.transform.localScale}");
+        }
     }
 
     [ContextMenu("Debug Current State")]
