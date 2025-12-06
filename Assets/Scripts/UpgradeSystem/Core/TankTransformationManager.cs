@@ -191,17 +191,20 @@ public class TankTransformationManager : MonoBehaviour
             return;
         }
 
-        // Instantiate the new turret configuration
-        currentTurretPrefab = Instantiate(prefabToUse, tankBase);
+        // absolute xyz Instantiate, not fix to parent
+        currentTurretPrefab = Instantiate(prefabToUse);
         currentTurretPrefab.name = $"TurretConfig_{upgradeName}";
 
-        // Position it correctly
+        // put to original turret pos
         if (originalTurret != null)
         {
-            currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
-            currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
-            currentTurretPrefab.transform.localScale = originalTurret.localScale;
+            currentTurretPrefab.transform.position = originalTurret.position;
+            currentTurretPrefab.transform.rotation = originalTurret.rotation;
+            currentTurretPrefab.transform.localScale = originalTurret.lossyScale;
         }
+
+        // put to base
+        currentTurretPrefab.transform.SetParent(tankBase, worldPositionStays: true);
 
         // Find fire points in the new configuration
         FindFirePointsInConfiguration();
