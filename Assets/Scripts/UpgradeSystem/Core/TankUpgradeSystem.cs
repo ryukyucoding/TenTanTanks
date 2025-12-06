@@ -278,7 +278,15 @@ namespace WheelUpgradeSystem
         {
             if (currentUpgradeOption == null) return;
 
-            // Apply tank color
+            // FIXED: Don't override colors if TankTransformationManager is handling visual changes
+            var transformationManager = FindObjectOfType<TankTransformationManager>();
+            if (transformationManager != null)
+            {
+                Debug.Log("TankTransformationManager found - skipping color application to avoid conflicts");
+                return;
+            }
+
+            // Apply tank color only if no transformation system is active
             var tankRenderer = FindObjectOfType<Renderer>();
             if (tankRenderer != null)
             {
