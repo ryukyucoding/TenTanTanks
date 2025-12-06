@@ -460,6 +460,7 @@ GameObject:
   - component: {fileID: -460199179078218526}
   - component: {fileID: 6168854359044807033}
   - component: {fileID: 2121425929630104671}
+  - component: {fileID: 1640563255498482355}
   m_Layer: 0
   m_Name: PlayerTank(G)
   m_TagString: Player
@@ -628,8 +629,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aec0fecb9837ac4dbb4c116fe837e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 3
-  currentHealth: 0
+  initialHealth: 3
   invulnerabilityTime: 1
   damageEffect: {fileID: 0}
   damageSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
@@ -660,6 +660,35 @@ MonoBehaviour:
   upgradeConfigs: []
   audioSource: {fileID: 0}
   transformSound: {fileID: 0}
+--- !u!114 &1640563255498482355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8621377706946314261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7a15114f7e65ae4699f2a7e843c9466, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankTransformationManager
+  modularTankController: {fileID: 0}
+  tankController: {fileID: 0}
+  tankShooting: {fileID: 0}
+  tankUpgradeSystem: {fileID: 0}
+  hugeTier1Prefab: {fileID: 5050609664824180105, guid: b16897a05c743c3429663c0ba91675b9, type: 3}
+  rapidSinglePrefab: {fileID: 0}
+  balancedDoublePrefab: {fileID: 0}
+  heavyTripleFrontPrefab: {fileID: 0}
+  heavyTripleCirclePrefab: {fileID: 0}
+  rapidTripleFrontPrefab: {fileID: 0}
+  rapidTripleCirclePrefab: {fileID: 0}
+  balancedQuadPrefab: {fileID: 0}
+  tankBase: {fileID: 0}
+  originalTurret: {fileID: 0}
+  tankRenderers:
+  - {fileID: 0}
+  enableDebugLogs: 1
 --- !u!1001 &5976788805462697681
 PrefabInstance:
   m_ObjectHideFlags: 0
