@@ -169,8 +169,12 @@ public class TankTransformationManager : MonoBehaviour
         }
 
         // hide original turret
+        // hide original turret completely
         if (originalTurret != null)
+        {
+            originalTurret.localPosition = new Vector3(999, 999, 999);  // yeet it!!!!
             originalTurret.gameObject.SetActive(false);
+        }
 
         // clear fire points
         currentFirePoints.Clear();
@@ -378,10 +382,13 @@ public class TankTransformationManager : MonoBehaviour
 
         foreach (Renderer renderer in tankRenderers)
         {
-            if (renderer != null)
-            {
-                renderer.material.color = currentConfig.tankColor;
-            }
+            if (renderer == null) continue;
+
+            // skip original turret¡¦s renderer
+            if (originalTurret != null && renderer.transform.IsChildOf(originalTurret))
+                continue;
+
+            renderer.material.color = currentConfig.tankColor;
         }
 
         DebugLog($"Tank color updated to: {currentConfig.tankColor}");
