@@ -5,6 +5,7 @@ using WheelUpgradeSystem;
 /// <summary>
 /// COMPLETE TANK TRANSFORMATION SYSTEM
 /// Connects upgrade wheel choices to visual transformations and stat updates
+/// UPDATED: Now uses Huge_T1 prefab for heavy tanks (properly scaled)
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class TankTransformationManager : MonoBehaviour
     [SerializeField] private TankUpgradeSystem tankUpgradeSystem;
 
     [Header("Tank Prefabs - Tier 1")]
-    [SerializeField] private GameObject heavySinglePrefab;
+    [SerializeField] private GameObject hugeTier1Prefab; // NEW - Your Huge_T1 prefab
     [SerializeField] private GameObject rapidSinglePrefab;
     [SerializeField] private GameObject balancedDoublePrefab;
 
@@ -110,14 +111,15 @@ public class TankTransformationManager : MonoBehaviour
     private void AutoLoadPrefabs()
     {
         // Load from Resources if not assigned
-        if (heavySinglePrefab == null)
-            heavySinglePrefab = Resources.Load<GameObject>("TankPrefabs/Heavy_Single");
+        // UPDATED: Load Huge_T1 instead of Heavy_Single
+        if (hugeTier1Prefab == null)
+            hugeTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Huge_T1");
         if (rapidSinglePrefab == null)
             rapidSinglePrefab = Resources.Load<GameObject>("TankPrefabs/Rapid_Single");
         if (balancedDoublePrefab == null)
             balancedDoublePrefab = Resources.Load<GameObject>("TankPrefabs/Balanced_Double");
 
-        DebugLog($"Prefabs loaded: Heavy={heavySinglePrefab != null}, Rapid={rapidSinglePrefab != null}, Balanced={balancedDoublePrefab != null}");
+        DebugLog($"Prefabs loaded: Huge_T1={hugeTier1Prefab != null}, Rapid={rapidSinglePrefab != null}, Balanced={balancedDoublePrefab != null}");
     }
 
     private void SubscribeToUpgradeEvents()
@@ -204,16 +206,19 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab.transform.localScale = originalTurret.lossyScale;
         }
 
-        // Force local reset
+        // Force local reset and proper parenting
         currentTurretPrefab.transform.SetParent(originalTurret.parent); // usually tank body
         currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
         currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
-        currentTurretPrefab.transform.localScale = Vector3.one * 0.05f;
 
-        // find tags
+        // UPDATED: Since Huge_T1 is properly scaled, we use 1.0 scale
+        // No more 0.05f scaling issues!
+        currentTurretPrefab.transform.localScale = Vector3.one;
+
+        // find all transforms for fire points
         currentFirePoints.AddRange(currentTurretPrefab.GetComponentsInChildren<Transform>());
 
-        // find tags
+        // filter to only fire point tags
         List<Transform> firePointTransforms = new List<Transform>();
         foreach (var t in currentFirePoints)
         {
@@ -231,12 +236,11 @@ public class TankTransformationManager : MonoBehaviour
         if (tankShooting != null)
             tankShooting.SetFirePoints(currentFirePoints);
 
-        // optional
+        // optional color changes
         ApplyColorChanges(upgradeName);
 
         Debug.Log($"Visual transformation complete. Fire points: {currentFirePoints.Count}");
     }
-
 
     private GameObject GetPrefabForUpgrade(string upgradeName)
     {
@@ -245,9 +249,9 @@ public class TankTransformationManager : MonoBehaviour
             case "basic":
                 return null; // Use original
 
-            // TIER 1
+            // TIER 1 - UPDATED: Heavy now uses Huge_T1
             case "heavy":
-                return heavySinglePrefab;
+                return hugeTier1Prefab; // CHANGED: Uses new properly scaled prefab
             case "rapid":
                 return rapidSinglePrefab;
             case "balanced":
@@ -309,84 +313,78 @@ public class TankTransformationManager : MonoBehaviour
         {
             float newMoveSpeed = 5f * currentConfig.moveSpeedMultiplier;
             tankController.SetMoveSpeed(newMoveSpeed);
-            DebugLog($"Applied move speed: {newMoveSpeed} (x{currentConfig.moveSpeedMultiplier})");
+            DebugLog($"Move speed updated: {newMoveSpeed}");
         }
 
-        // Apply shooting stats
+        // Apply fire rate changes
         if (tankShooting != null)
         {
-            // Fire rate
-            tankShooting.SetFireRate(currentConfig.fireRateMultiplier);
-            DebugLog($"Applied fire rate: x{currentConfig.fireRateMultiplier}");
-
-            // Bullet speed
-            float newBulletSpeed = 5f * currentConfig.bulletSpeedMultiplier;
-            tankShooting.SetBulletSpeed(newBulletSpeed);
-            DebugLog($"Applied bullet speed: {newBulletSpeed}");
-
-            // Bullet damage (you might need to add this method)
-            if (tankShooting.GetType().GetMethod("SetBulletDamage") != null)
-            {
-                tankShooting.GetComponent<TankShooting>().GetType().GetMethod("SetBulletDamage").Invoke(tankShooting, new object[] { currentConfig.damageMultiplier });
-                DebugLog($"Applied damage: x{currentConfig.damageMultiplier}");
-            }
+            float newFireRate = currentConfig.fireRateMultiplier;
+            tankShooting.SetFireRate(newFireRate);
+            DebugLog($"Fire rate updated: {newFireRate}");
         }
 
-        DebugLog($"Stat changes complete for: {upgradeName}");
-    }
+        // Apply bullet speed changes
+        if (tankShooting != null)
+        {
+            float newBulletSpeed = 5f * currentConfig.bulletSpeedMultiplier;
+            tankShooting.SetBulletSpeed(newBulletSpeed);
+            DebugLog($"Bullet speed updated: {newBulletSpeed}");
+        }
 
-    // FIXED: ApplyColorChanges method with upgradeName parameter
-    private void ApplyColorChanges(string upgradeName)
-    {
-        // Skip color changes - keep original tank colors
-        DebugLog($"Skipping color change for: {upgradeName} (keeping original colors)");
-        return;
+        // Apply multi-turret shooting changes if available
+        MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
+        if (multiTurret != null)
+        {
+            multiTurret.SetFireRate(currentConfig.fireRateMultiplier);
+            multiTurret.SetBulletSpeed(5f * currentConfig.bulletSpeedMultiplier);
+            DebugLog($"Multi-turret stats updated - Fire Rate: x{currentConfig.fireRateMultiplier}, Bullet Speed: x{currentConfig.bulletSpeedMultiplier}");
+        }
 
-        // Original color changing code (commented out)
-        // Apply color changes to tank body only  
-        // if (tankRenderers != null && tankRenderers.Length > 0)
-        // {
-        //     Color targetColor = Color.gray; // Heavy tanks are gray
-        //     foreach (Renderer renderer in tankRenderers)
-        //     {
-        //         if (renderer != null)
-        //         {
-        //             renderer.material.color = targetColor;
-        //             DebugLog($"Applied color to renderer: {renderer.name}");
-        //         }
-        //     }
-        //     DebugLog($"Applied tank color: {targetColor}");
-        // }
+        // Note: ModularTankController has GET methods for damage/bullet multipliers, not SET methods
+        // The damage multiplier will be applied when bullets are fired
+        DebugLog($"Tank configuration applied - Damage will be x{currentConfig.damageMultiplier} when bullets are created");
     }
 
     private void UpdateShootingSystem()
     {
-        // Update TankShooting to use multiple fire points
+        DebugLog($"Updating shooting system with {currentFirePoints.Count} fire points");
+
         if (tankShooting != null && currentFirePoints.Count > 0)
         {
-            // This is where you'd integrate with TankShooting.cs
-            // For now, we'll just log the information
-            DebugLog($"Updated shooting system with {currentFirePoints.Count} fire points");
+            tankShooting.SetFirePoints(currentFirePoints);
+            DebugLog("Fire points updated in TankShooting");
+        }
 
-            // You would modify TankShooting.cs to call GetCurrentFirePoints()
-            // instead of using a single firePoint reference
+        // Update MultiTurretShooting component if available
+        // Note: MultiTurretShooting doesn't have SetFirePoints method, 
+        // it gets fire points from modularTank.GetAllFirePoints()
+        MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
+        if (multiTurret != null)
+        {
+            DebugLog("MultiTurretShooting found - it will auto-update fire points from ModularTankController");
+        }
+
+        // Update modular tank controller with current turret if available
+        if (modularTankController != null && currentTurretPrefab != null)
+        {
+            DebugLog("ModularTankController will handle fire point detection automatically");
         }
     }
 
-    /// <summary>
-    /// Get current fire points for shooting system integration
-    /// </summary>
-    public List<Transform> GetCurrentFirePoints()
+    private void ApplyColorChanges(string upgradeName)
     {
-        return currentFirePoints;
-    }
+        if (currentConfig == null) return;
 
-    /// <summary>
-    /// Get current upgrade name
-    /// </summary>
-    public string GetCurrentUpgrade()
-    {
-        return currentUpgrade;
+        foreach (Renderer renderer in tankRenderers)
+        {
+            if (renderer != null)
+            {
+                renderer.material.color = currentConfig.tankColor;
+            }
+        }
+
+        DebugLog($"Tank color updated to: {currentConfig.tankColor}");
     }
 
     private TankConfiguration GetTankConfiguration(string upgradeName)
@@ -408,20 +406,20 @@ public class TankTransformationManager : MonoBehaviour
                 return new TankConfiguration
                 {
                     upgradeName = "Heavy",
-                    tankColor = new Color(0.6f, 0.6f, 0.6f), // Gray
-                    moveSpeedMultiplier = 0.7f,   // 30% slower
-                    fireRateMultiplier = 0.5f,    // 50% slower firing
-                    bulletSpeedMultiplier = 0.8f, // 20% slower bullets
-                    damageMultiplier = 2.5f       // 150% more damage
+                    tankColor = new Color(0.8f, 0.2f, 0.2f), // Red
+                    moveSpeedMultiplier = 0.7f,    // 30% slower
+                    fireRateMultiplier = 0.8f,     // 20% slower firing
+                    bulletSpeedMultiplier = 0.9f,  // 10% slower bullets
+                    damageMultiplier = 1.5f        // 50% more damage
                 };
 
             case "rapid":
                 return new TankConfiguration
                 {
                     upgradeName = "Rapid",
-                    tankColor = new Color(1f, 0.6f, 0.2f), // Orange
-                    moveSpeedMultiplier = 1.3f,   // 30% faster
-                    fireRateMultiplier = 2.5f,    // 150% faster firing
+                    tankColor = new Color(1f, 0.8f, 0.2f), // Orange
+                    moveSpeedMultiplier = 1.3f,    // 30% faster
+                    fireRateMultiplier = 1.8f,     // 80% faster firing
                     bulletSpeedMultiplier = 1.4f, // 40% faster bullets
                     damageMultiplier = 0.6f       // 40% less damage
                 };
