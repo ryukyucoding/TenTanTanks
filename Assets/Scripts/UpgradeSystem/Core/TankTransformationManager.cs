@@ -208,7 +208,8 @@ public class TankTransformationManager : MonoBehaviour
         currentTurretPrefab.transform.SetParent(originalTurret.parent); // usually tank body
         currentTurretPrefab.transform.localPosition = originalTurret.localPosition;
         currentTurretPrefab.transform.localRotation = originalTurret.localRotation;
-        currentTurretPrefab.transform.localScale = Vector3.one * 0.05f;
+        currentTurretPrefab.transform.localScale = Vector3.one;      // reset
+        currentTurretPrefab.transform.localScale *= 0.05f;
 
         // find tags
         currentFirePoints.AddRange(currentTurretPrefab.GetComponentsInChildren<Transform>());
