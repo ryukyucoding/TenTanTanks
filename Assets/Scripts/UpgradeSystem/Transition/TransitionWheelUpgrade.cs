@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.InputSystem;
 using WheelUpgradeSystem;
 using TMPro;
@@ -508,16 +508,16 @@ public class TransitionWheelUpgrade : MonoBehaviour
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
             DebugLog("Applied upgrade: " + selectedUpgrade.upgradeName);
 
-            // ¡¹¡¹¡¹ PERSISTENCE FIX: Save tank transformation for cross-scene persistence ¡¹¡¹¡¹
-            var playerDataManager = PlayerDataManager.Instance;
+            // â˜…â˜…â˜… PERSISTENCE FIX: Save tank transformation for cross-scene persistence â˜…â˜…â˜…
+            var playerDataManager = EnsurePlayerDataManager();
             if (playerDataManager != null)
             {
                 playerDataManager.SaveTankTransformation(selectedUpgrade.upgradeName);
-                DebugLog($"? Saved tank transformation to PlayerDataManager: {selectedUpgrade.upgradeName}");
+                DebugLog($"âœ“ Saved tank transformation to PlayerDataManager: {selectedUpgrade.upgradeName}");
             }
             else
             {
-                DebugLog("WARNING: PlayerDataManager not found! Tank transformation will not persist.");
+                DebugLog("ERROR: Could not create or find PlayerDataManager! Tank transformation will not persist.");
             }
         }
 
@@ -525,6 +525,36 @@ public class TransitionWheelUpgrade : MonoBehaviour
         ResumeGameplay();
 
         DebugLog("UPGRADE PROCESS COMPLETE");
+    }
+
+    /// <summary>
+    /// Ensure PlayerDataManager exists, create if missing
+    /// </summary>
+    private PlayerDataManager EnsurePlayerDataManager()
+    {
+        // Try to find existing instance first
+        if (PlayerDataManager.Instance != null)
+        {
+            return PlayerDataManager.Instance;
+        }
+
+        DebugLog("PlayerDataManager.Instance is null - attempting to find or create...");
+
+        // Try to find existing PlayerDataManager in scene
+        var existing = FindFirstObjectByType<PlayerDataManager>();
+        if (existing != null)
+        {
+            DebugLog("Found existing PlayerDataManager in scene");
+            return existing;
+        }
+
+        // Create new PlayerDataManager if none exists
+        DebugLog("Creating new PlayerDataManager...");
+        GameObject pdmGO = new GameObject("PlayerDataManager");
+        var pdm = pdmGO.AddComponent<PlayerDataManager>();
+
+        DebugLog("âœ“ Created PlayerDataManager successfully");
+        return pdm;
     }
 
     private void CancelUpgrade()
