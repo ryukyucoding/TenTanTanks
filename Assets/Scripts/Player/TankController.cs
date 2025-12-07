@@ -19,6 +19,16 @@ public class TankController : MonoBehaviour
     private Vector2 mousePosition;
     private Vector2 lookInput;
 
+
+    // getter
+    public Transform GetTurret() => turret;
+    public Transform GetFirePoint() => firePoint;
+
+    // setter
+    public void SetTurret(Transform newTurret) => turret = newTurret;
+    public void SetFirePoint(Transform newFirePoint) => firePoint = newFirePoint;
+
+
     // �ե�ޥ�?
     private Rigidbody rb;
     private PlayerInput playerInput;
@@ -121,6 +131,7 @@ public class TankController : MonoBehaviour
     void FixedUpdate()
     {
         // �B�z���ʡ]���z��s�^
+        // 
         HandleMovement();
     }
 

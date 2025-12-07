@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;  // 加入 Input System 命名空間
 
@@ -112,6 +113,12 @@ public class TankShooting : MonoBehaviour
     private bool CanShoot()
     {
         return Time.time >= nextFireTime && bulletPrefab != null;
+    }
+
+    private List<Transform> firePoints = new List<Transform>();
+    public void SetFirePoints(List<Transform> newFirePoints)
+    {
+        firePoints = newFirePoints;
     }
 
     private void Shoot()

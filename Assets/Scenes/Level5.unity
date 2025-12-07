@@ -4172,6 +4172,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1245064249}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &348543432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 348543434}
+  - component: {fileID: 348543433}
+  m_Layer: 0
+  m_Name: TankLoader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &348543433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 348543432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12511e77e17928940b6eb81ce533282b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelSceneTankLoader
+  enableDebugLogs: 1
+  autoFindComponents: 1
+  playerDataManager: {fileID: 0}
+--- !u!4 &348543434
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 348543432}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &349140719
 GameObject:
   m_ObjectHideFlags: 0
@@ -9455,6 +9502,7 @@ MonoBehaviour:
   availableUpgradePoints: 0
   currentHealth: 3
   hasHealthData: 0
+  currentTankTransformation: Basic
 --- !u!4 &899346940
 Transform:
   m_ObjectHideFlags: 0
@@ -20377,6 +20425,7 @@ SceneRoots:
   - {fileID: 1566099946}
   - {fileID: 984303519}
   - {fileID: 899346940}
+  - {fileID: 348543434}
   - {fileID: 1478329879}
   - {fileID: 1678128587}
   - {fileID: 89371691}

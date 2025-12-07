@@ -541,8 +541,7 @@ MonoBehaviour:
   gameTime: 300
   enemyCount: 3
   playerTankPrefab: {fileID: 8621377706946314261, guid: 76c8173e161a1444982f0f3b82342982, type: 3}
-  enemyTankPrefab: {fileID: 8883446190524244325, guid: 90166595365399f4e961287e558349aa, type: 3}
-  spawnPoints: []
+  playerSpawnPoint: {fileID: 0}
   healthText: {fileID: 0}
   enemyCountText: {fileID: 0}
   timeText: {fileID: 0}
@@ -551,7 +550,9 @@ MonoBehaviour:
   gameOverPanel: {fileID: 0}
   victoryPanel: {fileID: 0}
   gameOverMessage: {fileID: 0}
-  useLevelSystem: 1
+  autoLoadNextScene: 1
+  nextSceneDelay: 2
+  nextSceneName: 
 --- !u!4 &1588736607
 Transform:
   m_ObjectHideFlags: 0
@@ -567,6 +568,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1601766973
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1601766975}
+  - component: {fileID: 1601766974}
+  m_Layer: 0
+  m_Name: BootSceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1601766974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601766973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91b2ca65a74328c4a851c86880937168, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BootSceneManager
+  menuSceneName: Menu
+  loadDelay: 0.5
+--- !u!4 &1601766975
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601766973}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.24075, y: 1.46641, z: -3.05037}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -577,3 +624,4 @@ SceneRoots:
   - {fileID: 1588736607}
   - {fileID: 19034845}
   - {fileID: 704298758}
+  - {fileID: 1601766975}
