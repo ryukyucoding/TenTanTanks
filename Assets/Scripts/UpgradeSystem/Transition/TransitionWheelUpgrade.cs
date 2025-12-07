@@ -6,6 +6,7 @@ using TMPro;
 /// <summary>
 /// COMPREHENSIVE FIX FOR DIVIDER LINES AND FONT ISSUES
 /// Fixes secondary divider scaling and ensures proper font application
+/// ENHANCED WITH TANK TRANSFORMATION PERSISTENCE
 /// </summary>
 public class TransitionWheelUpgrade : MonoBehaviour
 {
@@ -493,6 +494,9 @@ public class TransitionWheelUpgrade : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ENHANCED ConfirmUpgrade with Tank Transformation Persistence
+    /// </summary>
     private void ConfirmUpgrade()
     {
         DebugLog("UPGRADE CONFIRMED: " + selectedUpgrade.upgradeName);
@@ -503,6 +507,18 @@ public class TransitionWheelUpgrade : MonoBehaviour
         {
             tankUpgradeSystem.ApplyUpgrade(selectedUpgrade.upgradeName);
             DebugLog("Applied upgrade: " + selectedUpgrade.upgradeName);
+
+            // 々々々 PERSISTENCE FIX: Save tank transformation for cross-scene persistence 々々々
+            var playerDataManager = PlayerDataManager.Instance;
+            if (playerDataManager != null)
+            {
+                playerDataManager.SaveTankTransformation(selectedUpgrade.upgradeName);
+                DebugLog($"? Saved tank transformation to PlayerDataManager: {selectedUpgrade.upgradeName}");
+            }
+            else
+            {
+                DebugLog("WARNING: PlayerDataManager not found! Tank transformation will not persist.");
+            }
         }
 
         HideWheelCompletely();
