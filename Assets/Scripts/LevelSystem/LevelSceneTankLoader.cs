@@ -55,7 +55,7 @@ public class LevelSceneTankLoader : MonoBehaviour
         // Check if we have PlayerDataManager
         if (playerDataManager == null)
         {
-            DebugLog("Cannot apply transformation: PlayerDataManager not found");
+            DebugLog("❌ Cannot apply transformation: PlayerDataManager not found");
             return;
         }
 
@@ -65,16 +65,52 @@ public class LevelSceneTankLoader : MonoBehaviour
 
         if (string.IsNullOrEmpty(savedTransformation) || savedTransformation == "Basic")
         {
-            DebugLog("ℹNo saved tank transformation found or using Basic appearance");
+            DebugLog("ℹ️ No saved tank transformation found or using Basic appearance");
             return;
         }
 
-        DebugLog($"Loading saved tank transformation: {savedTransformation}");
+        DebugLog($"🔄 Loading saved tank transformation: {savedTransformation}");
 
         // PlayerDataManager.LoadTankTransformation() already does all the work!
         playerDataManager.LoadTankTransformation();
 
-        DebugLog("Tank transformation loaded via PlayerDataManager");
+        DebugLog("✅ Tank transformation loaded via PlayerDataManager");
+
+        // 🔧 FIX: Update fire points after transformation to ensure bullets spawn correctly
+        FixFirePointsAfterTransformation();
+    }
+
+    /// <summary>
+    /// Fix fire point references after tank transformation
+    /// This ensures bullets spawn from the correct positions
+    /// </summary>
+    private void FixFirePointsAfterTransformation()
+    {
+        DebugLog("🔧 Fixing fire points after transformation...");
+
+        // Find TankFirePointUpdater or create one if needed
+        var firePointUpdater = FindFirstObjectByType<TankFirePointUpdater>();
+        if (firePointUpdater == null)
+        {
+            // Look for player tank and add the updater
+            var playerTank = GameObject.FindGameObjectWithTag("Player");
+            if (playerTank != null)
+            {
+                firePointUpdater = playerTank.AddComponent<TankFirePointUpdater>();
+                DebugLog("✅ Added TankFirePointUpdater to player tank");
+            }
+        }
+
+        if (firePointUpdater != null)
+        {
+            // Update fire points with a small delay to ensure transformation is complete
+            firePointUpdater.Invoke("UpdateFirePoints", 0.2f);
+            DebugLog("✅ Scheduled fire point update");
+        }
+        else
+        {
+            DebugLog("⚠️ Could not find or create TankFirePointUpdater");
+        }
     }
 
     /// <summary>
@@ -82,7 +118,7 @@ public class LevelSceneTankLoader : MonoBehaviour
     /// </summary>
     public void ReloadTankTransformation()
     {
-        DebugLog("Manual tank transformation reload requested");
+        DebugLog("🔄 Manual tank transformation reload requested");
         FindComponents();
         ApplySavedTankTransformation();
     }
@@ -115,11 +151,11 @@ public class LevelSceneTankLoader : MonoBehaviour
         if (playerDataManager != null)
         {
             playerDataManager.LoadTankTransformation();
-            DebugLog("Test: Called PlayerDataManager.LoadTankTransformation()");
+            DebugLog("🧪 Test: Called PlayerDataManager.LoadTankTransformation()");
         }
         else
         {
-            DebugLog("Test: PlayerDataManager not found");
+            DebugLog("🧪 Test: PlayerDataManager not found");
         }
     }
 
@@ -150,7 +186,7 @@ public class LevelSceneTankLoader : MonoBehaviour
         // Only apply transformation if we found PlayerDataManager now
         if (playerDataManager != null)
         {
-            DebugLog("Delayed component detection successful - applying transformation");
+            DebugLog("🔄 Delayed component detection successful - applying transformation");
             ApplySavedTankTransformation();
         }
     }
