@@ -97,7 +97,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         DebugLog("Loading custom font...");
 
         // Strategy 1: Direct Resources load
-        customFont = Resources.Load<TMP_FontAsset>("Fonts/Minecraft SDF");
+        customFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
 
         if (customFont != null)
         {
