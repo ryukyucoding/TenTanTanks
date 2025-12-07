@@ -149,9 +149,18 @@ public class TransitionUI : MonoBehaviour
 
         // 從場景名稱中提取關卡數字（例如 "Level3" -> 3）
         nextLevel = ExtractLevelNumber(nextSceneName);
-        currentLevel = Mathf.Max(1, nextLevel - 1);
 
-        Debug.Log($"[TransitionUI] 當前關卡: {currentLevel}, 下一關: {nextLevel}");
+        // 如果是第一關（從 Menu 進入），currentLevel 設為 0（表示不顯示）
+        if (nextLevel == 1)
+        {
+            currentLevel = 0;  // 0 表示從 Menu 進入，不顯示左側關卡
+            Debug.Log($"[TransitionUI] 從 Menu 進入第一關，只顯示右側: Level {nextLevel}");
+        }
+        else
+        {
+            currentLevel = nextLevel - 1;
+            Debug.Log($"[TransitionUI] 當前關卡: {currentLevel}, 下一關: {nextLevel}");
+        }
     }
 
     /// <summary>
@@ -191,23 +200,35 @@ public class TransitionUI : MonoBehaviour
     /// </summary>
     private void UpdateLevelDisplay()
     {
+        // 判斷是否從 Menu 進入（currentLevel == 0）
+        bool isFromMenu = (currentLevel == 0);
+
         if (leftLevelText != null)
         {
-            leftLevelText.text = $"Level {currentLevel}";
-            ApplyTextStyle(leftLevelText);
-            // 如果不跟隨坦克，開始時顯示左側文字
-            if (!followTank)
+            if (isFromMenu)
             {
-                leftLevelText.gameObject.SetActive(true);
-                // 確保初始透明度為 1（完全顯示）
-                Color color = leftLevelText.color;
-                color.a = 1f;
-                leftLevelText.color = color;
-                StartCoroutine(ShowTextSequence());
+                // 從 Menu 進入，完全不顯示左側文字
+                leftLevelText.gameObject.SetActive(false);
+                Debug.Log("[TransitionUI] 從 Menu 進入，隱藏左側關卡文字");
             }
             else
             {
-                leftLevelText.gameObject.SetActive(tankTransform == null);
+                leftLevelText.text = $"Level {currentLevel}";
+                ApplyTextStyle(leftLevelText);
+                // 如果不跟隨坦克，開始時顯示左側文字
+                if (!followTank)
+                {
+                    leftLevelText.gameObject.SetActive(true);
+                    // 確保初始透明度為 1（完全顯示）
+                    Color color = leftLevelText.color;
+                    color.a = 1f;
+                    leftLevelText.color = color;
+                    StartCoroutine(ShowTextSequence());
+                }
+                else
+                {
+                    leftLevelText.gameObject.SetActive(tankTransform == null);
+                }
             }
         }
 
@@ -215,14 +236,34 @@ public class TransitionUI : MonoBehaviour
         {
             rightLevelText.text = $"Level {nextLevel}";
             ApplyTextStyle(rightLevelText);
-            // 如果不跟隨坦克，初始隱藏右側文字
-            if (!followTank)
+
+            if (isFromMenu)
             {
-                rightLevelText.gameObject.SetActive(false);
+                // 從 Menu 進入，直接顯示右側文字，不需要淡入
+                if (!followTank)
+                {
+                    rightLevelText.gameObject.SetActive(true);
+                    Color color = rightLevelText.color;
+                    color.a = 1f;
+                    rightLevelText.color = color;
+                    Debug.Log("[TransitionUI] 從 Menu 進入，直接顯示 Level 1");
+                }
+                else
+                {
+                    rightLevelText.gameObject.SetActive(tankTransform == null);
+                }
             }
             else
             {
-                rightLevelText.gameObject.SetActive(tankTransform == null);
+                // 從關卡進入，初始隱藏右側文字（會在 ShowTextSequence 中淡入）
+                if (!followTank)
+                {
+                    rightLevelText.gameObject.SetActive(false);
+                }
+                else
+                {
+                    rightLevelText.gameObject.SetActive(tankTransform == null);
+                }
             }
         }
     }

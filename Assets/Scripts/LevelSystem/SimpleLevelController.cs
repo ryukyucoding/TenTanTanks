@@ -15,6 +15,10 @@ public class SimpleLevelController : MonoBehaviour
     [SerializeField] private GameObject enemyTankSoil;
     [SerializeField] private GameObject enemyTankPurple;
 
+    [Header("UI References")]
+    [Tooltip("Wave Progress Bar UI 控制器")]
+    [SerializeField] private WaveProgressBarUI waveProgressBarUI;
+
     [Header("狀態")]
     [SerializeField] private int currentWaveIndex = 0;
     [SerializeField] private bool isWaveActive = false;
@@ -32,6 +36,15 @@ public class SimpleLevelController : MonoBehaviour
 
     // Prefab 查找字典
     private Dictionary<string, GameObject> enemyPrefabs;
+
+    // 時間驅動系統
+    private float levelStartTime = 0f;
+    private bool useTimeDrivenWaves = true;  // 使用新的時間驅動系統
+    private HashSet<int> spawnedWaves = new HashSet<int>();  // 記錄已生成的波次
+
+    // 關卡總敵人數追蹤
+    private int totalEnemiesInLevel = 0;     // 關卡中所有敵人的總數
+    private int totalEnemiesKilled = 0;       // 已消滅的敵人總數
     
     private void Start()
     {
@@ -49,8 +62,121 @@ public class SimpleLevelController : MonoBehaviour
         // 初始化 UpgradePointManager
         InitializeUpgradeManager();
 
-        // 開始第一波
-        StartCoroutine(StartFirstWave());
+        // 初始化 Wave Progress Bar（新的時間軸系統）
+        InitializeWaveProgressBar();
+
+        // 記錄關卡開始時間
+        levelStartTime = Time.time;
+
+        // 如果使用時間驅動，不再使用舊的 StartFirstWave
+        if (!useTimeDrivenWaves)
+        {
+            StartCoroutine(StartFirstWave());
+        }
+    }
+
+    private void Update()
+    {
+        // 時間驅動的波次系統
+        if (useTimeDrivenWaves && currentLevelConfig != null)
+        {
+            CheckAndSpawnTimeDrivenWaves();
+        }
+    }
+
+    /// <summary>
+    /// 檢查並生成時間驅動的波次
+    /// </summary>
+    private void CheckAndSpawnTimeDrivenWaves()
+    {
+        float elapsedTime = Time.time - levelStartTime;
+
+        for (int i = 0; i < currentLevelConfig.waves.Length; i++)
+        {
+            // 如果這波還沒生成
+            if (!spawnedWaves.Contains(i))
+            {
+                WaveConfig wave = currentLevelConfig.waves[i];
+
+                // 使用 spawnTime（如果有設定），否則使用累積的 waveDelay
+                float targetSpawnTime = wave.spawnTime;
+
+                if (targetSpawnTime <= 0 && i > 0)
+                {
+                    // 如果沒設定 spawnTime，計算累積時間
+                    targetSpawnTime = 0f;
+                    for (int j = 0; j <= i; j++)
+                    {
+                        targetSpawnTime += currentLevelConfig.waves[j].waveDelay;
+                    }
+                }
+
+                // 時間到了就生成
+                if (elapsedTime >= targetSpawnTime)
+                {
+                    Debug.Log($"[TimeDriven] Spawning Wave {i + 1} at {elapsedTime:F1}s (target: {targetSpawnTime:F1}s)");
+                    SpawnWaveImmediate(i, wave);
+                    spawnedWaves.Add(i);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 立即生成指定波次
+    /// </summary>
+    private void SpawnWaveImmediate(int waveIndex, WaveConfig wave)
+    {
+        currentWaveIndex = waveIndex;
+        isWaveActive = true;
+        enemiesSpawnedInWave = 0;
+        enemiesKilledInWave = 0;
+
+        Debug.Log($"開始第 {waveIndex + 1} 波，敵人數量: {wave.enemies.Length}");
+        StartCoroutine(SpawnWaveEnemiesNew(wave));
+    }
+
+    /// <summary>
+    /// 初始化 Wave Progress Bar 的整關時間軸
+    /// </summary>
+    private void InitializeWaveProgressBar()
+    {
+        if (waveProgressBarUI != null && currentLevelConfig != null)
+        {
+            Debug.Log("[SimpleLevelController] Initializing Wave Progress Bar timeline");
+            waveProgressBarUI.InitializeLevelTimeline(currentLevelConfig);
+
+            // 訂閱時間結束事件
+            waveProgressBarUI.OnTimeUp = OnLevelTimeUp;
+        }
+        else if (waveProgressBarUI == null)
+        {
+            Debug.LogWarning("[SimpleLevelController] WaveProgressBarUI is not assigned");
+        }
+    }
+
+    /// <summary>
+    /// 當關卡時間結束時調用
+    /// </summary>
+    private void OnLevelTimeUp()
+    {
+        Debug.Log("[SimpleLevelController] 時間到！檢查是否所有敵人都被消滅...");
+
+        // 如果還有敵人存活，則失敗
+        if (totalEnemiesKilled < totalEnemiesInLevel)
+        {
+            int remainingEnemies = totalEnemiesInLevel - totalEnemiesKilled;
+            Debug.Log($"[SimpleLevelController] 時間內未消滅所有敵人 ({totalEnemiesKilled}/{totalEnemiesInLevel})，關卡失敗！");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.GameOver($"時間到！還有 {remainingEnemies} 個敵人未消滅");
+            }
+        }
+        else
+        {
+            Debug.Log("[SimpleLevelController] 所有敵人已被消滅，關卡完成！");
+            // 勝利條件已經在 OnEnemyDestroyed 中觸發，這裡不需要再次觸發
+        }
     }
 
     /// <summary>
@@ -104,9 +230,17 @@ public class SimpleLevelController : MonoBehaviour
             // 使用新系統
             totalWaves = currentLevelConfig.waves.Length;
 
+            // 計算關卡總敵人數
+            totalEnemiesInLevel = 0;
+            for (int i = 0; i < totalWaves; i++)
+            {
+                totalEnemiesInLevel += currentLevelConfig.waves[i].enemies.Length;
+            }
+            totalEnemiesKilled = 0;
+
             Debug.Log($"[SimpleLevelController] 使用新系統載入關卡");
             Debug.Log($"關卡初始化: {currentLevelConfig.levelName}");
-            Debug.Log($"總波數: {totalWaves}");
+            Debug.Log($"總波數: {totalWaves}，總敵人數: {totalEnemiesInLevel}");
 
             for (int i = 0; i < totalWaves; i++)
             {
@@ -297,6 +431,8 @@ public class SimpleLevelController : MonoBehaviour
         enemiesSpawnedInWave = 0;
         enemiesKilledInWave = 0;
         isWaveActive = true;
+
+        // 新的時間軸系統不需要停止倒數，時間持續進行
 
         // 根據使用新系統或舊系統來處理
         if (currentLevelConfig != null)
@@ -507,11 +643,31 @@ public class SimpleLevelController : MonoBehaviour
     
     public void OnEnemyDestroyed()
     {
-        if (!isWaveActive) return;
+        // 總是計算總擊殺數，不管波次是否活躍
+        totalEnemiesKilled++;
+        Debug.Log($"[SimpleLevelController] 敵人被消滅！總進度: {totalEnemiesKilled}/{totalEnemiesInLevel}");
         
+        // 檢查是否所有敵人都被消滅（勝利條件）
+        if (totalEnemiesKilled >= totalEnemiesInLevel)
+        {
+            Debug.Log("[SimpleLevelController] ✅ 所有敵人已被消滅，關卡完成！");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.Victory();
+            }
+            return;
+        }
+
+        // 只有在波次活躍時才計算波次擊殺數
+        if (!isWaveActive)
+        {
+            Debug.LogWarning($"[SimpleLevelController] 波次未活躍，但敵人被消滅了（這可能是正常的）");
+            return;
+        }
+
         enemiesKilledInWave++;
-        Debug.Log($"敵人被消滅: {enemiesKilledInWave}/{enemiesSpawnedInWave}");
-        
+        Debug.Log($"  - 本波進度: {enemiesKilledInWave}/{enemiesSpawnedInWave}");
+
         // 檢查當前波是否完成
         if (enemiesKilledInWave >= enemiesSpawnedInWave)
         {
@@ -523,7 +679,7 @@ public class SimpleLevelController : MonoBehaviour
     {
         isWaveActive = false;
         Debug.Log($"[SimpleLevelController] 第 {currentWaveIndex + 1} 波完成！");
-        
+
         // 通知 UpgradePointManager 波次完成，給予升級點數
         if (upgradeManager != null)
         {
@@ -534,7 +690,16 @@ public class SimpleLevelController : MonoBehaviour
         {
             Debug.LogWarning("[SimpleLevelController] ⚠️ UpgradePointManager 未初始化！");
         }
-        
+
+        // 如果使用時間控制波次，則不自動觸發下一波（由 CheckAndSpawnTimeDrivenWaves 控制）
+        if (useTimeDrivenWaves)
+        {
+            Debug.Log("[SimpleLevelController] 使用時間控制波次，等待時間觸發下一波");
+            // 勝利條件已經在 OnEnemyDestroyed 中檢查，這裡不需要再檢查
+            return;
+        }
+
+        // 舊系統：事件驅動，打完就生下一波
         currentWaveIndex++;
 
         // 檢查是否還有下一波
@@ -573,6 +738,11 @@ public class SimpleLevelController : MonoBehaviour
     
     private System.Collections.IEnumerator WaitForNextWave(float delay)
     {
+        Debug.Log($"[SimpleLevelController] Waiting for next wave... Delay: {delay}s");
+
+        // 新的時間軸系統會自動處理倒數，這裡只需要等待
+        // Wave Progress Bar 已經在 Start() 時初始化了整關的時間軸
+
         yield return new WaitForSeconds(delay);
         StartNextWave();
     }

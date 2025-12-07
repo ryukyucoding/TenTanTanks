@@ -615,9 +615,9 @@ MonoBehaviour:
   moveSpeedIncrement: 0.3
   bulletSpeedIncrement: 0.5
   fireRateIncrement: 0.2
-  maxMoveSpeedLevel: 100
-  maxBulletSpeedLevel: 100
-  maxFireRateLevel: 100
+  maxMoveSpeedLevel: 10
+  maxBulletSpeedLevel: 10
+  maxFireRateLevel: 10
 --- !u!114 &6168854359044807033
 MonoBehaviour:
   m_ObjectHideFlags: 0

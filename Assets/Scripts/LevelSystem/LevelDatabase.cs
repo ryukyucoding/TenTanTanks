@@ -9,13 +9,8 @@ public class LevelDataConfig
 {
     public string levelName;
     public string levelDescription;
-    public float timeLimit;
     public WaveConfig[] waves;
-    public bool requireAllEnemiesDefeated = true;
-    public bool requireSurviveTime = false;
-    public float survivalTime = 60f;
-    public int scoreReward = 100;
-    public int experienceReward = 50;
+    public float survivalTime = 60f;  // 關卡時間限制（秒）
 }
 
 /// <summary>
@@ -25,7 +20,14 @@ public class LevelDataConfig
 public class WaveConfig
 {
     public EnemyConfig[] enemies;
+
+    [Tooltip("舊系統：相對延遲時間（從上一波結束後等待）")]
     public float waveDelay = 1f;
+
+    [Tooltip("新系統：絕對生成時間（從關卡開始後第幾秒生成）。如果 > 0，會覆蓋 waveDelay")]
+    public float spawnTime = 0f;
+
+    [Tooltip("同一波中，每個敵人生成的間隔秒數")]
     public float spawnInterval = 0f;
 }
 
@@ -83,20 +85,21 @@ public static class LevelDatabase
         {
             levelName = "關卡 1 - 新手訓練",
             levelDescription = "學習基本操作，消滅所有敵人",
-            timeLimit = 0,
+            survivalTime = 30,
             waves = new[]
             {
-                // Wave 1: 1 個土色敵人
+                // Wave 1: 1 個土色敵人（關卡開始時立即出現）
                 new WaveConfig
                 {
                     enemies = new[]
                     {
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 0 }
                     },
+                    spawnTime = 0f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 2: 1 個土色 + 1 個綠色
+                // Wave 2: 1 個土色 + 1 個綠色（8 秒後出現）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -104,15 +107,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 1 }
                     },
+                    spawnTime = 8f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 }
-            },
-            requireAllEnemiesDefeated = true,
-            requireSurviveTime = false,
-            survivalTime = 60,
-            scoreReward = 100,
-            experienceReward = 50
+            }
         };
     }
 
@@ -125,10 +124,10 @@ public static class LevelDatabase
         {
             levelName = "關卡 2 - 挑戰開始",
             levelDescription = "面對更多敵人，測試你的技能",
-            timeLimit = 180,
+            survivalTime = 45,
             waves = new[]
             {
-                // Wave 1: 1 個灰色 + 1 個土色
+                // Wave 1: 1 個灰色 + 1 個土色（立即出現）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -136,10 +135,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 0 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 3 }
                     },
+                    spawnTime = 0f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 2: 1 個灰色 + 1 個綠色
+                // Wave 2: 1 個灰色 + 1 個綠色（15 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -147,25 +147,22 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 1 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 2 }
                     },
+                    spawnTime = 8f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 3: 1 個紫色敵人（較強）
+                // Wave 3: 1 個紫色敵人（30 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
                     {
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 3 }
                     },
+                    spawnTime = 18f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 }
-            },
-            requireAllEnemiesDefeated = true,
-            requireSurviveTime = false,
-            survivalTime = 60,
-            scoreReward = 200,
-            experienceReward = 100
+            }
         };
     }
 
@@ -178,10 +175,10 @@ public static class LevelDatabase
         {
             levelName = "關卡 3 - 生存挑戰",
             levelDescription = "在限定時間內生存下來，敵人會越來越強",
-            timeLimit = 120,
+            survivalTime = 60,
             waves = new[]
             {
-                // Wave 1: 2 個灰色敵人
+                // Wave 1: 2 個灰色敵人（立即出現）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -189,10 +186,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 0 },
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 1 }
                     },
+                    spawnTime = 0f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 2: 1 個紫色 + 1 個綠色
+                // Wave 2: 1 個紫色 + 1 個綠色（15 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -200,10 +198,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 3 }
                     },
+                    spawnTime = 8f,
                     waveDelay = 2f,
                     spawnInterval = 0f
                 },
-                // Wave 3: 1 個灰色 + 1 個綠色 + 1 個土色（最終波）
+                // Wave 3: 1 個灰色 + 1 個綠色 + 1 個土色（30 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -212,15 +211,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 1 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 3 }
                     },
+                    spawnTime = 18f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 }
-            },
-            requireAllEnemiesDefeated = true,
-            requireSurviveTime = true,
-            survivalTime = 120,
-            scoreReward = 300,
-            experienceReward = 150
+            }
         };
     }
 
@@ -233,10 +228,10 @@ public static class LevelDatabase
         {
             levelName = "關卡 4 - 進階戰鬥",
             levelDescription = "更多波次的敵人，考驗你的戰鬥技巧",
-            timeLimit = 200,
+            survivalTime = 90,
             waves = new[]
             {
-                // Wave 1: 2 個綠色敵人
+                // Wave 1: 2 個綠色敵人（立即出現）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -244,10 +239,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 0 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 2 }
                     },
+                    spawnTime = 0f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 2: 2 個灰色 + 1 個土色
+                // Wave 2: 2 個灰色 + 1 個土色（10 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -256,10 +252,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 3 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 0 }
                     },
+                    spawnTime = 10f,
                     waveDelay = 1.5f,
                     spawnInterval = 0f
                 },
-                // Wave 3: 2 個紫色敵人
+                // Wave 3: 2 個紫色敵人（25 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -267,10 +264,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 3 }
                     },
+                    spawnTime = 20f,
                     waveDelay = 2f,
                     spawnInterval = 0f
                 },
-                // Wave 4: 混合波（最終挑戰）
+                // Wave 4: 混合波（40 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -280,15 +278,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 3 }
                     },
+                    spawnTime = 35f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 }
-            },
-            requireAllEnemiesDefeated = true,
-            requireSurviveTime = false,
-            survivalTime = 60,
-            scoreReward = 400,
-            experienceReward = 200
+            }
         };
     }
 
@@ -301,10 +295,10 @@ public static class LevelDatabase
         {
             levelName = "關卡 5 - 終極考驗",
             levelDescription = "最強大的敵人組合，只有真正的高手才能通過",
-            timeLimit = 250,
+            survivalTime = 120,
             waves = new[]
             {
-                // Wave 1: 3 個灰色敵人
+                // Wave 1: 3 個灰色敵人（立即出現）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -313,10 +307,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 1 },
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 2 }
                     },
+                    spawnTime = 0f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 },
-                // Wave 2: 2 個紫色 + 1 個綠色
+                // Wave 2: 2 個紫色 + 1 個綠色（30 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -325,10 +320,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 3 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 2 }
                     },
+                    spawnTime = 15f,
                     waveDelay = 2f,
                     spawnInterval = 0f
                 },
-                // Wave 3: 2 個綠色 + 2 個土色
+                // Wave 3: 2 個綠色 + 2 個土色（60 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -338,10 +334,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 1 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 3 }
                     },
+                    spawnTime = 30f,
                     waveDelay = 1.5f,
                     spawnInterval = 0f
                 },
-                // Wave 4: 終極波次 - 所有類型敵人
+                // Wave 4: 終極波次 - 所有類型敵人（100 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -351,10 +348,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_GRAY, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_GREEN, spawnPointIndex = 3 }
                     },
+                    spawnTime = 50f,
                     waveDelay = 2f,
                     spawnInterval = 0f
                 },
-                // Wave 5: 最終挑戰
+                // Wave 5: 最終挑戰（150 秒後）
                 new WaveConfig
                 {
                     enemies = new[]
@@ -364,15 +362,11 @@ public static class LevelDatabase
                         new EnemyConfig { prefabKey = ENEMY_PURPLE, spawnPointIndex = 2 },
                         new EnemyConfig { prefabKey = ENEMY_SOIL, spawnPointIndex = 3 }
                     },
+                    spawnTime = 70f,
                     waveDelay = 1f,
                     spawnInterval = 0f
                 }
-            },
-            requireAllEnemiesDefeated = true,
-            requireSurviveTime = true,
-            survivalTime = 250,
-            scoreReward = 500,
-            experienceReward = 300
+            }
         };
     }
 }

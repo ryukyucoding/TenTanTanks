@@ -24,13 +24,31 @@ public class UpgradeUI : MonoBehaviour
     [SerializeField] private Color maxLevelColor = new Color(1f, 0.8f, 0.2f, 1f);
 
     private TankStats tankStats;
+    private bool isManuallyVisible = false; // 是否手動開啟（按 R）
+    private bool hasSubscribedToEvents = false; // 追蹤是否已訂閱事件
 
     void Start()
     {
         Debug.Log("[UpgradeUI] 开始初始化...");
+        Debug.Log($"[UpgradeUI] 此腳本掛在: {gameObject.name}");
+        Debug.Log($"[UpgradeUI] upgradePanel = {(upgradePanel != null ? upgradePanel.name : "null")} (Inspector 中設置)");
+        Debug.Log($"[UpgradeUI] upgradePointsText = {(upgradePointsText != null ? "已設置" : "null")}");
         
-        // 延迟查找玩家坦克，因为可能还没生成
+        if (upgradePanel == null)
+        {
+            Debug.LogError("[UpgradeUI] ❌❌❌ upgradePanel 在 Inspector 中沒有設置！請檢查！");
+        }
+        
+        // ⚠️ 重要：先啟動協程，再隱藏面板
+        // 如果 UpgradeUI 腳本掛在 upgradePanel 本身上，禁用它會導致協程無法執行
         StartCoroutine(InitializeDelayed());
+        
+        // 初始隱藏 UI（在協程啟動後）
+        if (upgradePanel != null)
+        {
+            upgradePanel.SetActive(false);
+            Debug.Log("[UpgradeUI] 已隱藏 upgradePanel");
+        }
     }
     
     private System.Collections.IEnumerator InitializeDelayed()
@@ -51,10 +69,8 @@ public class UpgradeUI : MonoBehaviour
         Debug.Log($"  - InstanceID: {tankStats.GetInstanceID()}");
 
         // 订阅事件
-        tankStats.OnUpgradePointsChanged += UpdateUI;
-        tankStats.OnStatUpgraded += OnStatUpgraded;
+        SubscribeToTankStatsEvents();
         
-        Debug.Log($"[UpgradeUI] 已订阅 TankStats 事件 (InstanceID: {tankStats.GetInstanceID()})");
         Debug.Log($"[UpgradeUI] upgradePanel = {(upgradePanel != null ? "✓ 已设置" : "❌ null")}");
 
         // 设置按钮点击事件
@@ -144,10 +160,28 @@ public class UpgradeUI : MonoBehaviour
 
     void Update()
     {
-        if (tankStats == null) return;
+        // 持續檢查 TankStats 連接
+        if (tankStats == null)
+        {
+            TryReconnectToPlayer();
+            return;
+        }
 
-        // 鍵盤快捷鍵
-        if (Keyboard.current != null)
+        // 確保事件已訂閱
+        if (!hasSubscribedToEvents)
+        {
+            SubscribeToTankStatsEvents();
+        }
+
+        // 按 R 鍵切換升級 UI
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            Debug.Log("[UpgradeUI] R 鍵被按下！");
+            ToggleUpgradeUI();
+        }
+
+        // 鍵盤快捷鍵（只在 UI 可見時才能使用）
+        if (upgradePanel != null && upgradePanel.activeSelf && Keyboard.current != null)
         {
             if (Keyboard.current.digit1Key.wasPressedThisFrame)
             {
@@ -161,6 +195,104 @@ public class UpgradeUI : MonoBehaviour
             {
                 OnUpgradeButtonClicked(TankStats.StatType.FireRate);
             }
+        }
+    }
+    
+    /// <summary>
+    /// 訂閱 TankStats 事件
+    /// </summary>
+    private void SubscribeToTankStatsEvents()
+    {
+        if (tankStats == null)
+        {
+            Debug.LogWarning("[UpgradeUI] 無法訂閱事件：tankStats 為 null");
+            return;
+        }
+
+        if (hasSubscribedToEvents)
+        {
+            Debug.LogWarning("[UpgradeUI] 已經訂閱過事件，跳過重複訂閱");
+            return;
+        }
+
+        tankStats.OnUpgradePointsChanged += UpdateUI;
+        tankStats.OnStatUpgraded += OnStatUpgraded;
+        hasSubscribedToEvents = true;
+        
+        Debug.Log($"[UpgradeUI] ✅ 已訂閱 TankStats 事件 (InstanceID: {tankStats.GetInstanceID()})");
+    }
+
+    /// <summary>
+    /// 嘗試重新連接到玩家
+    /// </summary>
+    private void TryReconnectToPlayer()
+    {
+        if (Time.frameCount % 60 == 0) // 每 60 幀檢查一次
+        {
+            FindPlayerTank();
+            if (tankStats != null)
+            {
+                Debug.Log("[UpgradeUI] ✅ 重新連接到玩家成功！");
+                SubscribeToTankStatsEvents();
+                
+                // 立即更新 UI
+                int currentPoints = tankStats.GetAvailableUpgradePoints();
+                UpdateUI(currentPoints);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 切換升級 UI 的顯示/隱藏（按 R 鍵）
+    /// </summary>
+    public void ToggleUpgradeUI()
+    {
+        if (upgradePanel == null)
+        {
+            Debug.LogError("[UpgradeUI] ❌ upgradePanel 是 null，無法切換！");
+            return;
+        }
+        
+        bool currentState = upgradePanel.activeSelf;
+        bool newState = !currentState;
+        
+        Debug.Log($"[UpgradeUI] 切換前: {currentState}, 切換後: {newState}");
+        
+        upgradePanel.SetActive(newState);
+        
+        // 驗證是否真的切換成功
+        Debug.Log($"[UpgradeUI] 實際狀態: {upgradePanel.activeSelf}");
+        
+        // 只有在玩家手動關閉時才標記為 "手動控制"，避免干擾自動顯示
+        if (!newState)
+        {
+            isManuallyVisible = false;
+        }
+        
+        Debug.Log($"[UpgradeUI] 手動切換 UI: {(newState ? "顯示" : "隱藏")}");
+    }
+    
+    /// <summary>
+    /// 顯示升級 UI（供外部調用，例如暫停時）
+    /// </summary>
+    public void ShowUpgradeUI()
+    {
+        if (upgradePanel != null)
+        {
+            upgradePanel.SetActive(true);
+            Debug.Log("[UpgradeUI] 顯示升級 UI");
+        }
+    }
+    
+    /// <summary>
+    /// 隱藏升級 UI
+    /// </summary>
+    public void HideUpgradeUI()
+    {
+        if (upgradePanel != null && !isManuallyVisible)
+        {
+            upgradePanel.SetActive(false);
+            Debug.Log("[UpgradeUI] 隱藏升級 UI");
         }
     }
 
@@ -185,7 +317,11 @@ public class UpgradeUI : MonoBehaviour
 
     private void UpdateUI(int availablePoints)
     {
-        Debug.Log($"[UpgradeUI] UpdateUI 被調用！升級點數: {availablePoints}");
+        Debug.Log($"[UpgradeUI] ========== UpdateUI 被調用 ==========");
+        Debug.Log($"[UpgradeUI] 升級點數: {availablePoints}");
+        Debug.Log($"[UpgradeUI] tankStats: {(tankStats != null ? tankStats.gameObject.name : "null")}");
+        Debug.Log($"[UpgradeUI] upgradePanel: {(upgradePanel != null ? upgradePanel.name : "null")}");
+        Debug.Log($"[UpgradeUI] upgradePanel.activeSelf: {(upgradePanel != null ? upgradePanel.activeSelf.ToString() : "N/A")}");
         
         // 更新升級點數顯示
         if (upgradePointsText != null)
@@ -198,16 +334,24 @@ public class UpgradeUI : MonoBehaviour
         UpdateButton(bulletSpeedButton, TankStats.StatType.BulletSpeed);
         UpdateButton(fireRateButton, TankStats.StatType.FireRate);
 
-        // show upgrade panel
+        // 自動顯示/隱藏升級面板
         if (upgradePanel != null)
         {
             bool shouldShow = availablePoints > 0;
-            upgradePanel.SetActive(shouldShow);
-            Debug.Log($"[UpgradeUI] upgradePanel.SetActive({shouldShow})");
-        }
-        else
-        {
-            Debug.LogError("[UpgradeUI] ❌ upgradePanel 是 null，無法顯示UI！");
+            
+            // 如果應該顯示，無論如何都顯示（覆蓋手動隱藏）
+            if (shouldShow)
+            {
+                upgradePanel.SetActive(true);
+                isManuallyVisible = false; // 重置手動控制標記，允許後續自動隱藏
+                Debug.Log($"[UpgradeUI] 自動顯示 upgradePanel（有升級點數）");
+            }
+            // 如果應該隱藏，但只在非手動控制狀態下才自動隱藏
+            else if (!isManuallyVisible)
+            {
+                upgradePanel.SetActive(false);
+                Debug.Log($"[UpgradeUI] 自動隱藏 upgradePanel（無升級點數）");
+            }
         }
     }
 

@@ -555,6 +555,9 @@ MonoBehaviour:
   explosionEffect: {fileID: 2256802017338235707, guid: b4eb364abb467ea488c1095a685a28d8, type: 3}
   explosionSound: {fileID: 8300000, guid: 3c67ff4ad4fb9ef42af03e84f95e5855, type: 3}
   explosionDuration: 2
+  spawnEffectPrefab: {fileID: 8080156424910990937, guid: a4a854a599000554ea07ead6681e648f, type: 3}
+  spawnDuration: 2
+  effectBrightness: 0.08
   aiParameters:
     maxAngleRandomTurn: 10
     randomTimerMinMove: 1
