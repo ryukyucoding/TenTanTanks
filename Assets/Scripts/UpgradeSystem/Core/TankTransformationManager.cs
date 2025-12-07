@@ -1,10 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 using WheelUpgradeSystem;
 
 /// <summary>
-/// FIXED TANK TRANSFORMATION SYSTEM
-/// ­×´_¡G·s¯¥ºÞ²{¦b·|§¹¥þ¨ú¥NÂÂ¯¥ºÞ¡A¦Ó¤£¬O§@¬°¥S§Ìª«¥ó
+/// FIXED TANK TRANSFORMATION SYSTEM - NOW WITH COMPLETE TIER 2 SUPPORT
+/// FIXED TURRETS
+/// ENHANCED: Added complete Tier 2 upgrade configurations following Tier 1 pattern
 /// </summary>
 public class TankTransformationManager : MonoBehaviour
 {
@@ -218,8 +219,21 @@ public class TankTransformationManager : MonoBehaviour
             smallTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Small_T1");
         if (balancedTier1Prefab == null)
             balancedTier1Prefab = Resources.Load<GameObject>("TankPrefabs/Balanced_T1");
+        if (hugeTier2AroundPrefab == null)
+            hugeTier2AroundPrefab = Resources.Load<GameObject>("TankPrefabs/Huge_T2Around");
+        if (smallTier2AroundPrefab == null)
+            smallTier2AroundPrefab = Resources.Load<GameObject>("TankPrefabs/Small_T2Around");
+        if (balancedTier2AroundPrefab == null)
+            balancedTier2AroundPrefab = Resources.Load<GameObject>("TankPrefabs/Balanced_T2Around");
+        if (hugeTier2FrontPrefab == null)
+            hugeTier2FrontPrefab = Resources.Load<GameObject>("TankPrefabs/Huge_T2Front");
+        if (smallTier2FrontPrefab == null)
+            smallTier2FrontPrefab = Resources.Load<GameObject>("TankPrefabs/Small_T2Front");
+        if (balancedTier2FrontPrefab == null)
+            balancedTier2FrontPrefab = Resources.Load<GameObject>("TankPrefabs/Balanced_T2Front");
 
         DebugLog($"Prefabs loaded: Huge_T1={hugeTier1Prefab != null}, Small_T1={smallTier1Prefab != null}, Balanced_T1={balancedTier1Prefab != null}");
+        DebugLog($"Tier2 Prefabs: HugeT2Front={hugeTier2FrontPrefab != null}, SmallT2Front={smallTier2FrontPrefab != null}, BalancedT2Front={balancedTier2FrontPrefab != null}");
     }
 
     private void SubscribeToUpgradeEvents()
@@ -244,9 +258,6 @@ public class TankTransformationManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// FIXED: ¥¿½T³B²zPlayerTank¼h¯ÅªºTurret´À´«
-    /// </summary>
     public void ApplyVisualTransformation(string upgradeName)
     {
         Debug.Log($"Applying visual transformation: {upgradeName}");
@@ -370,12 +381,32 @@ public class TankTransformationManager : MonoBehaviour
     {
         switch (upgradeName.ToLower())
         {
+            // Tier 1 Upgrades
             case "heavy":
                 return hugeTier1Prefab;
             case "rapid":
                 return smallTier1Prefab;
             case "balanced":
                 return balancedTier1Prefab;
+
+            // Tier 2 Heavy Upgrades (from Heavy)
+            case "armorpiercing":
+                return hugeTier2FrontPrefab;
+            case "superheavy":
+                return hugeTier2AroundPrefab;
+
+            // Tier 2 Rapid Upgrades (from Rapid)
+            case "burst":
+                return smallTier2FrontPrefab;
+            case "machinegun":
+                return smallTier2AroundPrefab;
+
+            // Tier 2 Balanced Upgrades (from Balanced)
+            case "tactical":
+                return balancedTier2FrontPrefab;
+            case "versatile":
+                return balancedTier2AroundPrefab;
+
             default:
                 return null;
         }
@@ -481,7 +512,6 @@ public class TankTransformationManager : MonoBehaviour
             DebugLog($"Multi-turret stats updated");
         }
 
-        DebugLog($"Tank configuration applied - Damage will be x{currentConfig.damageMultiplier}");
     }
 
     private void UpdateShootingSystem()
@@ -505,39 +535,101 @@ public class TankTransformationManager : MonoBehaviour
     {
         switch (upgradeName.ToLower())
         {
+            // === TIER 1 CONFIGURATIONS ===
             case "heavy":
                 return new TankConfiguration
                 {
                     upgradeName = "Heavy",
-                    tankColor = new Color(0.8f, 0.2f, 0.2f),
+                    tankColor = Color.white,
                     moveSpeedMultiplier = 0.7f,
                     fireRateMultiplier = 0.8f,
                     bulletSpeedMultiplier = 0.8f,
-                    damageMultiplier = 1.5f
                 };
 
             case "rapid":
                 return new TankConfiguration
                 {
                     upgradeName = "Rapid",
-                    tankColor = new Color(1f, 0.8f, 0.2f),
+                    tankColor = Color.white,
                     moveSpeedMultiplier = 1.2f,
                     fireRateMultiplier = 1.8f,
                     bulletSpeedMultiplier = 1.4f,
-                    damageMultiplier = 0.6f
                 };
 
             case "balanced":
                 return new TankConfiguration
                 {
                     upgradeName = "Balanced",
-                    tankColor = new Color(0.3f, 0.7f, 1f),
+                    tankColor = Color.white,
                     moveSpeedMultiplier = 1f,
                     fireRateMultiplier = 1.3f,
                     bulletSpeedMultiplier = 1f,
-                    damageMultiplier = 1f
                 };
 
+            // === TIER 2 HEAVY CONFIGURATIONS (from Heavy) ===
+            case "armorpiercing":
+                return new TankConfiguration
+                {
+                    upgradeName = "ArmorPiercing",
+                    tankColor = new Color(0.9f, 0.3f, 0.3f), // Dark red
+                    moveSpeedMultiplier = 0.6f, // Even slower than Heavy
+                    fireRateMultiplier = 0.6f, // Slower fire rate
+                    bulletSpeedMultiplier = 0.7f, // Slower bullets
+                };
+
+            case "superheavy":
+                return new TankConfiguration
+                {
+                    upgradeName = "SuperHeavy",
+                    tankColor = new Color(0.8f, 0.2f, 0.2f), // Darker red
+                    moveSpeedMultiplier = 0.5f, // Very slow
+                    fireRateMultiplier = 0.4f, // Very slow fire rate
+                    bulletSpeedMultiplier = 0.6f, // Very slow bullets
+                };
+
+            // === TIER 2 RAPID CONFIGURATIONS (from Rapid) ===
+            case "burst":
+                return new TankConfiguration
+                {
+                    upgradeName = "Burst",
+                    tankColor = new Color(0.3f, 0.9f, 0.3f), // Bright green
+                    moveSpeedMultiplier = 1.3f, // Faster than Rapid
+                    fireRateMultiplier = 2.2f, // Even faster fire rate
+                    bulletSpeedMultiplier = 1.6f, // Faster bullets
+                };
+
+            case "machinegun":
+                return new TankConfiguration
+                {
+                    upgradeName = "MachineGun",
+                    tankColor = new Color(0.2f, 0.8f, 0.2f), // Dark green
+                    moveSpeedMultiplier = 1.4f, // Very fast
+                    fireRateMultiplier = 2.5f, // Very fast fire rate
+                    bulletSpeedMultiplier = 1.8f, // Very fast bullets
+                };
+
+            // === TIER 2 BALANCED CONFIGURATIONS (from Balanced) ===
+            case "tactical":
+                return new TankConfiguration
+                {
+                    upgradeName = "Tactical",
+                    tankColor = new Color(0.4f, 0.4f, 0.9f), // Bright blue
+                    moveSpeedMultiplier = 1.1f, // Slightly faster than Balanced
+                    fireRateMultiplier = 1.5f, // Better fire rate than Balanced
+                    bulletSpeedMultiplier = 1.2f, // Faster bullets than Balanced
+                };
+
+            case "versatile":
+                return new TankConfiguration
+                {
+                    upgradeName = "Versatile",
+                    tankColor = new Color(0.5f, 0.3f, 0.9f), // Purple
+                    moveSpeedMultiplier = 1.2f, // Good speed
+                    fireRateMultiplier = 1.7f, // Good fire rate
+                    bulletSpeedMultiplier = 1.3f, // Good bullet speed
+                };
+
+            // === BASIC CONFIGURATION ===
             case "basic":
                 return new TankConfiguration
                 {
@@ -546,7 +638,6 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1f,
                     fireRateMultiplier = 1f,
                     bulletSpeedMultiplier = 1f,
-                    damageMultiplier = 1f
                 };
 
             default:
@@ -555,7 +646,9 @@ public class TankTransformationManager : MonoBehaviour
         }
     }
 
-    // PUBLIC METHODS FOR UPGRADE WHEEL
+    // === PUBLIC METHODS FOR UPGRADE WHEEL ===
+
+    // Tier 1 Upgrade Methods
     public void SelectHeavyUpgrade()
     {
         OnUpgradeSelected("Heavy");
@@ -571,23 +664,118 @@ public class TankTransformationManager : MonoBehaviour
         OnUpgradeSelected("Balanced");
     }
 
-    // CONTEXT MENU TESTING
-    [ContextMenu("Test Heavy Transformation")]
+    // Tier 2 Heavy Upgrade Methods
+    public void SelectArmorPiercingUpgrade()
+    {
+        OnUpgradeSelected("ArmorPiercing");
+    }
+
+    public void SelectSuperHeavyUpgrade()
+    {
+        OnUpgradeSelected("SuperHeavy");
+    }
+
+    // Tier 2 Rapid Upgrade Methods
+    public void SelectBurstUpgrade()
+    {
+        OnUpgradeSelected("Burst");
+    }
+
+    public void SelectMachineGunUpgrade()
+    {
+        OnUpgradeSelected("MachineGun");
+    }
+
+    // Tier 2 Balanced Upgrade Methods
+    public void SelectTacticalUpgrade()
+    {
+        OnUpgradeSelected("Tactical");
+    }
+
+    public void SelectVersatileUpgrade()
+    {
+        OnUpgradeSelected("Versatile");
+    }
+
+    // CONTEXT MENU TESTING - PERMANENT (SAVES TO PLAYERDATA)
+    [ContextMenu("SAVE Heavy Transformation")]
     public void TestHeavy()
     {
         OnUpgradeSelected("Heavy");
     }
 
-    [ContextMenu("Test Rapid Transformation")]
+    [ContextMenu("SAVE Rapid Transformation")]
     public void TestRapid()
     {
         OnUpgradeSelected("Rapid");
     }
 
-    [ContextMenu("Test Balanced Transformation")]
+    [ContextMenu("SAVE Balanced Transformation")]
     public void TestBalanced()
     {
         OnUpgradeSelected("Balanced");
+    }
+
+    [ContextMenu("SAVE ArmorPiercing (Tier 2)")]
+    public void TestArmorPiercing()
+    {
+        OnUpgradeSelected("ArmorPiercing");
+    }
+
+    [ContextMenu("SAVE MachineGun (Tier 2)")]
+    public void TestMachineGun()
+    {
+        OnUpgradeSelected("MachineGun");
+    }
+
+    [ContextMenu("SAVE Tactical (Tier 2)")]
+    public void TestTactical()
+    {
+        OnUpgradeSelected("Tactical");
+    }
+
+    // CONTEXT MENU TESTING - VISUAL ONLY (DOESN'T SAVE)
+    [ContextMenu("VISUAL ONLY Heavy")]
+    public void TestVisualOnlyHeavy()
+    {
+        ApplyVisualTransformation("Heavy");
+        ApplyStatChanges("Heavy");
+        UpdateShootingSystem();
+        DebugLog("Applied VISUAL ONLY Heavy - not saved to PlayerData");
+    }
+
+    [ContextMenu("VISUAL ONLY Rapid")]
+    public void TestVisualOnlyRapid()
+    {
+        ApplyVisualTransformation("Rapid");
+        ApplyStatChanges("Rapid");
+        UpdateShootingSystem();
+        DebugLog("Applied VISUAL ONLY Rapid - not saved to PlayerData");
+    }
+
+    [ContextMenu("VISUAL ONLY ArmorPiercing")]
+    public void TestVisualOnlyArmorPiercing()
+    {
+        ApplyVisualTransformation("ArmorPiercing");
+        ApplyStatChanges("ArmorPiercing");
+        UpdateShootingSystem();
+        DebugLog("Applied VISUAL ONLY ArmorPiercing - not saved to PlayerData");
+    }
+
+    [ContextMenu("VISUAL ONLY MachineGun")]
+    public void TestVisualOnlyMachineGun()
+    {
+        ApplyVisualTransformation("MachineGun");
+        ApplyStatChanges("MachineGun");
+        UpdateShootingSystem();
+        DebugLog("Applied VISUAL ONLY MachineGun - not saved to PlayerData");
+    }
+
+    [ContextMenu("RESET to PlayerData Saved")]
+    public void ResetToSaved()
+    {
+        LoadSavedTransformation();
+        DebugLog("Reset to whatever is saved in PlayerDataManager");
     }
 
     [ContextMenu("Reset to Basic")]
@@ -607,8 +795,11 @@ public class TankTransformationManager : MonoBehaviour
         {
             DebugLog($"Move Speed: x{currentConfig.moveSpeedMultiplier}");
             DebugLog($"Fire Rate: x{currentConfig.fireRateMultiplier}");
-            DebugLog($"Damage: x{currentConfig.damageMultiplier}");
             DebugLog($"Color: {currentConfig.tankColor}");
+        }
+        else
+        {
+            DebugLog("CurrentConfig is NULL!");
         }
 
         // Debug hierarchy
@@ -620,6 +811,43 @@ public class TankTransformationManager : MonoBehaviour
                 DebugLog($"Child: {child.name} (active: {child.gameObject.activeSelf})");
             }
         }
+
+        // â˜…â˜…â˜… NEW: Debug PlayerTank level hierarchy â˜…â˜…â˜…
+        DebugLog("=== PLAYERTANK LEVEL HIERARCHY ===");
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            DebugLog($"PlayerTank Child {i}: {child.name} (active: {child.gameObject.activeSelf})");
+        }
+
+        // Debug prefab availability
+        DebugLog("=== PREFAB AVAILABILITY CHECK ===");
+        DebugLog($"hugeTier1Prefab: {(hugeTier1Prefab != null ? "âœ“ Loaded" : "âœ— NULL")}");
+        DebugLog($"smallTier1Prefab: {(smallTier1Prefab != null ? "âœ“ Loaded" : "âœ— NULL")}");
+        DebugLog($"balancedTier1Prefab: {(balancedTier1Prefab != null ? "âœ“ Loaded" : "âœ— NULL")}");
+        DebugLog($"hugeTier2FrontPrefab: {(hugeTier2FrontPrefab != null ? "âœ“ Loaded" : "âœ— NULL")}");
+        DebugLog($"hugeTier2AroundPrefab: {(hugeTier2AroundPrefab != null ? "âœ“ Loaded" : "âœ— NULL")}");
+    }
+
+    [ContextMenu("Debug Prefab Loading")]
+    public void DebugPrefabLoading()
+    {
+        DebugLog("=== TESTING PREFAB LOADING ===");
+
+        var testHuge = Resources.Load<GameObject>("TankPrefabs/Huge_T1");
+        DebugLog($"Manual load Huge_T1: {(testHuge != null ? "âœ“ SUCCESS" : "âœ— FAILED")}");
+
+        var testSmall = Resources.Load<GameObject>("TankPrefabs/Small_T1");
+        DebugLog($"Manual load Small_T1: {(testSmall != null ? "âœ“ SUCCESS" : "âœ— FAILED")}");
+
+        var testBalanced = Resources.Load<GameObject>("TankPrefabs/Balanced_T1");
+        DebugLog($"Manual load Balanced_T1: {(testBalanced != null ? "âœ“ SUCCESS" : "âœ— FAILED")}");
+
+        // Try without TankPrefabs folder
+        var testHugeNoFolder = Resources.Load<GameObject>("Huge_T1");
+        DebugLog($"Manual load Huge_T1 (no folder): {(testHugeNoFolder != null ? "âœ“ SUCCESS" : "âœ— FAILED")}");
+
+        DebugLog("Check your Resources folder structure!");
     }
 
     private void DebugLog(string message)
@@ -642,5 +870,4 @@ public class TankConfiguration
     public float moveSpeedMultiplier = 1f;
     public float fireRateMultiplier = 1f;
     public float bulletSpeedMultiplier = 1f;
-    public float damageMultiplier = 1f;
 }

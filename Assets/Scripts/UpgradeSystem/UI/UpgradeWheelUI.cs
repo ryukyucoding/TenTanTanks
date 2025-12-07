@@ -621,7 +621,7 @@ public class UpgradeWheelUI : MonoBehaviour
 
             DebugLog($"Tier 1 selected in transition mode: {option.upgradeName}");
 
-            //  Apply tank transformation immediately
+            // Apply tank transformation immediately
             TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
             if (transformManager != null)
             {
@@ -668,6 +668,48 @@ public class UpgradeWheelUI : MonoBehaviour
         if (isTransitionMode && transitionAllowedTier == 2)
         {
             DebugLog($"Tier 2 selected in transition mode: {option.upgradeName}");
+
+            // 々々々 NEW: Apply Tier 2 tank transformation immediately 々々々
+            TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
+            if (transformManager != null)
+            {
+                string upgradeName = option.upgradeName.ToLower();
+                switch (upgradeName)
+                {
+                    // Heavy Tier 2 upgrades
+                    case "armorpiercing":
+                        transformManager.SelectArmorPiercingUpgrade();
+                        break;
+                    case "superheavy":
+                        transformManager.SelectSuperHeavyUpgrade();
+                        break;
+
+                    // Rapid Tier 2 upgrades
+                    case "burst":
+                        transformManager.SelectBurstUpgrade();
+                        break;
+                    case "machinegun":
+                        transformManager.SelectMachineGunUpgrade();
+                        break;
+
+                    // Balanced Tier 2 upgrades
+                    case "tactical":
+                        transformManager.SelectTacticalUpgrade();
+                        break;
+                    case "versatile":
+                        transformManager.SelectVersatileUpgrade();
+                        break;
+
+                    default:
+                        Debug.LogWarning($"Unknown Tier 2 upgrade: {option.upgradeName}");
+                        break;
+                }
+                DebugLog($"Applied Tier 2 tank transformation: {option.upgradeName}");
+            }
+            else
+            {
+                Debug.LogError("TankTransformationManager not found! Tank appearance will not change.");
+            }
 
             // In transition mode, immediately trigger the transition manager
             var transitionManager = FindFirstObjectByType<TransitionWheelUpgrade>();
