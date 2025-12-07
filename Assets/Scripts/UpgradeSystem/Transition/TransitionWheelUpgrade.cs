@@ -97,54 +97,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
         DebugLog("Loading custom font...");
 
         // Strategy 1: Direct Resources load
-        customFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
-
-        if (customFont == null)
-        {
-            // Strategy 2: Alternative paths
-            string[] fontPaths = {
-                "MinecraftTen-VGORe SDF",
-                "Fonts/MinecraftTen-VGORe SDF",
-                "MinecraftTen-VGORe",
-                "Minecraft"
-            };
-
-            foreach (string path in fontPaths)
-            {
-                customFont = Resources.Load<TMP_FontAsset>(path);
-                if (customFont != null)
-                {
-                    DebugLog("Found font via path: " + path);
-                    break;
-                }
-            }
-        }
-
-        if (customFont == null)
-        {
-            // Strategy 3: Find any TMP font with "minecraft" in name
-            TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-            foreach (var font in allFonts)
-            {
-                if (font.name.ToLower().Contains("minecraft"))
-                {
-                    customFont = font;
-                    DebugLog("Found Minecraft font by search: " + font.name);
-                    break;
-                }
-            }
-        }
-
-        if (customFont == null)
-        {
-            // Strategy 4: Use any available TMP font
-            TMP_FontAsset[] allFonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-            if (allFonts.Length > 0)
-            {
-                customFont = allFonts[0];
-                DebugLog("Using fallback TMP font: " + customFont.name);
-            }
-        }
+        customFont = Resources.Load<TMP_FontAsset>("Fonts/Minecraft SDF");
 
         if (customFont != null)
         {
@@ -462,30 +415,66 @@ public class TransitionWheelUpgrade : MonoBehaviour
         {
             case "heavy":
                 return "<size=28><color=orange>Heavy Tank Upgrade</color></size>\n\n" +
-                       "CANNON CHANGES:\n" +
-                       "- Cannon becomes bigger and thicker\n" +
-                       "- Bullets are much more powerful\n" +
-                       "- Slower firing speed\n" +
-                       "- Perfect for armored enemies\n\n" +
-                       "This upgrade focuses on raw firepower.";
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- Cannon becomes bigger\n</size>" +
+                       "<size=28>- Bullets are bigger, easier to hit target\n</size>" +
+                       "<size=28>- Slower firing speed</size>";
 
             case "rapid":
                 return "<size=28><color=lightblue>Rapid Fire Upgrade</color></size>\n\n" +
-                       "CANNON CHANGES:\n" +
-                       "- Cannon becomes smaller and thinner\n" +
-                       "- Bullets are smaller but fire rapidly\n" +
-                       "- Much faster firing speed\n" +
-                       "- Great against many enemies\n\n" +
-                       "This upgrade focuses on attack speed.";
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- Cannon becomes smaller\n</size>" +
+                       "<size=28>- Bullets are smaller\n</size>" +
+                       "<size=28>- Much faster firing speed</size>";
 
             case "balanced":
                 return "<size=28><color=purple>Balanced Upgrade</color></size>\n\n" +
-                       "CANNON CHANGES:\n" +
-                       "- Cannon size stays the same\n" +
-                       "- Bullet power remains unchanged\n" +
-                       "- You get a second cannon\n" +
-                       "- Both cannons fire together\n\n" +
-                       "This upgrade focuses on multiple attacks.";
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- Cannon size, bullet size, firing rate stays the same\n</size>" +
+                       "<size=28>- You get a second cannon at the same direction\n</size>" +
+                       "<size=28>- Both cannons fire together</size>";
+
+            case "armorpiercing":
+                return "<size=28><color=purple>Armor Piercing Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of three HEAVY cannons\n</size>" +
+                       "<size=28>- All in the same direction\n</size>" +
+                       "<size=28>- Gives powerful and concentrated attack.</size>";
+
+            case "machinegun":
+                return "<size=28><color=purple>Machine Gun Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of three HEAVY cannons\n</size>" +
+                       "<size=28>- Three cannons at 0, 120, 240 degree\n</size>" +
+                       "<size=28>- Can take care of more directions at the same time.</size>";
+
+            case "burst":
+                return "<size=28><color=purple>Burst Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of three RAPID cannons\n</size>" +
+                       "<size=28>- All in the same direction</size>" +
+                       "<size=28>- Gives fast and concentrated attack.</size>";
+
+            case "versatile":
+                return "<size=28><color=purple>Versatile Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of three RAPID cannons\n</size>" +
+                       "<size=28>- Three cannons at 0, 120, 240 degree</size>" +
+                       "<size=28>- Can take care of more directions at the same time.</size>";
+
+            case "tactical":
+                return "<size=28><color=purple>Tactical Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of FOUR cannons\n</size>" +
+                       "<size=28>- 2 in front, 2 in back</size>" +
+                       "<size=28>- A mix of bullet size, speed, directions and concentration.</size>";
+
+            case "superheavy":
+                return "<size=28><color=purple>Super Heavy Upgrade</color></size>\n\n" +
+                       "<size=28>CANNON CHANGES:\n</size>" +
+                       "<size=28>- A total of FOUR cannons\n</size>" +
+                       "<size=28>- One in each side of the tank</size>" +
+                       "<size=28>- Take care of even more directions with medium bullet size</size>";
 
             default:
                 return "<size=28>" + upgradeName + " Upgrade</size>\n\n" +

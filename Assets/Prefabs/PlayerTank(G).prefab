@@ -595,6 +595,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TankShooting
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
   bulletLifetime: 3
+  enableDebugLogs: 1
+  fireAllTurretsSimultaneously: 1
   shootSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
   muzzleFlash: {fileID: 0}
 --- !u!114 &-460199179078218526

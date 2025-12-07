@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // **************************
@@ -23,7 +23,7 @@ public class EnhancedTransitionMover : MonoBehaviour
     [SerializeField] private bool pauseForUpgrade = true; // Whether to pause for upgrade
 
     [Header("Scenes Requiring Upgrades")]
-    [SerializeField] private string[] upgradeScenes = { "Level3", "Level5" }; // Target scenes that need upgrades
+    [SerializeField] private string[] upgradeScenes = { "Level1", "Level2" }; // Target scenes that need upgrades
 
     [Header("Transition Upgrade Testing")]
     [SerializeField] private TransitionWheelUpgrade transitionUpgrade; // Optional transition upgrade component
@@ -172,27 +172,46 @@ public class EnhancedTransitionMover : MonoBehaviour
     {
         if (transitionUpgrade != null)
         {
-            string transitionType;
+            string transitionType = "MenuToLevel1"; // default
 
-            // Determine transition type based on target scene
-            if (nextScene == "Level3")
+            if (nextScene == "Level1")
             {
-                transitionType = "Level2To3";
+                // Tier 1 upgrade
+                transitionType = "MenuToLevel1";
+                Debug.Log("[EnhancedTransitionMover] Menuâ†’Level1: Showing Tier 1 options");
             }
-            else if (nextScene == "Level5")
+            else if (nextScene == "Level2")
             {
-                transitionType = "Level4To5";
-            }
-            else if (nextScene == "Level1") // For testing - treat as Level 2¡÷3
-            {
-                transitionType = "Level2To3";
-                Debug.Log("[EnhancedTransitionMover] Using Level1 for testing - treating as Level 2¡÷3 transition");
+                // Tier 2 upgrade
+                transitionType = "Level1ToLevel2";
+                Debug.Log("[EnhancedTransitionMover] Level1â†’Level2: Showing Tier 2 options");
+
+                // parent
+                string savedTier1 = "";
+                if (PlayerDataManager.Instance != null)
+                {
+                    savedTier1 = PlayerDataManager.Instance.GetCurrentTankTransformation();
+                    Debug.Log("[EnhancedTransitionMover] Found saved Tier 1: " + savedTier1);
+                }
+
+                // if Tier 1 saved set wheel to tier 2
+                if (!string.IsNullOrEmpty(savedTier1) && savedTier1 != "Basic")
+                {
+                    var upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
+                    if (upgradeWheelUI != null)
+                    {
+                        upgradeWheelUI.SetTransitionMode(2, savedTier1);
+                        upgradeWheelUI.ShowWheelForTransition();
+                        Debug.Log("[EnhancedTransitionMover] âœ“ Set wheel to Tier 2 mode with parent: " + savedTier1);
+                        return true;
+                    }
+                }
             }
             else
             {
-                // Default fallback
-                transitionType = "Level2To3";
-                Debug.Log("[EnhancedTransitionMover] Unknown target scene '" + nextScene + "', defaulting to Level 2¡÷3");
+                // default Tier 1
+                transitionType = "MenuToLevel1";
+                Debug.Log("[EnhancedTransitionMover] Unknown scene, defaulting to Tier 1");
             }
 
             transitionUpgrade.ShowUpgradePanel(transitionType);
