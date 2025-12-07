@@ -176,47 +176,70 @@ public class EnhancedTransitionMover : MonoBehaviour
 
             if (nextScene == "Level1")
             {
-                // Tier 1 upgrade
+                // Tier 1 upgrade (Basic → Heavy/Rapid/Balanced)
                 transitionType = "MenuToLevel1";
-                Debug.Log("[EnhancedTransitionMover] Menu→Level1: Showing Tier 1 options");
+                Debug.Log("[EnhancedTransitionMover] Menu→Level1: Showing Tier 1 options (Heavy/Rapid/Balanced)");
+                
+                // 顯示 Tier 1 輪盤
+                transitionUpgrade.ShowUpgradePanel(transitionType);
+                return true;
             }
             else if (nextScene == "Level2")
             {
                 // Tier 2 upgrade
                 transitionType = "Level1ToLevel2";
-                Debug.Log("[EnhancedTransitionMover] Level1→Level2: Showing Tier 2 options");
+                Debug.Log("[EnhancedTransitionMover] Level1→Level2: Checking for Tier 2 options");
 
-                // parent
+                // ✅ 獲取保存的 Tier 1 選擇
                 string savedTier1 = "";
                 if (PlayerDataManager.Instance != null)
                 {
                     savedTier1 = PlayerDataManager.Instance.GetCurrentTankTransformation();
-                    Debug.Log("[EnhancedTransitionMover] Found saved Tier 1: " + savedTier1);
+                    Debug.Log($"[EnhancedTransitionMover] Saved Tier 1 transformation: {savedTier1}");
+                }
+                else
+                {
+                    Debug.LogError("[EnhancedTransitionMover] ❌ PlayerDataManager not found!");
                 }
 
-                // if Tier 1 saved set wheel to tier 2
-                if (!string.IsNullOrEmpty(savedTier1) && savedTier1 != "Basic")
+                // ✅ 如果有 Tier 1 變形，顯示對應的 Tier 2 選項
+                if (!string.IsNullOrEmpty(savedTier1) && savedTier1.ToLower() != "basic")
                 {
+                    Debug.Log($"[EnhancedTransitionMover] ✅ Showing Tier 2 options for parent: {savedTier1}");
+                    
+                    // 嘗試找到並設置 UpgradeWheelUI
                     var upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
                     if (upgradeWheelUI != null)
                     {
+                        Debug.Log($"[EnhancedTransitionMover] Found UpgradeWheelUI, setting to Tier 2 mode");
+                        Debug.Log($"[EnhancedTransitionMover] Parent upgrade: {savedTier1}");
+                        
+                        // 設置為 Tier 2 模式
                         upgradeWheelUI.SetTransitionMode(2, savedTier1);
-                        upgradeWheelUI.ShowWheelForTransition();
-                        Debug.Log("[EnhancedTransitionMover] ✓ Set wheel to Tier 2 mode with parent: " + savedTier1);
-                        return true;
                     }
+                    else
+                    {
+                        Debug.LogWarning("[EnhancedTransitionMover] ⚠️ UpgradeWheelUI not found in scene!");
+                    }
+                    
+                    // 顯示輪盤
+                    transitionUpgrade.ShowUpgradePanel(transitionType);
+                    return true;
+                }
+                else
+                {
+                    Debug.LogWarning($"[EnhancedTransitionMover] ⚠️ No valid Tier 1 transformation found (got: {savedTier1}), skipping Tier 2 upgrade");
+                    ResumeMovement();
+                    return false;
                 }
             }
             else
             {
-                // default Tier 1
-                transitionType = "MenuToLevel1";
-                Debug.Log("[EnhancedTransitionMover] Unknown scene, defaulting to Tier 1");
+                Debug.Log($"[EnhancedTransitionMover] Scene {nextScene} doesn't require upgrade");
+                return false;
             }
-
-            transitionUpgrade.ShowUpgradePanel(transitionType);
-            return true;
         }
+        
         return false;
     }
 

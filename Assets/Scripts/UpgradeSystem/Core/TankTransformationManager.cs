@@ -40,6 +40,11 @@ public class TankTransformationManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
+    [Header("Position Correction")]
+    [SerializeField] private bool autoCorrectPosition = true;
+    [SerializeField] private Vector3 turretPositionOffset = Vector3.zero;
+    [SerializeField] private Vector3 turretRotationOffset = Vector3.zero;
+
     // Runtime variables
     private GameObject currentTurretPrefab;
     private List<Transform> currentFirePoints = new List<Transform>();
@@ -142,9 +147,22 @@ public class TankTransformationManager : MonoBehaviour
             return;
         }
 
-        DebugLog($"Loading saved tank transformation: {savedTransformation}");
-        OnUpgradeSelected(savedTransformation);
-        DebugLog($"Successfully applied saved transformation: {savedTransformation}");
+        DebugLog($"✅ Found saved transformation: {savedTransformation}");
+        DebugLog("Applying saved transformation in 0.5 seconds...");
+        
+        // ✅ 延遲應用變形，確保所有組件都已初始化
+        StartCoroutine(ApplyTransformationDelayed(savedTransformation, 0.5f));
+    }
+
+    /// <summary>
+    /// 延遲應用變形，確保所有組件就緒
+    /// </summary>
+    private System.Collections.IEnumerator ApplyTransformationDelayed(string transformationName, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        Debug.Log($"[TankTransformationManager] Applying delayed transformation: {transformationName}");
+        OnUpgradeSelected(transformationName);
     }
 
     private void AutoFindComponents()
@@ -260,12 +278,13 @@ public class TankTransformationManager : MonoBehaviour
 
     public void ApplyVisualTransformation(string upgradeName)
     {
-        Debug.Log($"Applying visual transformation: {upgradeName}");
+        Debug.Log($"========== APPLYING VISUAL TRANSFORMATION: {upgradeName} ==========");
+        Debug.Log($"Current upgrade before change: {currentUpgrade}");
 
-        // Remove previous turret prefab
+        // ✅ FIX: 更徹底的清理 - 移除所有之前的 turret prefab
         if (currentTurretPrefab != null)
         {
-            DebugLog("Destroying previous turret prefab");
+            DebugLog($"Destroying previous turret prefab: {currentTurretPrefab.name}");
             DestroyImmediate(currentTurretPrefab);
             currentTurretPrefab = null;
         }
@@ -277,16 +296,22 @@ public class TankTransformationManager : MonoBehaviour
         currentConfig = GetTankConfiguration(upgradeName);
         if (currentConfig == null)
         {
-            Debug.LogWarning($"No configuration found for {upgradeName}");
+            Debug.LogWarning($"❌ No configuration found for {upgradeName}");
             return;
         }
 
         GameObject prefabToUse = GetPrefabForUpgrade(upgradeName);
         if (prefabToUse == null)
         {
-            Debug.LogWarning($"No prefab found for {upgradeName}");
+            Debug.LogWarning($"❌ No prefab found for {upgradeName}");
+            Debug.LogWarning($"Available prefabs: Huge_T1={hugeTier1Prefab != null}, Small_T1={smallTier1Prefab != null}, Balanced_T1={balancedTier1Prefab != null}");
+            Debug.LogWarning($"Tier2 Heavy: Front={hugeTier2FrontPrefab != null}, Around={hugeTier2AroundPrefab != null}");
+            Debug.LogWarning($"Tier2 Rapid: Front={smallTier2FrontPrefab != null}, Around={smallTier2AroundPrefab != null}");
+            Debug.LogWarning($"Tier2 Balanced: Front={balancedTier2FrontPrefab != null}, Around={balancedTier2AroundPrefab != null}");
             return;
         }
+        
+        Debug.Log($"✅ Using prefab: {prefabToUse.name} for upgrade: {upgradeName}");
 
         // FIXED: Look for Turret at PlayerTank level, not ArmTank level
         DebugLog("=== BEFORE CLEANING - PLAYERTANK LEVEL ===");
@@ -296,51 +321,83 @@ public class TankTransformationManager : MonoBehaviour
             DebugLog($"PlayerTank Child {i}: {child.name}");
         }
 
-        // Find and destroy ALL Turret objects at PlayerTank level
+        // ✅ FIX: 更強化的 Turret 清理邏輯
         List<Transform> turretsToDestroy = new List<Transform>();
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            if (child.name == "Turret")
+            // 清理所有名為 "Turret" 或包含 "Turret" 的物件
+            if (child.name == "Turret" || child.name.Contains("Turret"))
             {
                 turretsToDestroy.Add(child);
-                DebugLog($"Marked PlayerTank Turret for destruction: {child.name}");
+                DebugLog($"Marked Turret for destruction: {child.name}");
             }
         }
 
         // Destroy all found turrets at PlayerTank level
         foreach (Transform turret in turretsToDestroy)
         {
-            DebugLog($"DESTROYING PlayerTank Turret: {turret.name}");
+            DebugLog($"🗑️ DESTROYING Turret: {turret.name}");
             DestroyImmediate(turret.gameObject);
         }
 
-        DebugLog($"Destroyed {turretsToDestroy.Count} turret(s) from PlayerTank level");
+        DebugLog($"✅ Destroyed {turretsToDestroy.Count} turret(s) from PlayerTank level");
 
         // Now create the new turret (only if not Basic)
         if (upgradeName.ToLower() != "basic")
         {
-            // Create new turret prefab
+            DebugLog($"Creating new turret from prefab: {prefabToUse.name}");
+            
+            // ✅ Create new turret prefab
             currentTurretPrefab = Instantiate(prefabToUse);
             currentTurretPrefab.name = "Turret";  // Name it "Turret"
 
-            // FIXED: Place it at PlayerTank level, same as original
+            // ✅ Place it at PlayerTank level
             currentTurretPrefab.transform.SetParent(transform, false); // PlayerTank as parent
-            currentTurretPrefab.transform.localPosition = originalTurretPosition;
-            currentTurretPrefab.transform.localRotation = originalTurretRotation;
+            
+            // ✅ 位置校正：多种方式处理 Prefab 内部偏移
+            if (autoCorrectPosition)
+            {
+                // 方法1: 使用原始位置 + 自定义偏移
+                currentTurretPrefab.transform.localPosition = originalTurretPosition + turretPositionOffset;
+                currentTurretPrefab.transform.localRotation = originalTurretRotation * Quaternion.Euler(turretRotationOffset);
+                
+                DebugLog($"[位置校正] 使用原始位置 {originalTurretPosition} + 偏移 {turretPositionOffset}");
+            }
+            else
+            {
+                // 方法2: 直接使用 Prefab 内部设置的位置
+                currentTurretPrefab.transform.localPosition = originalTurretPosition;
+                currentTurretPrefab.transform.localRotation = originalTurretRotation;
+                
+                DebugLog($"[位置校正] 使用 Prefab 原始位置（不校正）");
+            }
+            
             currentTurretPrefab.transform.localScale = Vector3.one;
+            
+            // ✅ 確保新 Turret 是啟用的
+            currentTurretPrefab.SetActive(true);
 
-            DebugLog($"New turret '{currentTurretPrefab.name}' created at PlayerTank level at position: {originalTurretPosition}");
+            DebugLog($"✅ New turret '{currentTurretPrefab.name}' created successfully");
+            DebugLog($"   - Local Position: {currentTurretPrefab.transform.localPosition}");
+            DebugLog($"   - Local Rotation: {currentTurretPrefab.transform.localRotation.eulerAngles}");
+            DebugLog($"   - World Position: {currentTurretPrefab.transform.position}");
+            DebugLog($"   - Active: {currentTurretPrefab.activeSelf}");
+            DebugLog($"   - Parent: {transform.name}");
 
             // Update reference
             originalTurret = currentTurretPrefab.transform;
 
-            DebugLog("=== AFTER CREATING NEW TURRET - PLAYERTANK LEVEL ===");
+            DebugLog("=== AFTER CREATING NEW TURRET - PLAYERTANK CHILDREN ===");
             for (int i = 0; i < transform.childCount; i++)
             {
                 Transform child = transform.GetChild(i);
-                DebugLog($"PlayerTank Child {i}: {child.name}");
+                DebugLog($"  [{i}] {child.name} (Active: {child.gameObject.activeSelf})");
             }
+        }
+        else
+        {
+            DebugLog("Upgrade is 'Basic', skipping turret creation");
         }
 
         // Find fire points in the new turret
@@ -486,29 +543,50 @@ public class TankTransformationManager : MonoBehaviour
 
         DebugLog($"Applying stat changes for: {upgradeName}");
 
+        // ✅ FIX: 獲取 TankStats 以保留升級屬性
+        TankStats tankStats = GetComponent<TankStats>();
+        float baseSpeed = 2.5f; // 默認基礎速度
+        float baseBulletSpeed = 5f; // 默認基礎子彈速度
+        float baseFireRate = 1.2f; // 默認基礎射速
+
+        if (tankStats != null)
+        {
+            // 使用 TankStats 的當前值作為基礎
+            baseSpeed = tankStats.GetCurrentMoveSpeed();
+            baseBulletSpeed = tankStats.GetCurrentBulletSpeed();
+            baseFireRate = tankStats.GetCurrentFireRate();
+            DebugLog($"Using TankStats values - Speed: {baseSpeed}, BulletSpeed: {baseBulletSpeed}, FireRate: {baseFireRate}");
+        }
+        else
+        {
+            DebugLog("No TankStats found, using default values");
+        }
+
         if (tankController != null)
         {
-            float newMoveSpeed = 5f * currentConfig.moveSpeedMultiplier;
+            // ✅ 使用乘法保留升級屬性
+            float newMoveSpeed = baseSpeed * currentConfig.moveSpeedMultiplier;
             tankController.SetMoveSpeed(newMoveSpeed);
-            DebugLog($"Move speed updated: {newMoveSpeed}");
+            DebugLog($"Move speed updated: {baseSpeed} x {currentConfig.moveSpeedMultiplier} = {newMoveSpeed}");
         }
 
         if (tankShooting != null)
         {
-            float newFireRate = currentConfig.fireRateMultiplier;
+            // ✅ 使用乘法保留升級屬性
+            float newFireRate = baseFireRate * currentConfig.fireRateMultiplier;
             tankShooting.SetFireRate(newFireRate);
-            DebugLog($"Fire rate updated: {newFireRate}");
+            DebugLog($"Fire rate updated: {baseFireRate} x {currentConfig.fireRateMultiplier} = {newFireRate}");
 
-            float newBulletSpeed = 5f * currentConfig.bulletSpeedMultiplier;
+            float newBulletSpeed = baseBulletSpeed * currentConfig.bulletSpeedMultiplier;
             tankShooting.SetBulletSpeed(newBulletSpeed);
-            DebugLog($"Bullet speed updated: {newBulletSpeed}");
+            DebugLog($"Bullet speed updated: {baseBulletSpeed} x {currentConfig.bulletSpeedMultiplier} = {newBulletSpeed}");
         }
 
         MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
         if (multiTurret != null)
         {
-            multiTurret.SetFireRate(currentConfig.fireRateMultiplier);
-            multiTurret.SetBulletSpeed(5f * currentConfig.bulletSpeedMultiplier);
+            multiTurret.SetFireRate(baseFireRate * currentConfig.fireRateMultiplier);
+            multiTurret.SetBulletSpeed(baseBulletSpeed * currentConfig.bulletSpeedMultiplier);
             DebugLog($"Multi-turret stats updated");
         }
 

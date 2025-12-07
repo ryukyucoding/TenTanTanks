@@ -27,11 +27,11 @@ public class PlayerDataManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log($"✓ PlayerDataManager 已創建並設為持久化 (GameObject: {gameObject.name})");
+            // Debug.Log($"✓ PlayerDataManager 已創建並設為持久化 (GameObject: {gameObject.name})");
         }
         else
         {
-            Debug.LogWarning($"PlayerDataManager 已存在，銷毀重複物件 (嘗試創建的物件: {gameObject.name}, 現有實例: {Instance.gameObject.name})");
+            // Debug.LogWarning($"PlayerDataManager 已存在，銷毀重複物件 (嘗試創建的物件: {gameObject.name}, 現有實例: {Instance.gameObject.name})");
             Destroy(gameObject);
         }
     }
@@ -56,21 +56,46 @@ public class PlayerDataManager : MonoBehaviour
             var transformManager = FindFirstObjectByType<TankTransformationManager>();
             if (transformManager != null)
             {
-                // Apply the saved transformation
-                switch (currentTankTransformation.ToLower())
-                {
-                    case "heavy":
-                        transformManager.SelectHeavyUpgrade();
-                        break;
-                    case "rapid":
-                        transformManager.SelectRapidUpgrade();
-                        break;
-                    case "balanced":
-                        transformManager.SelectBalancedUpgrade();
-                        break;
-                }
-                Debug.Log($"✓ Loaded and applied tank transformation: {currentTankTransformation}");
+                Debug.Log($"✅ Loading tank transformation: {currentTankTransformation}");
+                
+                // ✅ 支持所有 Tier 1 和 Tier 2 變形
+                string lowerName = currentTankTransformation.ToLower();
+                
+                // Tier 1
+                if (lowerName == "heavy")
+                    transformManager.SelectHeavyUpgrade();
+                else if (lowerName == "rapid")
+                    transformManager.SelectRapidUpgrade();
+                else if (lowerName == "balanced")
+                    transformManager.SelectBalancedUpgrade();
+                // Tier 2 Heavy
+                else if (lowerName == "armorpiercing")
+                    transformManager.SelectArmorPiercingUpgrade();
+                else if (lowerName == "superheavy")
+                    transformManager.SelectSuperHeavyUpgrade();
+                // Tier 2 Rapid
+                else if (lowerName == "burst")
+                    transformManager.SelectBurstUpgrade();
+                else if (lowerName == "machinegun")
+                    transformManager.SelectMachineGunUpgrade();
+                // Tier 2 Balanced
+                else if (lowerName == "tactical")
+                    transformManager.SelectTacticalUpgrade();
+                else if (lowerName == "versatile")
+                    transformManager.SelectVersatileUpgrade();
+                else
+                    Debug.LogWarning($"⚠️ Unknown transformation: {currentTankTransformation}");
+                
+                Debug.Log($"✅ Applied saved tank transformation: {currentTankTransformation}");
             }
+            else
+            {
+                Debug.LogWarning("⚠️ TankTransformationManager not found, cannot apply transformation");
+            }
+        }
+        else
+        {
+            Debug.Log("No saved transformation or using Basic tank");
         }
     }
 
