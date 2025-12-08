@@ -5,25 +5,32 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System;
 
-public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     [Header("UI References")]
-    [SerializeField] private Button button;
+    [SerializeField] private Button button; // 保留但隱藏，只用於點擊檢測
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private Image iconImage;
-    [SerializeField] private Image backgroundImage;
+    [SerializeField] private Image backgroundImage; // 將被隱藏
 
-    [Header("Visual States")]
-    [SerializeField] private Color availableColor = Color.white;
-    [SerializeField] private Color selectedColor = Color.yellow;
-    [SerializeField] private Color disabledColor = Color.gray;
-    [SerializeField] private Color hoverColor = Color.cyan;
-    [SerializeField] private Color previewColor = new Color(0.8f, 0.8f, 0.8f, 0.6f); // Light gray with transparency
-    [SerializeField] private Color previousChoiceColor = new Color(0.9f, 0.7f, 0.2f); // Orange-ish
+    [Header("Text Visual States")]
+    [SerializeField] private Color availableTextColor = Color.white;
+    [SerializeField] private Color selectedTextColor = Color.yellow;
+    [SerializeField] private Color disabledTextColor = Color.gray;
+    [SerializeField] private Color hoverTextColor = Color.cyan;
+    [SerializeField] private Color previewTextColor = new Color(0.8f, 0.8f, 0.8f, 0.6f);
+    [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
     [Header("Font Settings")]
-    [SerializeField] private float fontSize = 16f; // 調整字體大小
-    [SerializeField] private TMP_FontAsset minecraftFont; // Minecraft 字體
+    [SerializeField] private float fontSize = 16f;
+    [SerializeField] private TMP_FontAsset minecraftFont;
+
+    [Header("Text Effects")]
+    [SerializeField] private bool useTextGlow = true; // 文字發光效果
+    [SerializeField] private float glowIntensity = 0.3f;
+    [SerializeField] private bool useTextOutline = true; // 文字邊框
+    [SerializeField] private float outlineWidth = 0.2f;
+    [SerializeField] private Color outlineColor = Color.black;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
@@ -45,16 +52,42 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     void Awake()
     {
         AutoFindComponents();
-        SetupButton();
-        LoadMinecraftFont(); // 自動載入 Minecraft 字體
+        SetupTextOnlyButton();
+        LoadMinecraftFont();
     }
 
     /// <summary>
-    /// 自動載入 Minecraft 字體
+    /// 設定純文字按鈕 - 隱藏背景，只顯示文字
     /// </summary>
+    private void SetupTextOnlyButton()
+    {
+        // 隱藏背景圖片但保留組件（用於點擊檢測區域）
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = Color.clear; // 完全透明
+            DebugLog("Background image set to transparent");
+        }
+
+        // 如果有 Button 組件，設定為無背景
+        if (button != null)
+        {
+            var buttonImage = button.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                buttonImage.color = Color.clear; // 透明按鈕背景
+            }
+
+            // 設定按鈕為無過渡效果
+            button.transition = Selectable.Transition.None;
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(OnButtonClick);
+        }
+
+        DebugLog("Text-only button setup completed");
+    }
+
     private void LoadMinecraftFont()
     {
-        // 如果沒有手動指定字體，就自動載入
         if (minecraftFont == null)
         {
             minecraftFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
@@ -68,15 +101,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
                 DebugLog("❌ Failed to load Minecraft font from Resources/Fonts/MinecraftTen-VGORe SDF");
             }
         }
-        else
-        {
-            DebugLog("✅ Minecraft font already assigned: " + minecraftFont.name);
-        }
     }
 
     private void AutoFindComponents()
     {
-        // Auto-find components if not assigned
         if (button == null)
             button = GetComponent<Button>();
 
@@ -86,26 +114,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         if (backgroundImage == null)
             backgroundImage = GetComponent<Image>();
 
-        // If no background image on this object, try to find one in children
-        if (backgroundImage == null)
-        {
-            var images = GetComponentsInChildren<Image>();
-            foreach (var img in images)
-            {
-                if (img.name.ToLower().Contains("background") || img.name.ToLower().Contains("bg"))
-                {
-                    backgroundImage = img;
-                    break;
-                }
-            }
-            // If still null, use the first image that's not an icon
-            if (backgroundImage == null && images.Length > 0)
-            {
-                backgroundImage = images[0];
-            }
-        }
-
-        // Try to find icon image
         if (iconImage == null)
         {
             var images = GetComponentsInChildren<Image>();
@@ -122,20 +130,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         DebugLog($"Auto-found components: Button={button != null}, Text={nameText != null}, BG={backgroundImage != null}, Icon={iconImage != null}");
     }
 
-    private void SetupButton()
-    {
-        // Set up button click
-        if (button != null)
-        {
-            button.onClick.RemoveAllListeners(); // Clear any existing listeners
-            button.onClick.AddListener(OnButtonClick);
-        }
-        else
-        {
-            Debug.LogError($"[WheelUpgradeButton] Button component not found on {gameObject.name}");
-        }
-    }
-
     public void Setup(WheelUpgradeOption option, Action clickCallback)
     {
         if (option == null)
@@ -147,43 +141,27 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         upgradeOption = option;
         onClickCallback = clickCallback;
 
-        // Set button text
         if (nameText != null)
         {
             nameText.text = option.upgradeName;
-            // 套用 Minecraft 字體
-            ApplyMinecraftFont(nameText);
+            ApplyMinecraftTextStyle(nameText);
         }
         else
         {
-            // Create text component if missing
             CreateTextComponent(option.upgradeName);
         }
 
-        // Set button icon if available
+        // 隱藏圖標（純文字模式）
         if (iconImage != null)
         {
-            if (option.icon != null)
-            {
-                iconImage.sprite = option.icon;
-                iconImage.gameObject.SetActive(true);
-            }
-            else
-            {
-                iconImage.gameObject.SetActive(false);
-            }
+            iconImage.gameObject.SetActive(false);
         }
 
-        // Set initial visual state
         SetButtonState(ButtonState.Available);
-
         DebugLog($"Setup completed for {option.upgradeName}");
     }
 
-    /// <summary>
-    /// 套用 Minecraft 字體到文字組件
-    /// </summary>
-    private void ApplyMinecraftFont(TextMeshProUGUI textComponent)
+    private void ApplyMinecraftTextStyle(TextMeshProUGUI textComponent)
     {
         if (textComponent == null) return;
 
@@ -193,60 +171,46 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             textComponent.font = minecraftFont;
             DebugLog($"✅ Applied Minecraft font to {textComponent.name}");
         }
-        else
-        {
-            DebugLog($"❌ No Minecraft font available for {textComponent.name}");
-        }
 
-        // 設定字體大小和其他屬性
+        // 設定字體樣式
         textComponent.fontSize = fontSize;
-        textComponent.fontStyle = FontStyles.Bold; // Minecraft 風格通常是粗體
-        textComponent.color = Color.white;
+        textComponent.fontStyle = FontStyles.Bold;
         textComponent.alignment = TextAlignmentOptions.Center;
 
-        // 加上輪廓讓字體更清楚
-        textComponent.outlineWidth = 0.2f;
-        textComponent.outlineColor = Color.black;
+        // 設定文字邊框
+        if (useTextOutline)
+        {
+            textComponent.outlineWidth = outlineWidth;
+            textComponent.outlineColor = outlineColor;
+        }
 
-        // 強制更新文字
+        // 設定文字發光（使用 Material 屬性）
+        if (useTextGlow)
+        {
+            // 這會讓文字在選中或懸停時有發光效果
+            textComponent.fontMaterial = textComponent.fontSharedMaterial;
+        }
+
         textComponent.ForceMeshUpdate();
     }
 
     private void CreateTextComponent(string text)
     {
-        // Create a text component if none exists
         GameObject textObj = new GameObject("ButtonText");
         textObj.transform.SetParent(transform, false);
 
         nameText = textObj.AddComponent<TextMeshProUGUI>();
         nameText.text = text;
 
-        // 套用 Minecraft 字體設定
-        ApplyMinecraftFont(nameText);
+        ApplyMinecraftTextStyle(nameText);
 
-        // Set up RectTransform
         var rectTransform = textObj.GetComponent<RectTransform>();
         rectTransform.anchorMin = Vector2.zero;
         rectTransform.anchorMax = Vector2.one;
         rectTransform.sizeDelta = Vector2.zero;
         rectTransform.anchoredPosition = Vector2.zero;
 
-        DebugLog("Created text component automatically with Minecraft font");
-    }
-
-    private void OnButtonClick()
-    {
-        // Only allow clicks for Available and Selected states
-        if (currentState == ButtonState.Disabled ||
-            currentState == ButtonState.Preview ||
-            currentState == ButtonState.PreviousChoice)
-        {
-            DebugLog($"Button {upgradeOption?.upgradeName} click ignored - button state is {currentState}");
-            return;
-        }
-
-        DebugLog($"Button clicked: {upgradeOption?.upgradeName}");
-        onClickCallback?.Invoke();
+        DebugLog("Created text component with Minecraft font");
     }
 
     public void SetButtonState(ButtonState state)
@@ -258,89 +222,105 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             button.interactable = (state != ButtonState.Disabled);
         }
 
-        UpdateVisualState();
+        UpdateTextVisualState();
         DebugLog($"Button state changed to {state} for {upgradeOption?.upgradeName}");
     }
 
-    private void UpdateVisualState()
+    /// <summary>
+    /// 只更新文字的視覺狀態，不處理背景
+    /// </summary>
+    private void UpdateTextVisualState()
     {
-        Color targetColor;
-        float alpha = 1f;
+        if (nameText == null) return;
 
-        // Determine target color based on state and hover
+        Color targetTextColor;
+        float alpha = 1f;
+        float glowPower = 0f;
+
+        // 根據狀態和懸停設定顏色
         if (isHovered && (currentState == ButtonState.Available || currentState == ButtonState.Preview))
         {
-            targetColor = hoverColor;
+            targetTextColor = hoverTextColor;
             alpha = currentState == ButtonState.Preview ? 0.8f : 1f;
+            glowPower = useTextGlow ? glowIntensity : 0f;
         }
         else
         {
             switch (currentState)
             {
                 case ButtonState.Available:
-                    targetColor = availableColor;
+                    targetTextColor = availableTextColor;
                     alpha = 1f;
                     break;
                 case ButtonState.Selected:
-                    targetColor = selectedColor;
+                    targetTextColor = selectedTextColor;
                     alpha = 1f;
+                    glowPower = useTextGlow ? glowIntensity * 2f : 0f; // 選中時發光更強
                     break;
                 case ButtonState.Disabled:
-                    targetColor = disabledColor;
+                    targetTextColor = disabledTextColor;
                     alpha = 0.4f;
                     break;
                 case ButtonState.Preview:
-                    targetColor = previewColor;
+                    targetTextColor = previewTextColor;
                     alpha = 0.6f;
                     break;
                 case ButtonState.PreviousChoice:
-                    targetColor = previousChoiceColor;
+                    targetTextColor = previousChoiceTextColor;
                     alpha = 0.7f;
                     break;
                 default:
-                    targetColor = availableColor;
+                    targetTextColor = availableTextColor;
                     alpha = 1f;
                     break;
             }
         }
 
-        // Apply color to background
-        if (backgroundImage != null)
+        // 套用文字顏色
+        var textColor = targetTextColor;
+        textColor.a = alpha;
+        nameText.color = textColor;
+
+        // 套用發光效果（如果啟用）
+        if (useTextGlow && nameText.fontMaterial != null)
         {
-            var color = targetColor;
-            color.a = alpha;
-            backgroundImage.color = color;
+            nameText.fontMaterial.SetFloat("_GlowPower", glowPower);
+            nameText.fontMaterial.SetColor("_GlowColor", targetTextColor);
+        }
+    }
+
+    // 實現 IPointerClickHandler 來處理點擊
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        OnButtonClick();
+    }
+
+    private void OnButtonClick()
+    {
+        if (currentState == ButtonState.Disabled ||
+            currentState == ButtonState.Preview ||
+            currentState == ButtonState.PreviousChoice)
+        {
+            DebugLog($"Button {upgradeOption?.upgradeName} click ignored - button state is {currentState}");
+            return;
         }
 
-        // Apply alpha to text
-        if (nameText != null)
-        {
-            var textColor = nameText.color;
-            textColor.a = alpha;
-            nameText.color = textColor;
-        }
-
-        // Apply alpha to icon
-        if (iconImage != null && iconImage.gameObject.activeInHierarchy)
-        {
-            var iconColor = iconImage.color;
-            iconColor.a = alpha;
-            iconImage.color = iconColor;
-        }
+        DebugLog($"Text button clicked: {upgradeOption?.upgradeName}");
+        onClickCallback?.Invoke();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovered = true;
-        UpdateVisualState();
-        DebugLog($"Mouse entered button: {upgradeOption?.upgradeName}");
+        UpdateTextVisualState();
+        DebugLog($"Mouse entered text button: {upgradeOption?.upgradeName}");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         isHovered = false;
-        UpdateVisualState();
-        DebugLog($"Mouse exited button: {upgradeOption?.upgradeName}");
+        UpdateTextVisualState();
+        DebugLog($"Mouse exited text button: {upgradeOption?.upgradeName}");
     }
 
     public WheelUpgradeOption GetUpgradeOption()
@@ -353,7 +333,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         return currentState;
     }
 
-    // Legacy method for backward compatibility
     public void SetSelected(bool selected)
     {
         SetButtonState(selected ? ButtonState.Selected : ButtonState.Available);
@@ -365,43 +344,30 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             Debug.Log($"[WheelUpgradeButton] {message}");
     }
 
-    // Context menu methods for debugging
-    [ContextMenu("Test Button Click")]
+    [ContextMenu("Test Text Button Click")]
     public void TestButtonClick()
     {
         OnButtonClick();
     }
 
-    [ContextMenu("Check Components")]
+    [ContextMenu("Toggle Text Glow")]
+    public void ToggleTextGlow()
+    {
+        useTextGlow = !useTextGlow;
+        UpdateTextVisualState();
+        Debug.Log($"Text glow: {(useTextGlow ? "ON" : "OFF")}");
+    }
+
+    [ContextMenu("Check Text Components")]
     public void CheckComponents()
     {
-        Debug.Log("=== WheelUpgradeButton Component Check ===");
+        Debug.Log("=== WheelUpgradeButton Text Component Check ===");
         Debug.Log($"GameObject: {gameObject.name}");
-        Debug.Log($"Button: {(button != null ? "Y" : "N")}");
+        Debug.Log($"Button: {(button != null ? "Y (Hidden)" : "N")}");
         Debug.Log($"NameText: {(nameText != null ? "Y" : "N")}");
-        Debug.Log($"BackgroundImage: {(backgroundImage != null ? "Y" : "N")}");
-        Debug.Log($"IconImage: {(iconImage != null ? "Y" : "N")}");
+        Debug.Log($"Background: {(backgroundImage != null ? "Y (Transparent)" : "N")}");
         Debug.Log($"Minecraft Font: {(minecraftFont != null ? minecraftFont.name : "NULL")}");
-        Debug.Log($"UpgradeOption: {(upgradeOption != null ? upgradeOption.upgradeName : "null")}");
         Debug.Log($"Current State: {currentState}");
-    }
-
-    [ContextMenu("Force Update Visual")]
-    public void ForceUpdateVisual()
-    {
-        UpdateVisualState();
-        Debug.Log("Visual state forcefully updated");
-    }
-
-    [ContextMenu("Reload Minecraft Font")]
-    public void ReloadMinecraftFont()
-    {
-        minecraftFont = null;
-        LoadMinecraftFont();
-        if (nameText != null)
-        {
-            ApplyMinecraftFont(nameText);
-        }
-        Debug.Log("Minecraft font reloaded and applied");
+        Debug.Log($"Text Glow: {(useTextGlow ? "ON" : "OFF")}");
     }
 }
