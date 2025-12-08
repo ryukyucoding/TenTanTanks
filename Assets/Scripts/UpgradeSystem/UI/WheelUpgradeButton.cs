@@ -30,7 +30,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
     [Header("Font Settings")]
-    [SerializeField] private float fontSize = 30f;
+    [SerializeField] private float fontSize = 16f;
     [SerializeField] private TMP_FontAsset minecraftFont;
 
     [Header("Text Effects")]
@@ -40,7 +40,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
-    [SerializeField] private bool showTextBoxBounds = false; 
+    [SerializeField] private bool showTextBoxBounds = false; // 顯示文字框邊界（除錯用）
 
     public enum ButtonState
     {
@@ -408,19 +408,20 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     }
 
     /// <summary>
-    /// ★★★ 新增：設定字體大小的公開方法 ★★★
+    /// ★★★ 外部字體大小設定方法 - 現在會被忽略，使用自己的設定 ★★★
     /// </summary>
     public void SetFontSize(float newFontSize)
     {
-        fontSize = newFontSize;
+        // ★★★ 完全忽略外部字體大小，永遠使用自己的 fontSize 設定 ★★★
+        DebugLog($"✅ External font size {newFontSize} ignored, using own setting: {fontSize}");
 
-        // 如果文字組件已經存在，立即套用新字體大小
+        // 如果文字組件已經存在，套用自己的字體大小
         if (nameText != null)
         {
-            nameText.fontSize = fontSize;
+            nameText.fontSize = fontSize; // 使用自己的 fontSize，不是傳入的 newFontSize
             nameText.ForceMeshUpdate();
             AdjustTextBoxSize(); // 重新調整文字框大小
-            DebugLog($"✅ Font size set to {fontSize} for {nameText.text}");
+            DebugLog($"✅ Applied own font size {fontSize} to {nameText.text}");
         }
     }
 
@@ -457,10 +458,31 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         Debug.Log($"Minecraft Font: {(minecraftFont != null ? minecraftFont.name : "NULL")}");
         Debug.Log($"Current State: {currentState}");
 
+        // ★★★ 加上字體大小檢查 ★★★
+        Debug.Log($"Button fontSize field: {fontSize}");
+
         if (nameText != null)
         {
             var rect = nameText.GetComponent<RectTransform>();
             Debug.Log($"Actual Text Size: {rect.sizeDelta}");
+            Debug.Log($"Actual text fontSize: {nameText.fontSize}");
+            Debug.Log($"Text content: '{nameText.text}'");
+        }
+    }
+
+    [ContextMenu("Force Apply Own Font Size")]
+    public void ForceApplyOwnFontSize()
+    {
+        if (nameText != null)
+        {
+            nameText.fontSize = fontSize;
+            nameText.ForceMeshUpdate();
+            AdjustTextBoxSize();
+            Debug.Log($"✅ Force applied own font size: {fontSize}");
+        }
+        else
+        {
+            Debug.Log("❌ nameText is NULL, cannot apply font size");
         }
     }
 }
