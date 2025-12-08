@@ -160,7 +160,22 @@ public class TransitionWheelUpgrade : MonoBehaviour
 
         if (upgradeWheelUI != null)
         {
-            upgradeWheelUI.SetTransitionMode(1, "");
+            // ✅ 修正：檢查當前是否已經設定為 transition mode，如果是則不要覆蓋
+            bool isAlreadyInTransitionMode = upgradeWheelUI.IsInTransitionMode(); // 需要暴露這個屬性
+            int currentAllowedTier = upgradeWheelUI.GetTransitionAllowedTier(); // 需要暴露這個屬性
+            string currentParentUpgrade = upgradeWheelUI.GetTransitionParentUpgrade(); // 需要暴露這個屬性
+
+            if (isAlreadyInTransitionMode)
+            {
+                DebugLog($"✅ Already in transition mode: Tier {currentAllowedTier}, Parent: '{currentParentUpgrade}' - preserving settings");
+                // 不重新設定 SetTransitionMode，直接顯示
+            }
+            else
+            {
+                DebugLog("Setting to default Tier 1 transition mode");
+                upgradeWheelUI.SetTransitionMode(1, "");
+            }
+
             upgradeWheelUI.ShowWheelForTransition();
         }
 
