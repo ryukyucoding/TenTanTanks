@@ -29,8 +29,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previewTextColor = new Color(0.8f, 0.8f, 0.8f, 0.6f);
     [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
-    // ★★★ 直接在程式碼中設定字體大小，不使用 Inspector ★★★
-    private const float FONT_SIZE = 30f;
+    private const float FONT_SIZE = 29f;
 
     [Header("Font Settings")]
     [SerializeField] private TMP_FontAsset minecraftFont;
@@ -161,7 +160,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         {
             nameText.text = option.upgradeName;
 
-            // ★★★ 強制診斷：Setup 時就套用字體大小 ★★★
             Debug.Log($"[FONT] Setting up '{option.upgradeName}' with fontSize: {FONT_SIZE}");
 
             ApplyTextStyle(nameText);
@@ -181,9 +179,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         Debug.Log($"Setup completed for {option.upgradeName}");
     }
 
-    /// <summary>
-    /// ★★★ 重新命名的方法，直接套用固定字體大小 ★★★
-    /// </summary>
     private void ApplyTextStyle(TextMeshProUGUI textComponent)
     {
         if (textComponent == null) return;
@@ -196,7 +191,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             Debug.Log("✅ Applied Minecraft font");
         }
 
-        // ★★★ 使用常數，不依賴 Inspector ★★★
         textComponent.fontSize = FONT_SIZE;
         Debug.Log($"[FONT] Set fontSize to: {FONT_SIZE}");
 
@@ -394,7 +388,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         if (nameText != null)
         {
-            nameText.fontSize = FONT_SIZE; // 永遠使用固定大小
+            nameText.fontSize = FONT_SIZE; 
             nameText.ForceMeshUpdate();
             AdjustTextBoxSize();
             Debug.Log($"[FONT] Applied fixed font size {FONT_SIZE}");
