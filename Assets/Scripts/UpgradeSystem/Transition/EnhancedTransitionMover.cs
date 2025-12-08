@@ -1,13 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// **************************
-// LINE 183 IS TESTING
-// **************************
 /// <summary>
-/// Enhanced Transition Mover - Standalone version that works with TransitionWheelUpgrade
-/// Can work independently or with upgrade system
-/// Fully compatible with existing TransitionMover functionality
+/// Enhanced Transition Mover - 帶有詳細Debug信息的診斷版本
+/// 用於診斷提早換關問題
 /// </summary>
 public class EnhancedTransitionMover : MonoBehaviour
 {
@@ -22,6 +18,10 @@ public class EnhancedTransitionMover : MonoBehaviour
     [SerializeField] private bool enableUpgrades = true; // Whether to enable upgrade functionality
     [SerializeField] private bool pauseForUpgrade = true; // Whether to pause for upgrade
 
+    [Header("Debug Settings")]
+    [SerializeField] private bool enableVerboseDebug = true; // 啟用詳細debug
+    [SerializeField] private float debugInterval = 0.5f; // debug輸出間隔（秒）
+
     [Header("Scenes Requiring Upgrades")]
     [SerializeField] private string[] upgradeScenes = { "Level2", "Level4" }; // Target scenes that need upgrades
 
@@ -32,67 +32,147 @@ public class EnhancedTransitionMover : MonoBehaviour
     private bool isUpgradeInProgress = false;
     private bool canMove = true;
 
+    // Debug變數
+    private float lastDebugTime = 0f;
+    private Vector3 lastPosition;
+    private float startTime;
+
     void Start()
     {
+        startTime = Time.time;
+        lastPosition = transform.position;
+
+        Debug.Log("🚀 [EnhancedTransitionMover] === 開始初始化 ===");
+        Debug.Log($"[EnhancedTransitionMover] 初始位置: {transform.position.x:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 目標位置: {targetX:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 升級觸發位置: {upgradePositionX:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 移動速度: {speed}");
+
         InitializeTransition();
         FindUpgradeComponents();
+
+        Debug.Log("✅ [EnhancedTransitionMover] === 初始化完成 ===");
     }
 
     void Update()
     {
-        if (!canMove) return;
+        // 📊 詳細Debug信息
+        if (enableVerboseDebug && Time.time - lastDebugTime >= debugInterval)
+        {
+            DebugCurrentStatus();
+            lastDebugTime = Time.time;
+        }
+
+        if (!canMove)
+        {
+            if (enableVerboseDebug && Time.frameCount % 120 == 0) // 每2秒輸出一次
+            {
+                Debug.Log("⏸️ [EnhancedTransitionMover] 移動被暫停，原因: " + GetPauseReason());
+            }
+            return;
+        }
 
         Vector3 pos = transform.position;
 
-        // Debug: 每秒输出一次位置信息
-        if (Time.frameCount % 60 == 0 && enableUpgrades)
+        // 🔍 移動距離檢測
+        float movementThisFrame = Mathf.Abs(pos.x - lastPosition.x);
+        if (movementThisFrame > 0.01f && enableVerboseDebug)
         {
-            Debug.Log($"[EnhancedTransitionMover] Current X: {pos.x:F2}, Target X: {targetX:F2}, Upgrade X: {upgradePositionX:F2}, Distance: {Mathf.Abs(pos.x - upgradePositionX):F2}, Scene: {nextScene}, Is Upgrade Scene: {IsUpgradeScene(nextScene)}");
+            Debug.Log($"📍 [EnhancedTransitionMover] 移動中: {lastPosition.x:F2} → {pos.x:F2} (距離: {movementThisFrame:F3})");
         }
+        lastPosition = pos;
 
-        // Check if need to trigger upgrade
+        // 🎯 升級觸發檢查
         if (!hasTriggeredUpgrade && enableUpgrades && ShouldTriggerUpgrade(pos.x))
         {
-            Debug.Log($"[EnhancedTransitionMover] 🎯 TRIGGER DETECTED at X={pos.x:F2}");
+            Debug.Log($"🎯 [EnhancedTransitionMover] ===== 升級觸發！=====");
+            Debug.Log($"[EnhancedTransitionMover] 觸發位置: {pos.x:F2}");
+            Debug.Log($"[EnhancedTransitionMover] 目標場景: {nextScene}");
+            Debug.Log($"[EnhancedTransitionMover] 觸發時間: {Time.time - startTime:F2}秒後");
             TriggerUpgrade();
             return;
         }
 
-        // Normal movement logic (same as original TransitionMover)
+        // 🚶‍♂️ 正常移動邏輯
         if (pos.x < targetX)
         {
             float step = speed * Time.deltaTime;
+            float oldX = pos.x;
             pos.x = Mathf.MoveTowards(pos.x, targetX, step);
             transform.position = pos;
+
+            // 接近目標時增加警告
+            float distanceToTarget = targetX - pos.x;
+            if (distanceToTarget < 2f && enableVerboseDebug)
+            {
+                Debug.Log($"⚠️ [EnhancedTransitionMover] 接近目標位置！距離: {distanceToTarget:F3}");
+            }
         }
         else
         {
+            // 🚨 關鍵：場景切換觸發點
+            Debug.Log($"🚨 [EnhancedTransitionMover] ===== 到達目標位置，準備換場景！=====");
+            Debug.Log($"[EnhancedTransitionMover] 當前位置: {pos.x:F2}");
+            Debug.Log($"[EnhancedTransitionMover] 目標位置: {targetX:F2}");
+            Debug.Log($"[EnhancedTransitionMover] 已觸發升級: {hasTriggeredUpgrade}");
+            Debug.Log($"[EnhancedTransitionMover] 升級進行中: {isUpgradeInProgress}");
+            Debug.Log($"[EnhancedTransitionMover] 目標場景: {nextScene}");
+            Debug.Log($"[EnhancedTransitionMover] 總耗時: {Time.time - startTime:F2}秒");
+            Debug.Log($"[EnhancedTransitionMover] ===== 即將呼叫LoadNext()！=====");
+
             LoadNext();
         }
     }
 
     /// <summary>
-    /// Initialize transition settings (same as original TransitionMover)
+    /// 📊 詳細狀態Debug
+    /// </summary>
+    private void DebugCurrentStatus()
+    {
+        Vector3 pos = transform.position;
+        float distanceToUpgrade = Mathf.Abs(pos.x - upgradePositionX);
+        float distanceToTarget = Mathf.Abs(pos.x - targetX);
+
+        Debug.Log($"📊 [Status] X:{pos.x:F2} | 到升級:{distanceToUpgrade:F2} | 到目標:{distanceToTarget:F2} | 升級:{hasTriggeredUpgrade} | 進行中:{isUpgradeInProgress} | 可移動:{canMove}");
+    }
+
+    /// <summary>
+    /// 獲取暫停原因
+    /// </summary>
+    private string GetPauseReason()
+    {
+        if (isUpgradeInProgress) return "升級進行中";
+        if (!enableUpgrades) return "升級功能已禁用";
+        return "未知原因";
+    }
+
+    /// <summary>
+    /// Initialize transition settings
     /// </summary>
     private void InitializeTransition()
     {
+        Debug.Log("🔧 [EnhancedTransitionMover] 開始初始化轉場設定...");
+
         // Prioritize scene set by SceneTransitionManager
         string transitionScene = SceneTransitionManager.GetNextSceneName();
         if (!string.IsNullOrEmpty(transitionScene))
         {
+            string oldScene = nextScene;
             nextScene = transitionScene;
-            Debug.Log("[EnhancedTransitionMover] Using scene set by SceneTransitionManager: " + nextScene);
+            Debug.Log($"[EnhancedTransitionMover] 場景更新: {oldScene} → {nextScene} (來自SceneTransitionManager)");
         }
         else
         {
-            Debug.Log("[EnhancedTransitionMover] Using default scene: " + nextScene);
+            Debug.Log($"[EnhancedTransitionMover] 使用預設場景: {nextScene}");
         }
 
         // Check PlayerDataManager
         CheckPlayerDataManager();
 
-        // Apply health bonus for specific level transitions (same as original)
+        // Apply health bonus for specific level transitions
         ApplyHealthBonus(nextScene);
+
+        Debug.Log("✅ [EnhancedTransitionMover] 轉場設定初始化完成");
     }
 
     /// <summary>
@@ -100,17 +180,23 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     private void FindUpgradeComponents()
     {
+        Debug.Log("🔍 [EnhancedTransitionMover] 搜尋升級組件...");
+
         // Try to find transition wheel upgrade component first
         if (transitionUpgrade == null)
             transitionUpgrade = FindFirstObjectByType<TransitionWheelUpgrade>();
 
         if (transitionUpgrade != null)
         {
-            Debug.Log("[EnhancedTransitionMover] Found TransitionWheelUpgrade, upgrade functionality enabled");
+            Debug.Log($"✅ [EnhancedTransitionMover] 找到升級組件: {transitionUpgrade.name}");
         }
         else if (enableUpgrades)
         {
-            Debug.LogWarning("[EnhancedTransitionMover] No upgrade components found, but upgrades are enabled");
+            Debug.LogWarning("⚠️ [EnhancedTransitionMover] 啟用了升級功能但找不到升級組件");
+        }
+        else
+        {
+            Debug.Log("ℹ️ [EnhancedTransitionMover] 升級功能已禁用，不需要升級組件");
         }
     }
 
@@ -119,15 +205,34 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     private bool ShouldTriggerUpgrade(float currentX)
     {
-        // Don't trigger if upgrade functionality is disabled
-        if (!enableUpgrades) return false;
+        if (!enableUpgrades)
+        {
+            if (enableVerboseDebug && Time.frameCount % 300 == 0) // 每5秒輸出一次
+            {
+                Debug.Log("🔒 [EnhancedTransitionMover] 升級功能已禁用");
+            }
+            return false;
+        }
 
-        // Don't trigger if target scene is not in upgrade scene list
-        if (!IsUpgradeScene(nextScene)) return false;
+        if (!IsUpgradeScene(nextScene))
+        {
+            if (enableVerboseDebug && Time.frameCount % 300 == 0)
+            {
+                Debug.Log($"🔒 [EnhancedTransitionMover] 場景 {nextScene} 不需要升級");
+            }
+            return false;
+        }
 
         // Check if reached upgrade trigger position
         float distanceToUpgradePoint = Mathf.Abs(currentX - upgradePositionX);
-        return distanceToUpgradePoint <= upgradeDetectionRange;
+        bool shouldTrigger = distanceToUpgradePoint <= upgradeDetectionRange;
+
+        if (distanceToUpgradePoint < upgradeDetectionRange + 2f && enableVerboseDebug) // 在接近時增加debug
+        {
+            Debug.Log($"🎯 [EnhancedTransitionMover] 升級檢查: 距離={distanceToUpgradePoint:F2}, 範圍={upgradeDetectionRange}, 應觸發={shouldTrigger}");
+        }
+
+        return shouldTrigger;
     }
 
     /// <summary>
@@ -148,28 +253,36 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     private void TriggerUpgrade()
     {
+        Debug.Log("🎯 [EnhancedTransitionMover] ===== 開始升級流程 =====");
+
         hasTriggeredUpgrade = true;
         isUpgradeInProgress = true;
 
         if (pauseForUpgrade)
+        {
             canMove = false;
+            Debug.Log("⏸️ [EnhancedTransitionMover] 移動已暫停，等待升級完成");
+        }
 
-        Debug.Log("[EnhancedTransitionMover] Triggered upgrade at position " + transform.position.x + ", target scene: " + nextScene);
+        Debug.Log($"[EnhancedTransitionMover] 升級觸發位置: {transform.position.x:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 目標場景: {nextScene}");
 
         // Try different upgrade systems
         if (TryTriggerTransitionUpgrade())
         {
-            Debug.Log("[EnhancedTransitionMover] Using TransitionWheelUpgrade");
+            Debug.Log("✅ [EnhancedTransitionMover] 使用TransitionWheelUpgrade系統");
         }
         else if (TryTriggerAdvancedUpgrade())
         {
-            Debug.Log("[EnhancedTransitionMover] Using advanced upgrade system");
+            Debug.Log("✅ [EnhancedTransitionMover] 使用進階升級系統");
         }
         else
         {
-            Debug.LogWarning("[EnhancedTransitionMover] No upgrade system available, continuing without upgrade");
+            Debug.LogWarning("⚠️ [EnhancedTransitionMover] 找不到可用的升級系統，恢復移動");
             ResumeMovement();
         }
+
+        Debug.Log("🎯 [EnhancedTransitionMover] ===== 升級流程初始化完成 =====");
     }
 
     /// <summary>
@@ -179,87 +292,51 @@ public class EnhancedTransitionMover : MonoBehaviour
     {
         if (transitionUpgrade != null)
         {
+            Debug.Log("🎮 [EnhancedTransitionMover] 嘗試觸發TransitionWheelUpgrade...");
+
             string transitionType = "Level 1 to Level 2"; // default
 
             if (nextScene == "Level2")
             {
-                // Tier 1 upgrade (Basic → Heavy/Rapid/Balanced)
                 transitionType = "Level 1 to Level 2";
-                Debug.Log("[EnhancedTransitionMover] Level1→Level2: Showing Tier 1 options (Heavy/Rapid/Balanced)");
-                
-                // Tier 1 wheel show
+                Debug.Log("[EnhancedTransitionMover] Level1→Level2: 顯示Tier 1選項");
+
                 transitionUpgrade.ShowUpgradePanel(transitionType);
                 return true;
             }
             else if (nextScene == "Level4")
             {
-                // Tier 2 upgrade
                 transitionType = "Level 3 to Level 4";
-                Debug.Log("[EnhancedTransitionMover] Level3→Level4: Checking for Tier 2 options");
+                Debug.Log("[EnhancedTransitionMover] Level3→Level4: 檢查Tier 2選項");
 
-                // ✅ 獲取保存的 Tier 1 選擇
                 string savedTier1 = "";
                 if (PlayerDataManager.Instance != null)
                 {
                     savedTier1 = PlayerDataManager.Instance.GetCurrentTankTransformation();
-                    Debug.Log($"[EnhancedTransitionMover] Saved Tier 1 transformation: {savedTier1}");
-                }
-                else
-                {
-                    Debug.LogError("[EnhancedTransitionMover] ❌ PlayerDataManager not found!");
+                    Debug.Log($"[EnhancedTransitionMover] 已保存的Tier 1變形: {savedTier1}");
                 }
 
-                // ✅ 如果有 Tier 1 變形，顯示對應的 Tier 2 選項
                 if (!string.IsNullOrEmpty(savedTier1) && savedTier1.ToLower() != "basic")
                 {
-                    Debug.Log($"[EnhancedTransitionMover] ✅ Showing Tier 2 options for parent: {savedTier1}");
-
-                    // ★★★ 修復：使用 FindObjectsOfType 替代 FindFirstObjectByType ★★★
-                    Debug.Log("[EnhancedTransitionMover] Searching for UpgradeWheelUI...");
-                    UpgradeWheelUI[] allUpgradeWheels = FindObjectsOfType<UpgradeWheelUI>(true);
-                    Debug.Log($"[EnhancedTransitionMover] Found {allUpgradeWheels.Length} UpgradeWheelUI objects");
-
-                    UpgradeWheelUI upgradeWheelUI = null;
-                    if (allUpgradeWheels.Length > 0)
-                    {
-                        upgradeWheelUI = allUpgradeWheels[0];
-                        Debug.Log($"[EnhancedTransitionMover] Using UpgradeWheelUI: {upgradeWheelUI.name}");
-                        Debug.Log($"[EnhancedTransitionMover] UpgradeWheelUI GameObject active: {upgradeWheelUI.gameObject.activeInHierarchy}");
-                        Debug.Log($"[EnhancedTransitionMover] UpgradeWheelUI Component enabled: {upgradeWheelUI.enabled}");
-                    }
-
-                    if (upgradeWheelUI != null)
-                    {
-                        Debug.Log($"[EnhancedTransitionMover] ✅ Found UpgradeWheelUI, setting to Tier 2 mode");
-                        Debug.Log($"[EnhancedTransitionMover] Parent upgrade: {savedTier1}");
-
-                        // 設置為 Tier 2 模式
-                        upgradeWheelUI.SetTransitionMode(2, savedTier1);
-                        Debug.Log("[EnhancedTransitionMover] ✅ SetTransitionMode called successfully");
-                    }
-                    else
-                    {
-                        Debug.LogError("[EnhancedTransitionMover] ❌ No UpgradeWheelUI available!");
-                    }
-
-                    // 顯示輪盤
+                    Debug.Log($"✅ [EnhancedTransitionMover] 顯示{savedTier1}的Tier 2選項");
                     transitionUpgrade.ShowUpgradePanel(transitionType);
                     return true;
                 }
                 else
                 {
-                    Debug.LogWarning($"[EnhancedTransitionMover] ⚠️ No valid Tier 1 transformation found (got: {savedTier1}), skipping Tier 2 upgrade");
+                    Debug.LogWarning($"⚠️ [EnhancedTransitionMover] 無有效的Tier 1變形，跳過升級");
                     ResumeMovement();
                     return false;
                 }
             }
             else
             {
-                Debug.Log($"[EnhancedTransitionMover] Scene {nextScene} doesn't require upgrade");
+                Debug.Log($"ℹ️ [EnhancedTransitionMover] 場景{nextScene}不需要升級");
                 return false;
             }
         }
-        
+
+        Debug.Log("❌ [EnhancedTransitionMover] TransitionWheelUpgrade組件不存在");
         return false;
     }
 
@@ -268,19 +345,8 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     private bool TryTriggerAdvancedUpgrade()
     {
-        // Try to find TransitionUpgradeManager
-        var upgradeManager = FindFirstObjectByType<MonoBehaviour>();
-        if (upgradeManager != null && upgradeManager.GetType().Name.Contains("TransitionUpgradeManager"))
-        {
-            // Use reflection to call TriggerTransitionUpgrade if it exists
-            var method = upgradeManager.GetType().GetMethod("TriggerTransitionUpgrade");
-            if (method != null)
-            {
-                method.Invoke(upgradeManager, null);
-                return true;
-            }
-        }
-        return false;
+        Debug.Log("🔍 [EnhancedTransitionMover] 搜尋進階升級系統...");
+        return false; // 暫時禁用進階系統，專注於主要系統
     }
 
     /// <summary>
@@ -288,133 +354,117 @@ public class EnhancedTransitionMover : MonoBehaviour
     /// </summary>
     public void ResumeMovement()
     {
+        Debug.Log("▶️ [EnhancedTransitionMover] ===== 恢復移動 =====");
+        Debug.Log($"[EnhancedTransitionMover] 恢復時位置: {transform.position.x:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 目標位置: {targetX:F2}");
+        Debug.Log($"[EnhancedTransitionMover] 剩餘距離: {targetX - transform.position.x:F2}");
+
         isUpgradeInProgress = false;
         canMove = true;
 
-        Debug.Log("[EnhancedTransitionMover] Resuming movement");
+        Debug.Log("✅ [EnhancedTransitionMover] 移動已恢復");
     }
 
     /// <summary>
-    /// Pause movement
-    /// </summary>
-    public void PauseMovement()
-    {
-        canMove = false;
-        Debug.Log("[EnhancedTransitionMover] Pausing movement");
-    }
-
-    /// <summary>
-    /// Force skip upgrade and continue movement
-    /// </summary>
-    public void SkipUpgradeAndContinue()
-    {
-        hasTriggeredUpgrade = true;
-        ResumeMovement();
-        Debug.Log("[EnhancedTransitionMover] Skipping upgrade, continuing movement");
-    }
-
-    /// <summary>
-    /// Check PlayerDataManager and report status (same as original)
+    /// Check PlayerDataManager and report status
     /// </summary>
     private void CheckPlayerDataManager()
     {
         if (PlayerDataManager.Instance == null)
         {
-            Debug.LogWarning("[EnhancedTransitionMover] PlayerDataManager.Instance is null! Make sure PlayerDataManager object exists in scene.");
+            Debug.LogWarning("⚠️ [EnhancedTransitionMover] PlayerDataManager.Instance 為null！");
         }
         else
         {
-            Debug.Log("[EnhancedTransitionMover] PlayerDataManager exists, current health: " + PlayerDataManager.Instance.GetCurrentHealth());
+            Debug.Log($"✅ [EnhancedTransitionMover] PlayerDataManager存在，當前生命值: {PlayerDataManager.Instance.GetCurrentHealth()}");
         }
     }
 
     /// <summary>
-    /// Apply health bonus for specific level transitions (exactly same as original TransitionMover)
+    /// Apply health bonus for specific level transitions
     /// </summary>
     private void ApplyHealthBonus(string targetScene)
     {
-        if (PlayerDataManager.Instance == null)
-        {
-            Debug.LogError("[EnhancedTransitionMover] PlayerDataManager.Instance is null, cannot apply health bonus!");
-            return;
-        }
+        if (PlayerDataManager.Instance == null) return;
 
-        Debug.Log("[EnhancedTransitionMover] Checking target scene: " + targetScene);
-
-        if (targetScene == "Level3")
+        if (targetScene == "Level3" || targetScene == "Level5")
         {
             int beforeHealth = PlayerDataManager.Instance.GetCurrentHealth();
             PlayerDataManager.Instance.AddHealth(1);
             int afterHealth = PlayerDataManager.Instance.GetCurrentHealth();
-            Debug.Log("[EnhancedTransitionMover] Entering Level3, gained extra life +1 (before: " + beforeHealth + ", after: " + afterHealth + ")");
-        }
-        else if (targetScene == "Level5")
-        {
-            int beforeHealth = PlayerDataManager.Instance.GetCurrentHealth();
-            PlayerDataManager.Instance.AddHealth(1);
-            int afterHealth = PlayerDataManager.Instance.GetCurrentHealth();
-            Debug.Log("[EnhancedTransitionMover] Entering Level5, gained extra life +1 (before: " + beforeHealth + ", after: " + afterHealth + ")");
-        }
-        else
-        {
-            Debug.Log("[EnhancedTransitionMover] Target scene '" + targetScene + "' does not require health bonus");
+            Debug.Log($"💚 [EnhancedTransitionMover] 進入{targetScene}，獲得額外生命 +1 (前:{beforeHealth}, 後:{afterHealth})");
         }
     }
 
     /// <summary>
-    /// Load next scene (same as original TransitionMover)
+    /// Load next scene
     /// </summary>
     private void LoadNext()
     {
-        if (Time.timeScale == 0f) Time.timeScale = 1f;
+        Debug.Log("🚀 [EnhancedTransitionMover] ===== 開始載入下一個場景 =====");
 
-        // Clear scene name in SceneTransitionManager
+        if (Time.timeScale == 0f)
+        {
+            Time.timeScale = 1f;
+            Debug.Log("[EnhancedTransitionMover] 恢復時間縮放");
+        }
+
         SceneTransitionManager.ClearNextSceneName();
 
-        Debug.Log("[EnhancedTransitionMover] Loading scene: " + nextScene);
+        Debug.Log($"[EnhancedTransitionMover] 載入場景: {nextScene}");
+        Debug.Log($"[EnhancedTransitionMover] 總耗時: {Time.time - startTime:F2}秒");
+        Debug.Log("🚀 [EnhancedTransitionMover] ===== 場景載入中... =====");
+
         SceneManager.LoadScene(nextScene);
-        enabled = false; // Prevent multiple calls
+        enabled = false; // 防止重複呼叫
     }
 
     // Debug methods
     [ContextMenu("Force Trigger Upgrade")]
     public void DebugTriggerUpgrade()
     {
+        Debug.Log("🔧 [Debug] 強制觸發升級");
         if (!hasTriggeredUpgrade)
         {
             TriggerUpgrade();
         }
         else
         {
-            Debug.Log("[EnhancedTransitionMover] Upgrade has already been triggered");
+            Debug.Log("⚠️ [Debug] 升級已經被觸發過了");
         }
-    }
-
-    [ContextMenu("Skip Upgrade and Continue")]
-    public void DebugSkipUpgrade()
-    {
-        SkipUpgradeAndContinue();
     }
 
     [ContextMenu("Resume Movement")]
     public void DebugResumeMovement()
     {
+        Debug.Log("🔧 [Debug] 強制恢復移動");
         ResumeMovement();
     }
 
-    [ContextMenu("Check Current Status")]
-    public void DebugCheckStatus()
+    [ContextMenu("Force Load Next Scene")]
+    public void DebugForceLoadNext()
     {
-        Debug.Log("=== EnhancedTransitionMover Status ===");
-        Debug.Log("Target scene: " + nextScene);
-        Debug.Log("Current position: " + transform.position.x);
-        Debug.Log("Target position: " + targetX);
-        Debug.Log("Upgrade trigger position: " + upgradePositionX);
-        Debug.Log("Has triggered upgrade: " + hasTriggeredUpgrade);
-        Debug.Log("Upgrade in progress: " + isUpgradeInProgress);
-        Debug.Log("Can move: " + canMove);
-        Debug.Log("Is upgrade scene: " + IsUpgradeScene(nextScene));
-        Debug.Log("Transition upgrade found: " + (transitionUpgrade != null));
+        Debug.Log("🔧 [Debug] 強制載入下一場景");
+        LoadNext();
+    }
+
+    [ContextMenu("Show Detailed Status")]
+    public void DebugShowDetailedStatus()
+    {
+        Debug.Log("=== EnhancedTransitionMover 詳細狀態 ===");
+        Debug.Log($"目標場景: {nextScene}");
+        Debug.Log($"當前位置: {transform.position.x:F2}");
+        Debug.Log($"目標位置: {targetX:F2}");
+        Debug.Log($"升級觸發位置: {upgradePositionX:F2}");
+        Debug.Log($"到目標距離: {targetX - transform.position.x:F2}");
+        Debug.Log($"到升級距離: {Mathf.Abs(transform.position.x - upgradePositionX):F2}");
+        Debug.Log($"已觸發升級: {hasTriggeredUpgrade}");
+        Debug.Log($"升級進行中: {isUpgradeInProgress}");
+        Debug.Log($"可以移動: {canMove}");
+        Debug.Log($"是升級場景: {IsUpgradeScene(nextScene)}");
+        Debug.Log($"升級組件存在: {transitionUpgrade != null}");
+        Debug.Log($"運行時間: {Time.time - startTime:F2}秒");
+        Debug.Log("=====================================");
     }
 
     // Public methods for other scripts to use
@@ -422,5 +472,5 @@ public class EnhancedTransitionMover : MonoBehaviour
     public bool HasTriggeredUpgrade => hasTriggeredUpgrade;
     public bool CanMove => canMove;
     public string NextScene => nextScene;
-    public float CurrentProgress => Mathf.Abs(transform.position.x - upgradePositionX) / Mathf.Abs(targetX - upgradePositionX);
+    public float CurrentProgress => (targetX - transform.position.x) / (targetX - upgradePositionX);
 }
