@@ -593,7 +593,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TankShooting
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
   bulletLifetime: 3
-  shootSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
+  shootSound: {fileID: 8300000, guid: 3a17387a14ed34d52beaec5f32f5a3bd, type: 3}
   muzzleFlash: {fileID: 0}
 --- !u!114 &-460199179078218526
 MonoBehaviour:
@@ -631,7 +631,7 @@ MonoBehaviour:
   initialHealth: 3
   invulnerabilityTime: 1
   damageEffect: {fileID: 0}
-  damageSound: {fileID: 8300000, guid: f54d09ce0692051499bf31d1fd45d92f, type: 3}
+  damageSound: {fileID: 8300000, guid: 5a206d821ceb2994f83a523358d86630, type: 3}
   deathSound: {fileID: 8300000, guid: ab7731d0b8d158b488298bf2c9af48c3, type: 3}
   tankRenderers: []
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}

@@ -23,6 +23,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private Text gameOverMessage;
 
+    [Header("Audio Settings")]
+    [Tooltip("遊戲失敗時播放的音效")]
+    [SerializeField] private AudioClip gameOverSound;
+    [Tooltip("通關時播放的音樂")]
+    [SerializeField] private AudioClip victorySound;
+
     [Header("Level Flow")]
     [Tooltip("勝利後是否自動載入下一個關卡")]
     [SerializeField] private bool autoLoadNextScene = true;
@@ -217,6 +223,9 @@ public class GameManager : MonoBehaviour
 
         currentState = GameState.GameOver;
 
+        // 停止背景音樂並播放失敗音效
+        StopBackgroundMusicAndPlayGameOver();
+
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
 
@@ -229,11 +238,71 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Game Over: {reason}");
     }
 
+    private void StopBackgroundMusicAndPlayGameOver()
+    {
+        // 找到並停止背景音樂
+        BackgroundMusicManager bgMusic = FindFirstObjectByType<BackgroundMusicManager>();
+        if (bgMusic != null)
+        {
+            bgMusic.StopMusic(0f); // 立即停止
+        }
+
+        // 播放失敗音效
+        if (gameOverSound != null)
+        {
+            // 創建一個臨時的 AudioSource 來播放音效
+            GameObject tempAudio = new GameObject("GameOverAudio");
+            AudioSource audioSource = tempAudio.AddComponent<AudioSource>();
+            audioSource.clip = gameOverSound;
+            audioSource.volume = 0.7f;
+            audioSource.Play();
+
+            // 音效播放完畢後銷毀物件
+            Destroy(tempAudio, gameOverSound.length);
+        }
+        else
+        {
+            Debug.LogWarning("Game Over Sound 未設置！");
+        }
+    }
+
+    private void StopBackgroundMusicAndPlayVictory()
+    {
+        // 找到背景音樂管理器
+        BackgroundMusicManager bgMusic = FindFirstObjectByType<BackgroundMusicManager>();
+        if (bgMusic != null)
+        {
+            bgMusic.StopMusic(0.5f); // 0.5秒淡出
+        }
+
+        // 播放勝利音樂
+        if (victorySound != null)
+        {
+            // 創建一個持久的 AudioSource 來播放勝利音樂
+            GameObject victoryAudio = new GameObject("VictoryAudio");
+            AudioSource audioSource = victoryAudio.AddComponent<AudioSource>();
+            audioSource.clip = victorySound;
+            audioSource.volume = 0.7f;
+            audioSource.loop = false; // 不循環播放
+            audioSource.Play();
+
+            // 勝利音樂播放完畢後銷毀物件
+            Destroy(victoryAudio, victorySound.length + 1f);
+        }
+        else
+        {
+            Debug.LogWarning("Victory Sound 未設置！");
+        }
+    }
+
     public void Victory()
     {
         if (currentState != GameState.Playing) return;
 
         currentState = GameState.Victory;
+
+        // 停止背景音樂並播放勝利音樂
+        StopBackgroundMusicAndPlayVictory();
 
         // 保存玩家當前生命值
         if (playerTank != null && PlayerDataManager.Instance != null)

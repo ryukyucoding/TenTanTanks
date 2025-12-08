@@ -54,6 +54,6 @@ public class PauseManager : MonoBehaviour
     public void QuitToMenu()
     {
         Time.timeScale = 1f;          // 確保恢復流程
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("Menu-new");
     }
 }
