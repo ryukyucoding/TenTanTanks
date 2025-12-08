@@ -24,7 +24,7 @@ public class UpgradeWheelUI : MonoBehaviour
     [SerializeField] private Transform tier1Container;
     [SerializeField] private Transform tier2Container;
     [SerializeField] private float tier1Radius = 320f;
-    [SerializeField] private float tier2Radius = 480f;
+    [SerializeField] private float tier2Radius = 450f;
 
     [Header("Upgrade Button")]
     [SerializeField] private GameObject upgradeButtonPrefab;
