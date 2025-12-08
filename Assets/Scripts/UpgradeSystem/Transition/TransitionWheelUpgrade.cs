@@ -456,8 +456,8 @@ public class TransitionWheelUpgrade : MonoBehaviour
                        "<size=28>- All in the same direction\n</size>" +
                        "<size=28>- Gives powerful and concentrated attack.</size>";
 
-            case "machinegun":
-                return "<size=28><color=purple>Machine Gun Upgrade</color></size>\n\n" +
+            case "superheavy":
+                return "<size=28><color=purple>Super Heavy Upgrade</color></size>\n\n" +
                        "<size=28>CANNON CHANGES:\n</size>" +
                        "<size=28>- A total of three HEAVY cannons\n</size>" +
                        "<size=28>- Three cannons at 0, 120, 240 degree\n</size>" +
@@ -470,8 +470,8 @@ public class TransitionWheelUpgrade : MonoBehaviour
                        "<size=28>- All in the same direction</size>" +
                        "<size=28>- Gives fast and concentrated attack.</size>";
 
-            case "versatile":
-                return "<size=28><color=purple>Versatile Upgrade</color></size>\n\n" +
+            case "machinegun":
+                return "<size=28><color=purple>Machine Gun Upgrade</color></size>\n\n" +
                        "<size=28>CANNON CHANGES:\n</size>" +
                        "<size=28>- A total of three RAPID cannons\n</size>" +
                        "<size=28>- Three cannons at 0, 120, 240 degree</size>" +
@@ -484,8 +484,8 @@ public class TransitionWheelUpgrade : MonoBehaviour
                        "<size=28>- 2 in front, 2 in back</size>" +
                        "<size=28>- A mix of bullet size, speed, directions and concentration.</size>";
 
-            case "superheavy":
-                return "<size=28><color=purple>Super Heavy Upgrade</color></size>\n\n" +
+            case "versatile":
+                return "<size=28><color=purple>Versatile Upgrade</color></size>\n\n" +
                        "<size=28>CANNON CHANGES:\n</size>" +
                        "<size=28>- A total of FOUR cannons\n</size>" +
                        "<size=28>- One in each side of the tank</size>" +
