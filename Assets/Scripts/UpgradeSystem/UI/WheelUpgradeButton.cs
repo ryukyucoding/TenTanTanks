@@ -1,4 +1,4 @@
-using WheelUpgradeSystem;
+﻿using WheelUpgradeSystem;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -21,6 +21,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previewColor = new Color(0.8f, 0.8f, 0.8f, 0.6f); // Light gray with transparency
     [SerializeField] private Color previousChoiceColor = new Color(0.9f, 0.7f, 0.2f); // Orange-ish
 
+    [Header("Font Settings")]
+    [SerializeField] private float fontSize = 16f; // 調整字體大小
+    [SerializeField] private TMP_FontAsset minecraftFont; // Minecraft 字體
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
@@ -42,6 +46,32 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         AutoFindComponents();
         SetupButton();
+        LoadMinecraftFont(); // 自動載入 Minecraft 字體
+    }
+
+    /// <summary>
+    /// 自動載入 Minecraft 字體
+    /// </summary>
+    private void LoadMinecraftFont()
+    {
+        // 如果沒有手動指定字體，就自動載入
+        if (minecraftFont == null)
+        {
+            minecraftFont = Resources.Load<TMP_FontAsset>("Fonts/MinecraftTen-VGORe SDF");
+
+            if (minecraftFont != null)
+            {
+                DebugLog("✅ Successfully loaded Minecraft font: " + minecraftFont.name);
+            }
+            else
+            {
+                DebugLog("❌ Failed to load Minecraft font from Resources/Fonts/MinecraftTen-VGORe SDF");
+            }
+        }
+        else
+        {
+            DebugLog("✅ Minecraft font already assigned: " + minecraftFont.name);
+        }
     }
 
     private void AutoFindComponents()
@@ -121,6 +151,8 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         if (nameText != null)
         {
             nameText.text = option.upgradeName;
+            // 套用 Minecraft 字體
+            ApplyMinecraftFont(nameText);
         }
         else
         {
@@ -148,6 +180,38 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         DebugLog($"Setup completed for {option.upgradeName}");
     }
 
+    /// <summary>
+    /// 套用 Minecraft 字體到文字組件
+    /// </summary>
+    private void ApplyMinecraftFont(TextMeshProUGUI textComponent)
+    {
+        if (textComponent == null) return;
+
+        // 套用 Minecraft 字體
+        if (minecraftFont != null)
+        {
+            textComponent.font = minecraftFont;
+            DebugLog($"✅ Applied Minecraft font to {textComponent.name}");
+        }
+        else
+        {
+            DebugLog($"❌ No Minecraft font available for {textComponent.name}");
+        }
+
+        // 設定字體大小和其他屬性
+        textComponent.fontSize = fontSize;
+        textComponent.fontStyle = FontStyles.Bold; // Minecraft 風格通常是粗體
+        textComponent.color = Color.white;
+        textComponent.alignment = TextAlignmentOptions.Center;
+
+        // 加上輪廓讓字體更清楚
+        textComponent.outlineWidth = 0.2f;
+        textComponent.outlineColor = Color.black;
+
+        // 強制更新文字
+        textComponent.ForceMeshUpdate();
+    }
+
     private void CreateTextComponent(string text)
     {
         // Create a text component if none exists
@@ -156,9 +220,9 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         nameText = textObj.AddComponent<TextMeshProUGUI>();
         nameText.text = text;
-        nameText.fontSize = 14;
-        nameText.color = Color.white;
-        nameText.alignment = TextAlignmentOptions.Center;
+
+        // 套用 Minecraft 字體設定
+        ApplyMinecraftFont(nameText);
 
         // Set up RectTransform
         var rectTransform = textObj.GetComponent<RectTransform>();
@@ -167,7 +231,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         rectTransform.sizeDelta = Vector2.zero;
         rectTransform.anchoredPosition = Vector2.zero;
 
-        DebugLog("Created text component automatically");
+        DebugLog("Created text component automatically with Minecraft font");
     }
 
     private void OnButtonClick()
@@ -317,6 +381,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         Debug.Log($"NameText: {(nameText != null ? "Y" : "N")}");
         Debug.Log($"BackgroundImage: {(backgroundImage != null ? "Y" : "N")}");
         Debug.Log($"IconImage: {(iconImage != null ? "Y" : "N")}");
+        Debug.Log($"Minecraft Font: {(minecraftFont != null ? minecraftFont.name : "NULL")}");
         Debug.Log($"UpgradeOption: {(upgradeOption != null ? upgradeOption.upgradeName : "null")}");
         Debug.Log($"Current State: {currentState}");
     }
@@ -326,5 +391,17 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         UpdateVisualState();
         Debug.Log("Visual state forcefully updated");
+    }
+
+    [ContextMenu("Reload Minecraft Font")]
+    public void ReloadMinecraftFont()
+    {
+        minecraftFont = null;
+        LoadMinecraftFont();
+        if (nameText != null)
+        {
+            ApplyMinecraftFont(nameText);
+        }
+        Debug.Log("Minecraft font reloaded and applied");
     }
 }

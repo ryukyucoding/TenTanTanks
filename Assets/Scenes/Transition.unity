@@ -985,6 +985,8 @@ MonoBehaviour:
   upgradeDetectionRange: 1
   enableUpgrades: 1
   pauseForUpgrade: 1
+  enableVerboseDebug: 1
+  debugInterval: 0.5
   upgradeScenes:
   - Level2
   - Level4
