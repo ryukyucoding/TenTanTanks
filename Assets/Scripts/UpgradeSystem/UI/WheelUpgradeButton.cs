@@ -29,7 +29,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previewTextColor = new Color(0.8f, 0.8f, 0.8f, 0.6f);
     [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
-    private const float FONT_SIZE = 29f;
+    private const float FONT_SIZE = 30f;
 
     [Header("Font Settings")]
     [SerializeField] private TMP_FontAsset minecraftFont;
