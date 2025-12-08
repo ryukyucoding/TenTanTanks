@@ -132,6 +132,10 @@ public class UpgradeWheelUI : MonoBehaviour
             // ★★★ 關鍵：生成並顯示對應的 Tier 2 升級選項 ★★★
             GenerateAndShowTier2Options(transitionParentUpgrade);
         }
+
+        // added to update
+        UpdateButtonStatesTransition();
+        DebugLog("✅ Button states updated after SetTransitionMode");
     }
 
     private void HighlightSelectedTier1Option(string selectedUpgrade)
@@ -1030,6 +1034,8 @@ public class UpgradeWheelUI : MonoBehaviour
 
     private void UpdateButtonStatesTransition()
     {
+        DebugLog($"UpdateButtonStatesTransition called - AllowedTier: {transitionAllowedTier}, Parent: {transitionParentUpgrade}");
+
         if (transitionAllowedTier == 1)
         {
             foreach (var button in tier1Buttons)
@@ -1050,26 +1056,48 @@ public class UpgradeWheelUI : MonoBehaviour
         }
         else if (transitionAllowedTier == 2)
         {
+            // Tier 1 按鈕設為不可用（除了已選擇的）
             foreach (var button in tier1Buttons)
             {
                 if (button != null)
                 {
-                    button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+                    string buttonName = button.GetUpgradeOption()?.upgradeName ?? "";
+                    if (buttonName.Equals(transitionParentUpgrade, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        button.SetButtonState(WheelUpgradeButton.ButtonState.PreviousChoice);
+                        DebugLog($"✅ Set Tier1 button {buttonName} as PreviousChoice");
+                    }
+                    else
+                    {
+                        button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+                        DebugLog($"Set Tier1 button {buttonName} as Disabled");
+                    }
                 }
             }
 
+            // Tier 2 按鈕：只有符合父升級的才可用
             foreach (var button in tier2Buttons)
             {
-                if (button != null && button.GetUpgradeOption().parentUpgradeName == transitionParentUpgrade)
+                if (button != null && button.GetUpgradeOption() != null)
                 {
-                    button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
-                }
-                else if (button != null)
-                {
-                    button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+                    string parentName = button.GetUpgradeOption().parentUpgradeName ?? "";
+                    string buttonName = button.GetUpgradeOption().upgradeName ?? "";
+
+                    if (parentName.Equals(transitionParentUpgrade, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
+                        DebugLog($"✅ Set Tier2 button {buttonName} as Available (parent: {parentName})");
+                    }
+                    else
+                    {
+                        button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+                        DebugLog($"Set Tier2 button {buttonName} as Disabled (wrong parent: {parentName})");
+                    }
                 }
             }
         }
+
+        DebugLog("UpdateButtonStatesTransition completed");
     }
 
     private void UpdateTier1ButtonStates()
