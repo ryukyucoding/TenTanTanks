@@ -138,6 +138,21 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("✅ Button states updated after SetTransitionMode");
     }
 
+    public bool IsInTransitionMode()
+    {
+        return isTransitionMode;
+    }
+
+    public int GetTransitionAllowedTier()
+    {
+        return transitionAllowedTier;
+    }
+
+    public string GetTransitionParentUpgrade()
+    {
+        return transitionParentUpgrade;
+    }
+
     private void HighlightSelectedTier1Option(string selectedUpgrade)
     {
         DebugLog($"Highlighting Tier 1 option: {selectedUpgrade}");
