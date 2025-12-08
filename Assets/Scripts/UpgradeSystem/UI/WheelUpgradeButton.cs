@@ -18,15 +18,19 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color disabledColor = Color.gray;
     [SerializeField] private Color hoverColor = Color.cyan;
+    [SerializeField] private Color previewColor = new Color(0.8f, 0.8f, 0.8f, 0.6f); // Light gray with transparency
+    [SerializeField] private Color previousChoiceColor = new Color(0.9f, 0.7f, 0.2f); // Orange-ish
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
     public enum ButtonState
     {
-        Available,   // Can be clicked
-        Selected,    // Currently selected
-        Disabled     // Cannot be clicked (grayed out)
+        Available,      // Can be clicked
+        Selected,       // Currently selected
+        Disabled,       // Cannot be clicked (grayed out)
+        Preview,        // Visible but not clickable (for future tier preview)
+        PreviousChoice  // Shows previous choice (like selected but disabled)
     }
 
     private WheelUpgradeOption upgradeOption;
@@ -168,10 +172,12 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     private void OnButtonClick()
     {
-        // Only allow clicks if button is available or selected
-        if (currentState == ButtonState.Disabled)
+        // Only allow clicks for Available and Selected states
+        if (currentState == ButtonState.Disabled ||
+            currentState == ButtonState.Preview ||
+            currentState == ButtonState.PreviousChoice)
         {
-            DebugLog($"Button {upgradeOption?.upgradeName} click ignored - button is disabled");
+            DebugLog($"Button {upgradeOption?.upgradeName} click ignored - button state is {currentState}");
             return;
         }
 
@@ -198,10 +204,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         float alpha = 1f;
 
         // Determine target color based on state and hover
-        if (isHovered && currentState == ButtonState.Available)
+        if (isHovered && (currentState == ButtonState.Available || currentState == ButtonState.Preview))
         {
             targetColor = hoverColor;
-            alpha = 1f;
+            alpha = currentState == ButtonState.Preview ? 0.8f : 1f;
         }
         else
         {
@@ -217,7 +223,15 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
                     break;
                 case ButtonState.Disabled:
                     targetColor = disabledColor;
-                    alpha = 0.5f;
+                    alpha = 0.4f;
+                    break;
+                case ButtonState.Preview:
+                    targetColor = previewColor;
+                    alpha = 0.6f;
+                    break;
+                case ButtonState.PreviousChoice:
+                    targetColor = previousChoiceColor;
+                    alpha = 0.7f;
                     break;
                 default:
                     targetColor = availableColor;

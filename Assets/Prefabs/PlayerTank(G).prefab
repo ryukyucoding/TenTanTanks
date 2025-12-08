@@ -460,6 +460,8 @@ GameObject:
   - component: {fileID: -460199179078218526}
   - component: {fileID: 6168854359044807033}
   - component: {fileID: 2121425929630104671}
+  - component: {fileID: 1640563255498482355}
+  - component: {fileID: 481342379191461047}
   m_Layer: 0
   m_Name: PlayerTank(G)
   m_TagString: Player
@@ -594,6 +596,8 @@ MonoBehaviour:
   bulletPrefab: {fileID: 5759559603792554326, guid: 480654b5386f32e4eafff05be43c26ba, type: 3}
   bulletLifetime: 3
   shootSound: {fileID: 8300000, guid: 3a17387a14ed34d52beaec5f32f5a3bd, type: 3}
+  enableDebugLogs: 1
+  fireAllTurretsSimultaneously: 1
   muzzleFlash: {fileID: 0}
 --- !u!114 &-460199179078218526
 MonoBehaviour:
@@ -611,7 +615,7 @@ MonoBehaviour:
   baseBulletSpeed: 7
   baseFireRate: 1.2
   moveSpeedIncrement: 0.3
-  bulletSpeedIncrement: 0.5
+  bulletSpeedIncrement: 0.45
   fireRateIncrement: 0.2
   maxMoveSpeedLevel: 10
   maxBulletSpeedLevel: 10
@@ -659,6 +663,49 @@ MonoBehaviour:
   upgradeConfigs: []
   audioSource: {fileID: 0}
   transformSound: {fileID: 0}
+--- !u!114 &1640563255498482355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8621377706946314261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7a15114f7e65ae4699f2a7e843c9466, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankTransformationManager
+  modularTankController: {fileID: 0}
+  tankController: {fileID: 0}
+  tankShooting: {fileID: 0}
+  tankUpgradeSystem: {fileID: 0}
+  hugeTier1Prefab: {fileID: 5050609664824180105, guid: b16897a05c743c3429663c0ba91675b9, type: 3}
+  smallTier1Prefab: {fileID: 0}
+  balancedTier1Prefab: {fileID: 0}
+  hugeTier2FrontPrefab: {fileID: 0}
+  hugeTier2AroundPrefab: {fileID: 0}
+  smallTier2FrontPrefab: {fileID: 0}
+  smallTier2AroundPrefab: {fileID: 0}
+  balancedTier2FrontPrefab: {fileID: 0}
+  balancedTier2AroundPrefab: {fileID: 0}
+  tankBase: {fileID: 0}
+  originalTurret: {fileID: 0}
+  tankRenderers:
+  - {fileID: 0}
+  enableDebugLogs: 1
+--- !u!114 &481342379191461047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8621377706946314261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1111d31c28cfb8e4e9077632d2ba79ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankFirePointUpdater
+  enableDebugLogs: 1
 --- !u!1001 &5976788805462697681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -669,11 +716,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.004
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.004
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalPosition.z
@@ -681,23 +728,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7072302
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.7069834
+      value: -0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -89.98
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d46b06597d46f4a10b604bbb123d8732, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y

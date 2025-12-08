@@ -10,12 +10,30 @@ namespace WheelUpgradeSystem
         [SerializeField] private List<WheelUpgradeOption> availableUpgrades = new List<WheelUpgradeOption>();
 
         [Header("Current Tank State")]
-        [SerializeField] private string currentUpgradePath = "Basic"; // Current upgrade path
+        [SerializeField] private string currentUpgradePath = "Basic";
         [SerializeField] private WheelUpgradeOption currentUpgradeOption;
+        [SerializeField] private WheelTankStats currentWheelStats;
 
         // Upgrade events
         public static event Action<WheelUpgradeOption> OnTankUpgraded;
         public static event Action<string> OnUpgradePathChanged;
+
+        // Static access for easy reference
+        public static TankUpgradeSystem Instance { get; private set; }
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+        }
 
         private void Start()
         {
@@ -31,7 +49,7 @@ namespace WheelUpgradeSystem
             var basicTank = new WheelUpgradeOption
             {
                 upgradeName = "Basic",
-                description = "標準坦克配置",
+                description = "Standard tank configuration",
                 tier = 0,
                 damageMultiplier = 1f,
                 fireRateMultiplier = 1f,
@@ -46,7 +64,7 @@ namespace WheelUpgradeSystem
             var heavyOption = new WheelUpgradeOption
             {
                 upgradeName = "Heavy",
-                description = "重型砲管 - 大傷害，慢射速",
+                description = "Heavy barrel - High damage, slow fire rate",
                 tier = 1,
                 damageMultiplier = 2f,
                 fireRateMultiplier = 0.5f,
@@ -54,13 +72,13 @@ namespace WheelUpgradeSystem
                 moveSpeedMultiplier = 0.8f,
                 healthBonus = 20,
                 barrelPrefabName = "HeavyBarrel",
-                tankColor = new Color(0.8f, 0.4f, 0.4f) // Reddish
+                tankColor = new Color(0.8f, 0.4f, 0.4f)
             };
 
             var rapidOption = new WheelUpgradeOption
             {
                 upgradeName = "Rapid",
-                description = "快速砲管 - 高射速，小傷害",
+                description = "Rapid barrel - High fire rate, low damage",
                 tier = 1,
                 damageMultiplier = 0.6f,
                 fireRateMultiplier = 3f,
@@ -68,13 +86,13 @@ namespace WheelUpgradeSystem
                 moveSpeedMultiplier = 1.2f,
                 healthBonus = -20,
                 barrelPrefabName = "RapidBarrel",
-                tankColor = new Color(0.4f, 0.8f, 0.4f) // Greenish
+                tankColor = new Color(0.4f, 0.8f, 0.4f)
             };
 
             var balancedOption = new WheelUpgradeOption
             {
                 upgradeName = "Balanced",
-                description = "平衡砲管 - 中等屬性",
+                description = "Balanced barrel - Medium attributes",
                 tier = 1,
                 damageMultiplier = 1.2f,
                 fireRateMultiplier = 1.5f,
@@ -82,14 +100,14 @@ namespace WheelUpgradeSystem
                 moveSpeedMultiplier = 1.1f,
                 healthBonus = 0,
                 barrelPrefabName = "BalancedBarrel",
-                tankColor = new Color(0.4f, 0.4f, 0.8f) // Bluish
+                tankColor = new Color(0.4f, 0.4f, 0.8f)
             };
 
             // Tier 2 upgrades - Heavy variants
             var superHeavy = new WheelUpgradeOption
             {
                 upgradeName = "SuperHeavy",
-                description = "超重型砲管 - 極大傷害",
+                description = "Super heavy barrel - Extreme damage",
                 tier = 2,
                 parentUpgradeName = "Heavy",
                 damageMultiplier = 3f,
@@ -98,14 +116,13 @@ namespace WheelUpgradeSystem
                 moveSpeedMultiplier = 0.6f,
                 healthBonus = 50,
                 barrelPrefabName = "SuperHeavyBarrel",
-                tankColor = new Color(0.9f, 0.2f, 0.2f),
-                scaleMultiplier = new Vector3(1.2f, 1.2f, 1.2f)
+                tankColor = new Color(0.9f, 0.2f, 0.2f)
             };
 
             var armorPiercing = new WheelUpgradeOption
             {
                 upgradeName = "ArmorPiercing",
-                description = "穿甲砲管 - 穿透護甲",
+                description = "Armor piercing barrel - Penetrates armor",
                 tier = 2,
                 parentUpgradeName = "Heavy",
                 damageMultiplier = 1.6f,
@@ -121,7 +138,7 @@ namespace WheelUpgradeSystem
             var machineGun = new WheelUpgradeOption
             {
                 upgradeName = "MachineGun",
-                description = "機槍砲管 - 極高射速",
+                description = "Machine gun barrel - Extreme fire rate",
                 tier = 2,
                 parentUpgradeName = "Rapid",
                 damageMultiplier = 0.3f,
@@ -130,14 +147,13 @@ namespace WheelUpgradeSystem
                 moveSpeedMultiplier = 1.4f,
                 healthBonus = -40,
                 barrelPrefabName = "MachineGunBarrel",
-                tankColor = new Color(0.2f, 0.9f, 0.2f),
-                scaleMultiplier = new Vector3(0.9f, 0.9f, 0.9f)
+                tankColor = new Color(0.2f, 0.9f, 0.2f)
             };
 
             var burst = new WheelUpgradeOption
             {
                 upgradeName = "Burst",
-                description = "爆發砲管 - 三連發",
+                description = "Burst barrel - Three-shot burst",
                 tier = 2,
                 parentUpgradeName = "Rapid",
                 damageMultiplier = 0.8f,
@@ -153,7 +169,7 @@ namespace WheelUpgradeSystem
             var versatile = new WheelUpgradeOption
             {
                 upgradeName = "Versatile",
-                description = "萬能砲管 - 全能提升",
+                description = "Versatile barrel - All-around improvement",
                 tier = 2,
                 parentUpgradeName = "Balanced",
                 damageMultiplier = 1.4f,
@@ -168,7 +184,7 @@ namespace WheelUpgradeSystem
             var tactical = new WheelUpgradeOption
             {
                 upgradeName = "Tactical",
-                description = "戰術砲管 - 精準射擊",
+                description = "Tactical barrel - Precision shooting",
                 tier = 2,
                 parentUpgradeName = "Balanced",
                 damageMultiplier = 1.6f,
@@ -197,8 +213,14 @@ namespace WheelUpgradeSystem
                 currentUpgradeOption = upgrade;
                 currentUpgradePath = upgradeName;
 
+                // Create WheelTankStats for this upgrade
+                currentWheelStats = WheelTankStats.CreateFromUpgradePath(upgradeName);
+
                 Debug.Log($"Applied upgrade: {upgradeName}");
-                Debug.Log($"New multipliers - Damage: {upgrade.damageMultiplier}x, Fire Rate: {upgrade.fireRateMultiplier}x");
+                Debug.Log($"WheelTankStats: {currentWheelStats}");
+
+                // Apply the stats to actual tank components
+                ApplyStatsToTank();
 
                 // Trigger events
                 OnTankUpgraded?.Invoke(currentUpgradeOption);
@@ -210,6 +232,69 @@ namespace WheelUpgradeSystem
             }
         }
 
+        private void ApplyStatsToTank()
+        {
+            if (currentWheelStats == null)
+            {
+                Debug.LogWarning("No WheelTankStats to apply!");
+                return;
+            }
+
+            // Find tank components
+            var tankController = FindObjectOfType<TankController>();
+            var tankShooting = FindObjectOfType<TankShooting>();
+
+            // Apply to TankController
+            if (tankController != null)
+            {
+                tankController.SetMoveSpeed(currentWheelStats.moveSpeed);
+                Debug.Log($"Applied move speed: {currentWheelStats.moveSpeed}");
+            }
+            else
+            {
+                Debug.LogWarning("TankController not found!");
+            }
+
+            // Apply to TankShooting
+            if (tankShooting != null)
+            {
+                tankShooting.SetBulletSpeed(currentWheelStats.bulletSpeed);
+                tankShooting.SetFireRate(currentWheelStats.fireRate);
+                Debug.Log($"Applied bullet speed: {currentWheelStats.bulletSpeed}");
+                Debug.Log($"Applied fire rate: {currentWheelStats.fireRate}");
+            }
+            else
+            {
+                Debug.LogWarning("TankShooting not found!");
+            }
+
+            // Apply visual changes
+            ApplyVisualChanges();
+
+            Debug.Log($"Successfully applied {currentUpgradePath} to tank!");
+        }
+
+        private void ApplyVisualChanges()
+        {
+            if (currentUpgradeOption == null) return;
+
+            // FIXED: Don't override colors if TankTransformationManager is handling visual changes
+            var transformationManager = FindObjectOfType<TankTransformationManager>();
+            if (transformationManager != null)
+            {
+                Debug.Log("TankTransformationManager found - skipping color application to avoid conflicts");
+                return;
+            }
+
+            // Apply tank color only if no transformation system is active
+            var tankRenderer = FindObjectOfType<Renderer>();
+            if (tankRenderer != null)
+            {
+                tankRenderer.material.color = currentUpgradeOption.tankColor;
+                Debug.Log($"Applied tank color: {currentUpgradeOption.tankColor}");
+            }
+        }
+
         public List<WheelUpgradeOption> GetAvailableUpgrades(int tier, string parentName = "")
         {
             var available = new List<WheelUpgradeOption>();
@@ -218,12 +303,10 @@ namespace WheelUpgradeSystem
             {
                 if (upgrade.tier == tier)
                 {
-                    // Tier 1 or no parent requirement
                     if (tier == 1 || string.IsNullOrEmpty(parentName))
                     {
                         available.Add(upgrade);
                     }
-                    // Tier 2 needs to check parent
                     else if (tier == 2 && upgrade.parentUpgradeName == parentName)
                     {
                         available.Add(upgrade);
@@ -237,29 +320,21 @@ namespace WheelUpgradeSystem
             return available;
         }
 
+        // Public getters
+        public WheelTankStats GetCurrentWheelStats() => currentWheelStats;
         public WheelUpgradeOption GetCurrentUpgradeOption() => currentUpgradeOption;
         public string GetCurrentUpgradePath() => currentUpgradePath;
 
-        // Get all available upgrades (for debugging)
-        public List<WheelUpgradeOption> GetAllUpgrades() => availableUpgrades;
-
-        // Reset to basic configuration
-        [ContextMenu("Reset to Basic")]
-        public void ResetToBasic()
+        [ContextMenu("Test ArmorPiercing")]
+        public void TestArmorPiercing()
         {
-            ApplyUpgrade("Basic");
+            ApplyUpgrade("ArmorPiercing");
         }
 
-        // Debug method to list all upgrades
-        [ContextMenu("List All Upgrades")]
-        public void ListAllUpgrades()
+        [ContextMenu("Test MachineGun")]
+        public void TestMachineGun()
         {
-            Debug.Log("=== ALL UPGRADE OPTIONS ===");
-            foreach (var upgrade in availableUpgrades)
-            {
-                Debug.Log($"Tier {upgrade.tier}: {upgrade.upgradeName}" +
-                         (string.IsNullOrEmpty(upgrade.parentUpgradeName) ? "" : $" (parent: {upgrade.parentUpgradeName})"));
-            }
+            ApplyUpgrade("MachineGun");
         }
     }
 }
