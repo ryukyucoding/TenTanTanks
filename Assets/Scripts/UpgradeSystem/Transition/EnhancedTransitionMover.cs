@@ -190,7 +190,7 @@ public class EnhancedTransitionMover : MonoBehaviour
                 transitionType = "Level1ToLevel2";
                 Debug.Log("[EnhancedTransitionMover] Level1→Level2: Checking for Tier 2 options");
 
-                // get the previous tier 1 choice
+                // ✅ 獲取保存的 Tier 1 選擇
                 string savedTier1 = "";
                 if (PlayerDataManager.Instance != null)
                 {
@@ -202,53 +202,40 @@ public class EnhancedTransitionMover : MonoBehaviour
                     Debug.LogError("[EnhancedTransitionMover] ❌ PlayerDataManager not found!");
                 }
 
-                // if tier 1 changed, show the corresponding tier 2
+                // ✅ 如果有 Tier 1 變形，顯示對應的 Tier 2 選項
                 if (!string.IsNullOrEmpty(savedTier1) && savedTier1.ToLower() != "basic")
                 {
                     Debug.Log($"[EnhancedTransitionMover] ✅ Showing Tier 2 options for parent: {savedTier1}");
+
+                    // ★★★ 修復：使用 FindObjectsOfType 替代 FindFirstObjectByType ★★★
                     Debug.Log("[EnhancedTransitionMover] Searching for UpgradeWheelUI...");
+                    UpgradeWheelUI[] allUpgradeWheels = FindObjectsOfType<UpgradeWheelUI>(true);
+                    Debug.Log($"[EnhancedTransitionMover] Found {allUpgradeWheels.Length} UpgradeWheelUI objects");
 
-                    UpgradeWheelUI[] allUpgradeWheels = FindObjectsOfType<UpgradeWheelUI>(true); // 包括非活躍物件
-                    Debug.Log($"[EnhancedTransitionMover] Found {allUpgradeWheels.Length} UpgradeWheelUI objects (including inactive)");
-
-                    for (int i = 0; i < allUpgradeWheels.Length; i++)
+                    UpgradeWheelUI upgradeWheelUI = null;
+                    if (allUpgradeWheels.Length > 0)
                     {
-                        Debug.Log($"[EnhancedTransitionMover] UpgradeWheelUI {i}: {allUpgradeWheels[i].name} (active: {allUpgradeWheels[i].gameObject.activeInHierarchy})");
-                    }
-
-                    // try to find UpgradeWheelUI
-                    var upgradeWheelUI = FindFirstObjectByType<UpgradeWheelUI>();
-                    if (upgradeWheelUI != null)
-                    {
-                        Debug.Log($"[EnhancedTransitionMover] Found UpgradeWheelUI: {upgradeWheelUI.name}");
+                        upgradeWheelUI = allUpgradeWheels[0];
+                        Debug.Log($"[EnhancedTransitionMover] Using UpgradeWheelUI: {upgradeWheelUI.name}");
                         Debug.Log($"[EnhancedTransitionMover] UpgradeWheelUI GameObject active: {upgradeWheelUI.gameObject.activeInHierarchy}");
                         Debug.Log($"[EnhancedTransitionMover] UpgradeWheelUI Component enabled: {upgradeWheelUI.enabled}");
-                        Debug.Log($"[EnhancedTransitionMover] Setting to Tier 2 mode with parent: {savedTier1}");
+                    }
 
-                        // set to tier2
+                    if (upgradeWheelUI != null)
+                    {
+                        Debug.Log($"[EnhancedTransitionMover] ✅ Found UpgradeWheelUI, setting to Tier 2 mode");
+                        Debug.Log($"[EnhancedTransitionMover] Parent upgrade: {savedTier1}");
+
+                        // 設置為 Tier 2 模式
                         upgradeWheelUI.SetTransitionMode(2, savedTier1);
                         Debug.Log("[EnhancedTransitionMover] ✅ SetTransitionMode called successfully");
                     }
                     else
                     {
-                        Debug.LogError("[EnhancedTransitionMover] ❌ UpgradeWheelUI not found in scene!");
-                        Debug.Log("[EnhancedTransitionMover] Checking scene hierarchy for debugging...");
-
-                        // check GameObject
-                        GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
-                        int uiCount = 0;
-                        foreach (GameObject obj in allObjects)
-                        {
-                            if (obj.name.ToLower().Contains("upgrade") || obj.name.ToLower().Contains("wheel"))
-                            {
-                                Debug.Log($"[EnhancedTransitionMover] Found related object: {obj.name} (active: {obj.activeInHierarchy})");
-                                uiCount++;
-                            }
-                        }
-                        Debug.Log($"[EnhancedTransitionMover] Total upgrade/wheel related objects: {uiCount}");
+                        Debug.LogError("[EnhancedTransitionMover] ❌ No UpgradeWheelUI available!");
                     }
-                    
-                    // show wheel
+
+                    // 顯示輪盤
                     transitionUpgrade.ShowUpgradePanel(transitionType);
                     return true;
                 }
