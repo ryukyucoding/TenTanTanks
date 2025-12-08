@@ -1,4 +1,4 @@
-using WheelUpgradeSystem;
+﻿using WheelUpgradeSystem;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -111,7 +111,6 @@ public class UpgradeWheelUI : MonoBehaviour
         isTransitionMode = true;
         transitionAllowedTier = allowedTier;
         transitionParentUpgrade = string.IsNullOrEmpty(parentUpgrade) ? "" : parentUpgrade;
-
         DebugLog($"Set to transition mode: Tier {allowedTier}, Parent: {transitionParentUpgrade}");
 
         // Update the state based on allowed tier
@@ -122,9 +121,279 @@ public class UpgradeWheelUI : MonoBehaviour
         else if (allowedTier == 2)
         {
             currentState = UpgradeState.SelectingTier2;
+
             // Set a dummy tier 1 selection to enable tier 2 buttons
             selectedTier1Option = new WheelUpgradeOption(transitionParentUpgrade, "", 1);
+            DebugLog($"Set selectedTier1Option to: {transitionParentUpgrade}");
+
+            // ★★★ NEW: 高亮已選擇的 Tier 1 選項 ★★★
+            HighlightSelectedTier1Option(transitionParentUpgrade);
+
+            // ★★★ 關鍵：生成並顯示對應的 Tier 2 升級選項 ★★★
+            GenerateAndShowTier2Options(transitionParentUpgrade);
         }
+    }
+
+    private void HighlightSelectedTier1Option(string selectedUpgrade)
+    {
+        DebugLog($"Highlighting Tier 1 option: {selectedUpgrade}");
+
+        if (tier1Container == null)
+        {
+            DebugLog("❌ Tier1Container is null, cannot highlight");
+            return;
+        }
+
+        // 確保 Tier 1 container 是可見的
+        tier1Container.gameObject.SetActive(true);
+
+        // 找到所有 Tier 1 按鈕並設定狀態
+        foreach (var button in tier1Buttons)
+        {
+            if (button != null && button.GetUpgradeOption() != null)
+            {
+                string buttonUpgradeName = button.GetUpgradeOption().upgradeName;
+
+                if (buttonUpgradeName.Equals(selectedUpgrade, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // ✅ 使用 PreviousChoice 狀態來高亮選中的按鈕（橙色）
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.PreviousChoice);
+                    DebugLog($"✅ Set as PreviousChoice: {buttonUpgradeName}");
+                }
+                else
+                {
+                    // ✅ 使用 Disabled 狀態讓其他按鈕變暗
+                    button.SetButtonState(WheelUpgradeButton.ButtonState.Disabled);
+                    DebugLog($"Set as Disabled: {buttonUpgradeName}");
+                }
+            }
+        }
+
+        DebugLog($"✅ Highlighted Tier 1 selection complete");
+    }
+
+    private void GenerateAndShowTier2Options(string parentUpgrade)
+    {
+        DebugLog($"Generating Tier 2 options for parent: {parentUpgrade}");
+
+        // 只清除 Tier 2 按鈕，保留 Tier 1 按鈕的高亮狀態
+        ClearTier2ButtonsOnly();
+
+        // 根據父級升級生成對應的 Tier 2 選項
+        List<WheelUpgradeOption> tier2Options = GetTier2OptionsForParent(parentUpgrade);
+
+        if (tier2Options.Count == 0)
+        {
+            DebugLog($"❌ No Tier 2 options found for parent: {parentUpgrade}");
+            return;
+        }
+
+        DebugLog($"✅ Found {tier2Options.Count} Tier 2 options for {parentUpgrade}");
+
+        // 創建並顯示 Tier 2 按鈕
+        CreateTier2ButtonsFromList(tier2Options);
+
+        // 確保 Tier 2 container 是可見的
+        if (tier2Container != null)
+        {
+            tier2Container.gameObject.SetActive(true);
+            DebugLog("Activated Tier 2 container");
+        }
+    }
+
+    /// <summary>
+    /// 獲取指定父級升級的 Tier 2 選項列表
+    /// </summary>
+    private List<WheelUpgradeOption> GetTier2OptionsForParent(string parentUpgrade)
+    {
+        List<WheelUpgradeOption> tier2Options = new List<WheelUpgradeOption>();
+
+        switch (parentUpgrade.ToLower())
+        {
+            case "heavy":
+                tier2Options.Add(CreateSuperHeavyOption());
+                tier2Options.Add(CreateArmorPiercingOption());
+                break;
+
+            case "rapid":
+                tier2Options.Add(CreateMachineGunOption());
+                tier2Options.Add(CreateBurstOption());
+                break;
+
+            case "balanced":
+                tier2Options.Add(CreateVersatileOption());
+                tier2Options.Add(CreateTacticalOption());
+                break;
+
+            default:
+                DebugLog($"❌ Unknown parent upgrade: {parentUpgrade}");
+                // 如果找不到特定的 Tier 2 選項，使用現有的系統方法
+                if (upgradeSystem != null)
+                {
+                    tier2Options = upgradeSystem.GetAvailableUpgrades(2, parentUpgrade);
+                }
+                break;
+        }
+
+        return tier2Options;
+    }
+
+    /// <summary>
+    /// 只清除 Tier 2 按鈕，保留 Tier 1 按鈕
+    /// </summary>
+    private void ClearTier2ButtonsOnly()
+    {
+        foreach (var button in tier2Buttons)
+        {
+            if (button != null && button.gameObject != null)
+                DestroyImmediate(button.gameObject);
+        }
+        tier2Buttons.Clear();
+        DebugLog("Cleared Tier 2 buttons only");
+    }
+
+    /// <summary>
+    /// 從 Tier 2 選項列表創建按鈕
+    /// </summary>
+    private void CreateTier2ButtonsFromList(List<WheelUpgradeOption> tier2Options)
+    {
+        if (tier2Container == null)
+        {
+            DebugLog("❌ Cannot create Tier 2 buttons - missing container");
+            return;
+        }
+
+        float angleStep = 360f / tier2Options.Count;
+        float currentAngle = -150f; // 與你現有的邏輯保持一致
+
+        for (int i = 0; i < tier2Options.Count; i++)
+        {
+            WheelUpgradeOption option = tier2Options[i];
+
+            // 使用你現有的方法創建按鈕
+            Vector3 position = GetCirclePosition(currentAngle, tier2Radius);
+            System.Action<WheelUpgradeOption> callback = OnTier2SelectedTransition;
+
+            var button = CreateUpgradeButton(option, position, callback);
+            if (button != null)
+            {
+                button.transform.SetParent(tier2Container, false);
+                tier2Buttons.Add(button);
+
+                // 設定為可點擊狀態
+                button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
+
+                DebugLog($"Created Tier 2 button: {option.upgradeName} at angle {currentAngle}");
+            }
+
+            currentAngle += angleStep;
+        }
+
+        DebugLog($"✅ Created {tier2Options.Count} Tier 2 buttons");
+    }
+
+    // === Tier 2 升級選項創建方法 ===
+
+    private WheelUpgradeOption CreateSuperHeavyOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "SuperHeavy",
+            description = "Super heavy barrel - Extreme damage, very slow",
+            tier = 2,
+            parentUpgradeName = "Heavy",
+            damageMultiplier = 3f,
+            fireRateMultiplier = 0.3f,
+            bulletSizeMultiplier = 2f,
+            moveSpeedMultiplier = 0.6f,
+            healthBonus = 50,
+            tankColor = new Color(0.9f, 0.2f, 0.2f)
+        };
+    }
+
+    private WheelUpgradeOption CreateArmorPiercingOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "ArmorPiercing",
+            description = "Armor piercing barrel - Penetrates armor",
+            tier = 2,
+            parentUpgradeName = "Heavy",
+            damageMultiplier = 1.6f,
+            fireRateMultiplier = 0.8f,
+            bulletSizeMultiplier = 1.2f,
+            moveSpeedMultiplier = 0.9f,
+            healthBonus = 10,
+            tankColor = new Color(0.7f, 0.3f, 0.3f)
+        };
+    }
+
+    private WheelUpgradeOption CreateMachineGunOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "MachineGun",
+            description = "Machine gun barrel - Extreme fire rate",
+            tier = 2,
+            parentUpgradeName = "Rapid",
+            damageMultiplier = 0.3f,
+            fireRateMultiplier = 5f,
+            bulletSizeMultiplier = 0.5f,
+            moveSpeedMultiplier = 1.4f,
+            healthBonus = -40,
+            tankColor = new Color(0.2f, 0.9f, 0.2f)
+        };
+    }
+
+    private WheelUpgradeOption CreateBurstOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "Burst",
+            description = "Burst barrel - Three-shot burst",
+            tier = 2,
+            parentUpgradeName = "Rapid",
+            damageMultiplier = 0.8f,
+            fireRateMultiplier = 2f,
+            bulletSizeMultiplier = 0.8f,
+            moveSpeedMultiplier = 1.1f,
+            healthBonus = -10,
+            tankColor = new Color(0.3f, 0.7f, 0.3f)
+        };
+    }
+
+    private WheelUpgradeOption CreateVersatileOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "Versatile",
+            description = "Versatile barrel - All-around improvement",
+            tier = 2,
+            parentUpgradeName = "Balanced",
+            damageMultiplier = 1.4f,
+            fireRateMultiplier = 1.8f,
+            bulletSizeMultiplier = 1.1f,
+            moveSpeedMultiplier = 1.2f,
+            healthBonus = 5,
+            tankColor = new Color(0.5f, 0.3f, 0.9f)
+        };
+    }
+
+    private WheelUpgradeOption CreateTacticalOption()
+    {
+        return new WheelUpgradeOption
+        {
+            upgradeName = "Tactical",
+            description = "Tactical barrel - Balanced with speed focus",
+            tier = 2,
+            parentUpgradeName = "Balanced",
+            damageMultiplier = 1.2f,
+            fireRateMultiplier = 1.5f,
+            bulletSizeMultiplier = 1f,
+            moveSpeedMultiplier = 1.3f,
+            healthBonus = 0,
+            tankColor = new Color(0.4f, 0.4f, 0.9f)
+        };
     }
 
     /// <summary>
@@ -669,7 +938,7 @@ public class UpgradeWheelUI : MonoBehaviour
         {
             DebugLog($"Tier 2 selected in transition mode: {option.upgradeName}");
 
-            // ������ NEW: Apply Tier 2 tank transformation immediately ������
+            // ★★★ NEW: Apply Tier 2 tank transformation immediately ★★★
             TankTransformationManager transformManager = FindFirstObjectByType<TankTransformationManager>();
             if (transformManager != null)
             {
