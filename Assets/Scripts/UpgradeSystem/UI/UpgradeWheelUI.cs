@@ -749,13 +749,73 @@ public class UpgradeWheelUI : MonoBehaviour
             return;
         }
 
-        float angleStep = 60f;
-        float startAngle = -210f;
+        // 根據父級升級類型分組
+        var heavyOptions = new List<WheelUpgradeOption>();
+        var rapidOptions = new List<WheelUpgradeOption>();
+        var balancedOptions = new List<WheelUpgradeOption>();
 
-        for (int i = 0; i < options.Count; i++)
+        foreach (var option in options)
+        {
+            string parentName = option.parentUpgradeName?.ToLower() ?? "";
+
+            switch (parentName)
+            {
+                case "heavy":
+                    heavyOptions.Add(option);
+                    break;
+                case "rapid":
+                    rapidOptions.Add(option);
+                    break;
+                case "balanced":
+                    balancedOptions.Add(option);
+                    break;
+                default:
+                    DebugLog($"Unknown parent upgrade: {parentName}");
+                    // 從升級名稱推斷父級類型
+                    string upgradeName = option.upgradeName?.ToLower() ?? "";
+                    if (upgradeName.Contains("superheavy") || upgradeName.Contains("armorpiercing"))
+                    {
+                        heavyOptions.Add(option);
+                    }
+                    else if (upgradeName.Contains("machinegun") || upgradeName.Contains("burst"))
+                    {
+                        rapidOptions.Add(option);
+                    }
+                    else if (upgradeName.Contains("versatile") || upgradeName.Contains("tactical"))
+                    {
+                        balancedOptions.Add(option);
+                    }
+                    break;
+            }
+        }
+
+        // 根據您確認的角度創建按鈕
+        // Heavy (-180°): SuperHeavy/ArmorPiercing 在 150°/-150°
+        CreateTier2ButtonsForParent(heavyOptions, "Heavy", new float[] { 150f, -150f });
+
+        // Rapid (-60°): MachineGun/Burst 在 -90°/-30°
+        CreateTier2ButtonsForParent(rapidOptions, "Rapid", new float[] { -90f, -30f });
+
+        // Balanced (60°): Versatile/Tactical 在 30°/90°
+        CreateTier2ButtonsForParent(balancedOptions, "Balanced", new float[] { 30f, 90f });
+
+        DebugLog($"Created Tier2 buttons: {heavyOptions.Count} Heavy, {rapidOptions.Count} Rapid, {balancedOptions.Count} Balanced");
+        DebugLog($"Total Tier2 buttons created: {tier2Buttons.Count}");
+    }
+
+    // 新增的輔助函數
+    private void CreateTier2ButtonsForParent(List<WheelUpgradeOption> options, string parentType, float[] targetAngles)
+    {
+        if (options.Count == 0)
+        {
+            DebugLog($"No options for parent type: {parentType}");
+            return;
+        }
+
+        for (int i = 0; i < options.Count && i < targetAngles.Length; i++)
         {
             var option = options[i];
-            float angle = startAngle + (angleStep * i);
+            float angle = targetAngles[i];
             Vector3 position = GetCirclePosition(angle, tier2Radius);
 
             System.Action<WheelUpgradeOption> callback = isTransitionMode ? OnTier2SelectedTransition : OnTier2Selected;
@@ -765,9 +825,11 @@ public class UpgradeWheelUI : MonoBehaviour
             {
                 button.transform.SetParent(tier2Container, false);
                 tier2Buttons.Add(button);
-                DebugLog($"Created Tier2 button: {option.upgradeName} at position {position}");
+                DebugLog($"Created Tier2 button: {option.upgradeName} for {parentType} at angle {angle}° position {position}");
             }
         }
+
+        DebugLog($"Created {System.Math.Min(options.Count, targetAngles.Length)} buttons for {parentType}");
     }
 
     private WheelUpgradeButton CreateUpgradeButton(
