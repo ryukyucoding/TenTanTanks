@@ -8,10 +8,18 @@ using System;
 public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     [Header("UI References")]
-    [SerializeField] private Button button; // 保留但隱藏，只用於點擊檢測
+    [SerializeField] private Button button;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private Image iconImage;
-    [SerializeField] private Image backgroundImage; // 將被隱藏
+    [SerializeField] private Image backgroundImage;
+
+    [Header("Text Box Settings")]
+    [SerializeField] private float textBoxWidth = 120f; // 文字框寬度
+    [SerializeField] private float textBoxHeight = 40f; // 文字框高度
+    [SerializeField] private bool autoAdjustWidth = true; // 自動調整寬度
+    [SerializeField] private float paddingHorizontal = 10f; // 左右邊距
+    [SerializeField] private bool allowUnlimitedWidth = false; // ★★★ 允許無限寬度 ★★★
+    [SerializeField] private float maxWidthLimit = 200f; // 最大寬度限制（當不允許無限寬度時）
 
     [Header("Text Visual States")]
     [SerializeField] private Color availableTextColor = Color.white;
@@ -26,22 +34,21 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private TMP_FontAsset minecraftFont;
 
     [Header("Text Effects")]
-    [SerializeField] private bool useTextGlow = true; // 文字發光效果
-    [SerializeField] private float glowIntensity = 0.3f;
-    [SerializeField] private bool useTextOutline = true; // 文字邊框
+    [SerializeField] private bool useTextOutline = true;
     [SerializeField] private float outlineWidth = 0.2f;
     [SerializeField] private Color outlineColor = Color.black;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
+    [SerializeField] private bool showTextBoxBounds = false; // 顯示文字框邊界（除錯用）
 
     public enum ButtonState
     {
-        Available,      // Can be clicked
-        Selected,       // Currently selected
-        Disabled,       // Cannot be clicked (grayed out)
-        Preview,        // Visible but not clickable (for future tier preview)
-        PreviousChoice  // Shows previous choice (like selected but disabled)
+        Available,
+        Selected,
+        Disabled,
+        Preview,
+        PreviousChoice
     }
 
     private WheelUpgradeOption upgradeOption;
@@ -56,36 +63,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         LoadMinecraftFont();
     }
 
-    /// <summary>
-    /// 設定純文字按鈕 - 隱藏背景，只顯示文字
-    /// </summary>
-    private void SetupTextOnlyButton()
-    {
-        // 隱藏背景圖片但保留組件（用於點擊檢測區域）
-        if (backgroundImage != null)
-        {
-            backgroundImage.color = Color.clear; // 完全透明
-            DebugLog("Background image set to transparent");
-        }
-
-        // 如果有 Button 組件，設定為無背景
-        if (button != null)
-        {
-            var buttonImage = button.GetComponent<Image>();
-            if (buttonImage != null)
-            {
-                buttonImage.color = Color.clear; // 透明按鈕背景
-            }
-
-            // 設定按鈕為無過渡效果
-            button.transition = Selectable.Transition.None;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(OnButtonClick);
-        }
-
-        DebugLog("Text-only button setup completed");
-    }
-
     private void LoadMinecraftFont()
     {
         if (minecraftFont == null)
@@ -98,9 +75,50 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
             else
             {
-                DebugLog("❌ Failed to load Minecraft font from Resources/Fonts/MinecraftTen-VGORe SDF");
+                DebugLog("❌ Failed to load Minecraft font");
             }
         }
+    }
+
+    private void SetupTextOnlyButton()
+    {
+        // 隱藏背景圖片但保留組件（用於點擊檢測區域）
+        if (backgroundImage != null)
+        {
+            if (showTextBoxBounds)
+            {
+                // 除錯模式：顯示半透明邊界
+                backgroundImage.color = new Color(1f, 0f, 0f, 0.2f);
+            }
+            else
+            {
+                // 正常模式：完全透明
+                backgroundImage.color = Color.clear;
+            }
+        }
+
+        // 設定按鈕為透明
+        if (button != null)
+        {
+            var buttonImage = button.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                if (showTextBoxBounds)
+                {
+                    buttonImage.color = new Color(0f, 1f, 0f, 0.2f); // 除錯：綠色邊界
+                }
+                else
+                {
+                    buttonImage.color = Color.clear;
+                }
+            }
+
+            button.transition = Selectable.Transition.None;
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(OnButtonClick);
+        }
+
+        DebugLog("Text-only button setup completed");
     }
 
     private void AutoFindComponents()
@@ -127,7 +145,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
         }
 
-        DebugLog($"Auto-found components: Button={button != null}, Text={nameText != null}, BG={backgroundImage != null}, Icon={iconImage != null}");
+        DebugLog($"Auto-found components: Button={button != null}, Text={nameText != null}, BG={backgroundImage != null}");
     }
 
     public void Setup(WheelUpgradeOption option, Action clickCallback)
@@ -145,13 +163,14 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         {
             nameText.text = option.upgradeName;
             ApplyMinecraftTextStyle(nameText);
+            AdjustTextBoxSize(); // 調整文字框大小
         }
         else
         {
             CreateTextComponent(option.upgradeName);
         }
 
-        // 隱藏圖標（純文字模式）
+        // 隱藏圖標
         if (iconImage != null)
         {
             iconImage.gameObject.SetActive(false);
@@ -161,34 +180,96 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         DebugLog($"Setup completed for {option.upgradeName}");
     }
 
+    /// <summary>
+    /// 調整文字框大小（不影響按鈕定位）
+    /// </summary>
+    private void AdjustTextBoxSize()
+    {
+        if (nameText == null) return;
+
+        var rectTransform = nameText.GetComponent<RectTransform>();
+        if (rectTransform == null) return;
+
+        float finalWidth = textBoxWidth;
+
+        // 自動調整寬度（根據文字長度）
+        if (autoAdjustWidth)
+        {
+            // 計算文字的實際寬度
+            nameText.ForceMeshUpdate();
+            Vector2 textSize = nameText.GetRenderedValues(false);
+            finalWidth = textSize.x + paddingHorizontal * 2f;
+
+            // 設定最小寬度
+            finalWidth = Mathf.Max(finalWidth, 60f);
+
+            // ★★★ 根據設定決定是否限制最大寬度 ★★★
+            if (!allowUnlimitedWidth)
+            {
+                finalWidth = Mathf.Min(finalWidth, maxWidthLimit);
+                DebugLog($"Width limited to {maxWidthLimit}");
+            }
+            else
+            {
+                DebugLog($"Unlimited width allowed, actual width: {finalWidth}");
+            }
+        }
+
+        // 設定文字框大小（中心點不變）
+        rectTransform.sizeDelta = new Vector2(finalWidth, textBoxHeight);
+
+        DebugLog($"Text box adjusted: {finalWidth} x {textBoxHeight} for '{nameText.text}' " +
+                $"(unlimited: {allowUnlimitedWidth})");
+
+        // 同時調整按鈕的點擊區域（可選）
+        AdjustButtonClickArea(finalWidth);
+    }
+
+    /// <summary>
+    /// 調整按鈕的點擊區域（可選）
+    /// </summary>
+    private void AdjustButtonClickArea(float textWidth)
+    {
+        if (button == null) return;
+
+        var buttonRect = button.GetComponent<RectTransform>();
+        if (buttonRect == null) return;
+
+        // 讓點擊區域稍微大一點，更容易點擊
+        float clickAreaWidth = textWidth + 20f; // 左右各多10px
+        float clickAreaHeight = textBoxHeight + 10f; // 上下各多5px
+
+        buttonRect.sizeDelta = new Vector2(clickAreaWidth, clickAreaHeight);
+
+        DebugLog($"Click area adjusted: {clickAreaWidth} x {clickAreaHeight}");
+    }
+
     private void ApplyMinecraftTextStyle(TextMeshProUGUI textComponent)
     {
         if (textComponent == null) return;
 
-        // 套用 Minecraft 字體
         if (minecraftFont != null)
         {
             textComponent.font = minecraftFont;
             DebugLog($"✅ Applied Minecraft font to {textComponent.name}");
         }
 
-        // 設定字體樣式
         textComponent.fontSize = fontSize;
         textComponent.fontStyle = FontStyles.Bold;
         textComponent.alignment = TextAlignmentOptions.Center;
 
-        // 設定文字邊框
+        // ★★★ 強制禁用換行，讓文字自由伸縮 ★★★
+        textComponent.enableWordWrapping = false; // 禁用自動換行
+        textComponent.overflowMode = TextOverflowModes.Overflow; // 允許文字溢出邊界
+
+        // ★★★ 額外的防護設定 ★★★
+        textComponent.enableAutoSizing = false; // 禁用自動調整字體大小
+        textComponent.textWrappingMode = TMPro.TextWrappingModes.NoWrap; // 強制不換行
+
         if (useTextOutline)
         {
             textComponent.outlineWidth = outlineWidth;
             textComponent.outlineColor = outlineColor;
-        }
-
-        // 設定文字發光（使用 Material 屬性）
-        if (useTextGlow)
-        {
-            // 這會讓文字在選中或懸停時有發光效果
-            textComponent.fontMaterial = textComponent.fontSharedMaterial;
         }
 
         textComponent.ForceMeshUpdate();
@@ -204,11 +285,15 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         ApplyMinecraftTextStyle(nameText);
 
+        // 設定初始大小和位置
         var rectTransform = textObj.GetComponent<RectTransform>();
-        rectTransform.anchorMin = Vector2.zero;
-        rectTransform.anchorMax = Vector2.one;
-        rectTransform.sizeDelta = Vector2.zero;
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.sizeDelta = new Vector2(textBoxWidth, textBoxHeight);
         rectTransform.anchoredPosition = Vector2.zero;
+
+        // 調整大小
+        AdjustTextBoxSize();
 
         DebugLog("Created text component with Minecraft font");
     }
@@ -226,23 +311,17 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         DebugLog($"Button state changed to {state} for {upgradeOption?.upgradeName}");
     }
 
-    /// <summary>
-    /// 只更新文字的視覺狀態，不處理背景
-    /// </summary>
     private void UpdateTextVisualState()
     {
         if (nameText == null) return;
 
         Color targetTextColor;
         float alpha = 1f;
-        float glowPower = 0f;
 
-        // 根據狀態和懸停設定顏色
         if (isHovered && (currentState == ButtonState.Available || currentState == ButtonState.Preview))
         {
             targetTextColor = hoverTextColor;
             alpha = currentState == ButtonState.Preview ? 0.8f : 1f;
-            glowPower = useTextGlow ? glowIntensity : 0f;
         }
         else
         {
@@ -255,7 +334,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
                 case ButtonState.Selected:
                     targetTextColor = selectedTextColor;
                     alpha = 1f;
-                    glowPower = useTextGlow ? glowIntensity * 2f : 0f; // 選中時發光更強
                     break;
                 case ButtonState.Disabled:
                     targetTextColor = disabledTextColor;
@@ -276,20 +354,11 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
         }
 
-        // 套用文字顏色
         var textColor = targetTextColor;
         textColor.a = alpha;
         nameText.color = textColor;
-
-        // 套用發光效果（如果啟用）
-        if (useTextGlow && nameText.fontMaterial != null)
-        {
-            nameText.fontMaterial.SetFloat("_GlowPower", glowPower);
-            nameText.fontMaterial.SetColor("_GlowColor", targetTextColor);
-        }
     }
 
-    // 實現 IPointerClickHandler 來處理點擊
     public void OnPointerClick(PointerEventData eventData)
     {
         OnButtonClick();
@@ -338,24 +407,42 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         SetButtonState(selected ? ButtonState.Selected : ButtonState.Available);
     }
 
+    /// <summary>
+    /// ★★★ 新增：設定字體大小的公開方法 ★★★
+    /// </summary>
+    public void SetFontSize(float newFontSize)
+    {
+        fontSize = newFontSize;
+
+        // 如果文字組件已經存在，立即套用新字體大小
+        if (nameText != null)
+        {
+            nameText.fontSize = fontSize;
+            nameText.ForceMeshUpdate();
+            AdjustTextBoxSize(); // 重新調整文字框大小
+            DebugLog($"✅ Font size set to {fontSize} for {nameText.text}");
+        }
+    }
+
     private void DebugLog(string message)
     {
         if (enableDebugLogs)
             Debug.Log($"[WheelUpgradeButton] {message}");
     }
 
-    [ContextMenu("Test Text Button Click")]
-    public void TestButtonClick()
+    [ContextMenu("Adjust Text Box Size")]
+    public void ManualAdjustTextBoxSize()
     {
-        OnButtonClick();
+        AdjustTextBoxSize();
+        Debug.Log("Text box size manually adjusted");
     }
 
-    [ContextMenu("Toggle Text Glow")]
-    public void ToggleTextGlow()
+    [ContextMenu("Toggle Debug Bounds")]
+    public void ToggleDebugBounds()
     {
-        useTextGlow = !useTextGlow;
-        UpdateTextVisualState();
-        Debug.Log($"Text glow: {(useTextGlow ? "ON" : "OFF")}");
+        showTextBoxBounds = !showTextBoxBounds;
+        SetupTextOnlyButton();
+        Debug.Log($"Debug bounds: {(showTextBoxBounds ? "ON" : "OFF")}");
     }
 
     [ContextMenu("Check Text Components")]
@@ -363,11 +450,17 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         Debug.Log("=== WheelUpgradeButton Text Component Check ===");
         Debug.Log($"GameObject: {gameObject.name}");
-        Debug.Log($"Button: {(button != null ? "Y (Hidden)" : "N")}");
+        Debug.Log($"Button: {(button != null ? "Y" : "N")}");
         Debug.Log($"NameText: {(nameText != null ? "Y" : "N")}");
-        Debug.Log($"Background: {(backgroundImage != null ? "Y (Transparent)" : "N")}");
+        Debug.Log($"Text Box Size: {textBoxWidth} x {textBoxHeight}");
+        Debug.Log($"Auto Adjust Width: {autoAdjustWidth}");
         Debug.Log($"Minecraft Font: {(minecraftFont != null ? minecraftFont.name : "NULL")}");
         Debug.Log($"Current State: {currentState}");
-        Debug.Log($"Text Glow: {(useTextGlow ? "ON" : "OFF")}");
+
+        if (nameText != null)
+        {
+            var rect = nameText.GetComponent<RectTransform>();
+            Debug.Log($"Actual Text Size: {rect.sizeDelta}");
+        }
     }
 }
