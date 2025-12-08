@@ -30,7 +30,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
     [Header("Font Settings")]
-    [SerializeField] private float fontSize = 16f;
+    [SerializeField] private float fontSize = 30f;
     [SerializeField] private TMP_FontAsset minecraftFont;
 
     [Header("Text Effects")]
