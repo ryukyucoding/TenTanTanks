@@ -191,7 +191,7 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog($"✅ Found {tier2Options.Count} Tier 2 options for {parentUpgrade}");
 
         // 創建並顯示 Tier 2 按鈕
-        CreateTier2ButtonsFromList(tier2Options);
+        CreateTier2Buttons(tier2Options);
 
         // 確保 Tier 2 container 是可見的
         if (tier2Container != null)
@@ -252,47 +252,7 @@ public class UpgradeWheelUI : MonoBehaviour
         DebugLog("Cleared Tier 2 buttons only");
     }
 
-    /// <summary>
-    /// 從 Tier 2 選項列表創建按鈕
-    /// </summary>
-    private void CreateTier2ButtonsFromList(List<WheelUpgradeOption> tier2Options)
-    {
-        if (tier2Container == null)
-        {
-            DebugLog("❌ Cannot create Tier 2 buttons - missing container");
-            return;
-        }
-
-        float angleStep = 360f / tier2Options.Count;
-        float currentAngle = -150f; // 與你現有的邏輯保持一致
-
-        for (int i = 0; i < tier2Options.Count; i++)
-        {
-            WheelUpgradeOption option = tier2Options[i];
-
-            // 使用你現有的方法創建按鈕
-            Vector3 position = GetCirclePosition(currentAngle, tier2Radius);
-            System.Action<WheelUpgradeOption> callback = OnTier2SelectedTransition;
-
-            var button = CreateUpgradeButton(option, position, callback);
-            if (button != null)
-            {
-                button.transform.SetParent(tier2Container, false);
-                tier2Buttons.Add(button);
-
-                // 設定為可點擊狀態
-                button.SetButtonState(WheelUpgradeButton.ButtonState.Available);
-
-                DebugLog($"Created Tier 2 button: {option.upgradeName} at angle {currentAngle}");
-            }
-
-            currentAngle += angleStep;
-        }
-
-        DebugLog($"✅ Created {tier2Options.Count} Tier 2 buttons");
-    }
-
-    // === Tier 2 升級選項創建方法 ===
+    // === Tier 2 level up options^^ ===
 
     private WheelUpgradeOption CreateSuperHeavyOption()
     {
@@ -752,7 +712,7 @@ public class UpgradeWheelUI : MonoBehaviour
 
             System.Action<WheelUpgradeOption> callback = isTransitionMode ? OnTier1SelectedTransition : OnTier1Selected;
 
-            var button = CreateUpgradeButton(option, position, callback);
+            var button = CreateUpgradeButton(option, position, tier1Container, callback);
             if (button != null)
             {
                 button.transform.SetParent(tier1Container, false);
@@ -781,7 +741,7 @@ public class UpgradeWheelUI : MonoBehaviour
 
             System.Action<WheelUpgradeOption> callback = isTransitionMode ? OnTier2SelectedTransition : OnTier2Selected;
 
-            var button = CreateUpgradeButton(option, position, callback);
+            var button = CreateUpgradeButton(option, position, tier2Container, callback);
             if (button != null)
             {
                 button.transform.SetParent(tier2Container, false);
@@ -791,26 +751,21 @@ public class UpgradeWheelUI : MonoBehaviour
         }
     }
 
-    private WheelUpgradeButton CreateUpgradeButton(WheelUpgradeOption option, Vector3 position, System.Action<WheelUpgradeOption> onClickCallback)
+    private WheelUpgradeButton CreateUpgradeButton(
+    WheelUpgradeOption option,
+    Vector3 position,
+    Transform parent,
+    System.Action<WheelUpgradeOption> onClickCallback)
     {
-        if (upgradeButtonPrefab == null)
-        {
-            Debug.LogError("upgradeButtonPrefab is null! Cannot create buttons.");
-            return null;
-        }
-
-        GameObject buttonGO = Instantiate(upgradeButtonPrefab);
+        GameObject buttonGO = Instantiate(upgradeButtonPrefab, parent, false);
         buttonGO.transform.localPosition = position;
 
-        WheelUpgradeButton upgradeButton = buttonGO.GetComponent<WheelUpgradeButton>();
-        if (upgradeButton == null)
-        {
-            upgradeButton = buttonGO.AddComponent<WheelUpgradeButton>();
-        }
-
+        var upgradeButton = buttonGO.GetComponent<WheelUpgradeButton>();
         upgradeButton.Setup(option, () => onClickCallback(option));
+
         return upgradeButton;
     }
+
 
     private Vector3 GetCirclePosition(float angle, float radius)
     {
