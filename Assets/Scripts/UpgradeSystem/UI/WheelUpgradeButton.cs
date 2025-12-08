@@ -40,7 +40,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
-    [SerializeField] private bool showTextBoxBounds = false; // 顯示文字框邊界（除錯用）
+    [SerializeField] private bool showTextBoxBounds = false; 
 
     public enum ButtonState
     {
