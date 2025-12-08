@@ -750,7 +750,7 @@ public class UpgradeWheelUI : MonoBehaviour
         }
 
         float angleStep = 60f;
-        float startAngle = -150f;
+        float startAngle = -210f;
 
         for (int i = 0; i < options.Count; i++)
         {
