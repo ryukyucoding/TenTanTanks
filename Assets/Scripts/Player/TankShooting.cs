@@ -25,6 +25,7 @@ public class TankShooting : MonoBehaviour
     private float bulletSpeed = 5f;      // Will be set by TankStats dynamically
     private float fireRate = 1.2f;       // Will be set by TankStats dynamically
     [SerializeField] private float bulletLifetime = 5f;
+    private float bulletScale = 1.5f;      // Bullet size multiplier
 
     [Header("Auto Fire Settings")]
     // Using Input System instead of legacy input
@@ -174,6 +175,15 @@ public class TankShooting : MonoBehaviour
     {
         fireRate = rate;
         DebugLog($"TankShooting.SetFireRate: {rate:F2} (GameObject: {gameObject.name})");
+    }
+
+    /// <summary>
+    /// NEW: Set bullet scale (called by TankTransformationManager)
+    /// </summary>
+    public void SetBulletScale(float scale)
+    {
+        bulletScale = scale;
+        DebugLog($"TankShooting.SetBulletScale: {scale:F2} (GameObject: {gameObject.name})");
     }
 
     void Update()
@@ -365,9 +375,16 @@ public class TankShooting : MonoBehaviour
     /// </summary>
     private float GetCurrentBulletScale()
     {
-        DebugLog("Checking bullet scale sources...");
+        DebugLog($"Checking bullet scale sources... Current bulletScale variable: {bulletScale}");
 
-        // PRIORITY 1: Check PlayerDataManager first (more reliable)
+        // PRIORITY 1: Use the bulletScale set by TankTransformationManager
+        if (bulletScale != 1f)
+        {
+            DebugLog($"✅ Using bulletScale from TankTransformationManager: {bulletScale}");
+            return bulletScale;
+        }
+
+        // PRIORITY 2: Check PlayerDataManager (fallback for saved transformations)
         var playerDataManager = PlayerDataManager.Instance;
         if (playerDataManager != null)
         {
@@ -386,6 +403,24 @@ public class TankShooting : MonoBehaviour
                 case "balanced":
                     DebugLog("Applying Balanced bullet scale: 1.0");
                     return 1.0f;
+                case "armorpiercing":
+                    DebugLog("Applying ArmorPiercing bullet scale: 1.8");
+                    return 1.8f;
+                case "superheavy":
+                    DebugLog("Applying SuperHeavy bullet scale: 2.0");
+                    return 2.0f;
+                case "burst":
+                    DebugLog("Applying Burst bullet scale: 0.6");
+                    return 0.6f;
+                case "machinegun":
+                    DebugLog("Applying MachineGun bullet scale: 0.5");
+                    return 0.5f;
+                case "tactical":
+                    DebugLog("Applying Tactical bullet scale: 1.2");
+                    return 1.2f;
+                case "versatile":
+                    DebugLog("Applying Versatile bullet scale: 1.0");
+                    return 1.0f;
                 case "basic":
                     DebugLog("Applying Basic bullet scale: 1.0");
                     return 1.0f;
@@ -399,7 +434,7 @@ public class TankShooting : MonoBehaviour
             DebugLog("⚠️ PlayerDataManager not found, checking upgrade system...");
         }
 
-        // PRIORITY 2: Try to get bullet size multiplier from TankUpgradeSystem
+        // PRIORITY 3: Try to get bullet size multiplier from TankUpgradeSystem
         var tankUpgradeSystem = FindFirstObjectByType<WheelUpgradeSystem.TankUpgradeSystem>();
         if (tankUpgradeSystem != null)
         {
