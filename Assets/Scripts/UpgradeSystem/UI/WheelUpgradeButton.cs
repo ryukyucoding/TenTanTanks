@@ -14,12 +14,12 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Image backgroundImage;
 
     [Header("Text Box Settings")]
-    [SerializeField] private float textBoxWidth = 120f; // 文字框寬度
-    [SerializeField] private float textBoxHeight = 40f; // 文字框高度
-    [SerializeField] private bool autoAdjustWidth = true; // 自動調整寬度
-    [SerializeField] private float paddingHorizontal = 10f; // 左右邊距
-    [SerializeField] private bool allowUnlimitedWidth = false; // ★★★ 允許無限寬度 ★★★
-    [SerializeField] private float maxWidthLimit = 200f; // 最大寬度限制（當不允許無限寬度時）
+    [SerializeField] private float textBoxWidth = 120f;
+    [SerializeField] private float textBoxHeight = 40f;
+    [SerializeField] private bool autoAdjustWidth = true;
+    [SerializeField] private float paddingHorizontal = 10f;
+    [SerializeField] private bool allowUnlimitedWidth = false;
+    [SerializeField] private float maxWidthLimit = 200f;
 
     [Header("Text Visual States")]
     [SerializeField] private Color availableTextColor = Color.white;
@@ -29,8 +29,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     [SerializeField] private Color previewTextColor = new Color(0.8f, 0.8f, 0.8f, 0.6f);
     [SerializeField] private Color previousChoiceTextColor = new Color(0.9f, 0.7f, 0.2f);
 
+    // ★★★ 直接在程式碼中設定字體大小，不使用 Inspector ★★★
+    private const float FONT_SIZE = 30f;
+
     [Header("Font Settings")]
-    [SerializeField] private float fontSize = 30f;
     [SerializeField] private TMP_FontAsset minecraftFont;
 
     [Header("Text Effects")]
@@ -40,7 +42,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
-    [SerializeField] private bool showTextBoxBounds = false; // 顯示文字框邊界（除錯用）
+    [SerializeField] private bool showTextBoxBounds = false;
 
     public enum ButtonState
     {
@@ -71,33 +73,29 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
             if (minecraftFont != null)
             {
-                DebugLog("✅ Successfully loaded Minecraft font: " + minecraftFont.name);
+                Debug.Log("✅ Successfully loaded Minecraft font: " + minecraftFont.name);
             }
             else
             {
-                DebugLog("❌ Failed to load Minecraft font");
+                Debug.Log("❌ Failed to load Minecraft font");
             }
         }
     }
 
     private void SetupTextOnlyButton()
     {
-        // 隱藏背景圖片但保留組件（用於點擊檢測區域）
         if (backgroundImage != null)
         {
             if (showTextBoxBounds)
             {
-                // 除錯模式：顯示半透明邊界
                 backgroundImage.color = new Color(1f, 0f, 0f, 0.2f);
             }
             else
             {
-                // 正常模式：完全透明
                 backgroundImage.color = Color.clear;
             }
         }
 
-        // 設定按鈕為透明
         if (button != null)
         {
             var buttonImage = button.GetComponent<Image>();
@@ -105,7 +103,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             {
                 if (showTextBoxBounds)
                 {
-                    buttonImage.color = new Color(0f, 1f, 0f, 0.2f); // 除錯：綠色邊界
+                    buttonImage.color = new Color(0f, 1f, 0f, 0.2f);
                 }
                 else
                 {
@@ -118,7 +116,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             button.onClick.AddListener(OnButtonClick);
         }
 
-        DebugLog("Text-only button setup completed");
+        Debug.Log("Text-only button setup completed");
     }
 
     private void AutoFindComponents()
@@ -145,7 +143,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
         }
 
-        DebugLog($"Auto-found components: Button={button != null}, Text={nameText != null}, BG={backgroundImage != null}");
+        Debug.Log($"Auto-found components: Button={button != null}, Text={nameText != null}, BG={backgroundImage != null}");
     }
 
     public void Setup(WheelUpgradeOption option, Action clickCallback)
@@ -162,27 +160,66 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         if (nameText != null)
         {
             nameText.text = option.upgradeName;
-            ApplyMinecraftTextStyle(nameText);
-            AdjustTextBoxSize(); // 調整文字框大小
+
+            // ★★★ 強制診斷：Setup 時就套用字體大小 ★★★
+            Debug.Log($"[FONT] Setting up '{option.upgradeName}' with fontSize: {FONT_SIZE}");
+
+            ApplyTextStyle(nameText);
+            AdjustTextBoxSize();
         }
         else
         {
             CreateTextComponent(option.upgradeName);
         }
 
-        // 隱藏圖標
         if (iconImage != null)
         {
             iconImage.gameObject.SetActive(false);
         }
 
         SetButtonState(ButtonState.Available);
-        DebugLog($"Setup completed for {option.upgradeName}");
+        Debug.Log($"Setup completed for {option.upgradeName}");
     }
 
     /// <summary>
-    /// 調整文字框大小（不影響按鈕定位）
+    /// ★★★ 重新命名的方法，直接套用固定字體大小 ★★★
     /// </summary>
+    private void ApplyTextStyle(TextMeshProUGUI textComponent)
+    {
+        if (textComponent == null) return;
+
+        Debug.Log($"[FONT] Before applying style - textComponent.fontSize: {textComponent.fontSize}");
+
+        if (minecraftFont != null)
+        {
+            textComponent.font = minecraftFont;
+            Debug.Log("✅ Applied Minecraft font");
+        }
+
+        // ★★★ 使用常數，不依賴 Inspector ★★★
+        textComponent.fontSize = FONT_SIZE;
+        Debug.Log($"[FONT] Set fontSize to: {FONT_SIZE}");
+
+        textComponent.fontStyle = FontStyles.Bold;
+        textComponent.alignment = TextAlignmentOptions.Center;
+
+        // 防換行設定
+        textComponent.enableWordWrapping = false;
+        textComponent.overflowMode = TextOverflowModes.Overflow;
+        textComponent.enableAutoSizing = false;
+        textComponent.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+
+        if (useTextOutline)
+        {
+            textComponent.outlineWidth = outlineWidth;
+            textComponent.outlineColor = outlineColor;
+        }
+
+        textComponent.ForceMeshUpdate();
+
+        Debug.Log($"[FONT] After applying style - textComponent.fontSize: {textComponent.fontSize}");
+    }
+
     private void AdjustTextBoxSize()
     {
         if (nameText == null) return;
@@ -192,42 +229,23 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         float finalWidth = textBoxWidth;
 
-        // 自動調整寬度（根據文字長度）
         if (autoAdjustWidth)
         {
-            // 計算文字的實際寬度
             nameText.ForceMeshUpdate();
             Vector2 textSize = nameText.GetRenderedValues(false);
             finalWidth = textSize.x + paddingHorizontal * 2f;
-
-            // 設定最小寬度
             finalWidth = Mathf.Max(finalWidth, 60f);
 
-            // ★★★ 根據設定決定是否限制最大寬度 ★★★
             if (!allowUnlimitedWidth)
             {
                 finalWidth = Mathf.Min(finalWidth, maxWidthLimit);
-                DebugLog($"Width limited to {maxWidthLimit}");
-            }
-            else
-            {
-                DebugLog($"Unlimited width allowed, actual width: {finalWidth}");
             }
         }
 
-        // 設定文字框大小（中心點不變）
         rectTransform.sizeDelta = new Vector2(finalWidth, textBoxHeight);
-
-        DebugLog($"Text box adjusted: {finalWidth} x {textBoxHeight} for '{nameText.text}' " +
-                $"(unlimited: {allowUnlimitedWidth})");
-
-        // 同時調整按鈕的點擊區域（可選）
         AdjustButtonClickArea(finalWidth);
     }
 
-    /// <summary>
-    /// 調整按鈕的點擊區域（可選）
-    /// </summary>
     private void AdjustButtonClickArea(float textWidth)
     {
         if (button == null) return;
@@ -235,44 +253,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         var buttonRect = button.GetComponent<RectTransform>();
         if (buttonRect == null) return;
 
-        // 讓點擊區域稍微大一點，更容易點擊
-        float clickAreaWidth = textWidth + 20f; // 左右各多10px
-        float clickAreaHeight = textBoxHeight + 10f; // 上下各多5px
+        float clickAreaWidth = textWidth + 20f;
+        float clickAreaHeight = textBoxHeight + 10f;
 
         buttonRect.sizeDelta = new Vector2(clickAreaWidth, clickAreaHeight);
-
-        DebugLog($"Click area adjusted: {clickAreaWidth} x {clickAreaHeight}");
-    }
-
-    private void ApplyMinecraftTextStyle(TextMeshProUGUI textComponent)
-    {
-        if (textComponent == null) return;
-
-        if (minecraftFont != null)
-        {
-            textComponent.font = minecraftFont;
-            DebugLog($"✅ Applied Minecraft font to {textComponent.name}");
-        }
-
-        textComponent.fontSize = fontSize;
-        textComponent.fontStyle = FontStyles.Bold;
-        textComponent.alignment = TextAlignmentOptions.Center;
-
-        // ★★★ 強制禁用換行，讓文字自由伸縮 ★★★
-        textComponent.enableWordWrapping = false; // 禁用自動換行
-        textComponent.overflowMode = TextOverflowModes.Overflow; // 允許文字溢出邊界
-
-        // ★★★ 額外的防護設定 ★★★
-        textComponent.enableAutoSizing = false; // 禁用自動調整字體大小
-        textComponent.textWrappingMode = TMPro.TextWrappingModes.NoWrap; // 強制不換行
-
-        if (useTextOutline)
-        {
-            textComponent.outlineWidth = outlineWidth;
-            textComponent.outlineColor = outlineColor;
-        }
-
-        textComponent.ForceMeshUpdate();
     }
 
     private void CreateTextComponent(string text)
@@ -283,19 +267,17 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         nameText = textObj.AddComponent<TextMeshProUGUI>();
         nameText.text = text;
 
-        ApplyMinecraftTextStyle(nameText);
+        ApplyTextStyle(nameText);
 
-        // 設定初始大小和位置
         var rectTransform = textObj.GetComponent<RectTransform>();
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.sizeDelta = new Vector2(textBoxWidth, textBoxHeight);
         rectTransform.anchoredPosition = Vector2.zero;
 
-        // 調整大小
         AdjustTextBoxSize();
 
-        DebugLog("Created text component with Minecraft font");
+        Debug.Log("Created text component with Minecraft font");
     }
 
     public void SetButtonState(ButtonState state)
@@ -308,7 +290,6 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
         }
 
         UpdateTextVisualState();
-        DebugLog($"Button state changed to {state} for {upgradeOption?.upgradeName}");
     }
 
     private void UpdateTextVisualState()
@@ -370,11 +351,10 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
             currentState == ButtonState.Preview ||
             currentState == ButtonState.PreviousChoice)
         {
-            DebugLog($"Button {upgradeOption?.upgradeName} click ignored - button state is {currentState}");
             return;
         }
 
-        DebugLog($"Text button clicked: {upgradeOption?.upgradeName}");
+        Debug.Log($"Text button clicked: {upgradeOption?.upgradeName}");
         onClickCallback?.Invoke();
     }
 
@@ -382,14 +362,12 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         isHovered = true;
         UpdateTextVisualState();
-        DebugLog($"Mouse entered text button: {upgradeOption?.upgradeName}");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         isHovered = false;
         UpdateTextVisualState();
-        DebugLog($"Mouse exited text button: {upgradeOption?.upgradeName}");
     }
 
     public WheelUpgradeOption GetUpgradeOption()
@@ -408,81 +386,45 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
     }
 
     /// <summary>
-    /// ★★★ 外部字體大小設定方法 - 現在會被忽略，使用自己的設定 ★★★
+    /// ★★★ 外部字體大小設定方法 - 完全忽略，使用固定大小 ★★★
     /// </summary>
     public void SetFontSize(float newFontSize)
     {
-        // ★★★ 完全忽略外部字體大小，永遠使用自己的 fontSize 設定 ★★★
-        DebugLog($"✅ External font size {newFontSize} ignored, using own setting: {fontSize}");
-
-        // 如果文字組件已經存在，套用自己的字體大小
-        if (nameText != null)
-        {
-            nameText.fontSize = fontSize; // 使用自己的 fontSize，不是傳入的 newFontSize
-            nameText.ForceMeshUpdate();
-            AdjustTextBoxSize(); // 重新調整文字框大小
-            DebugLog($"✅ Applied own font size {fontSize} to {nameText.text}");
-        }
-    }
-
-    private void DebugLog(string message)
-    {
-        if (enableDebugLogs)
-            Debug.Log($"[WheelUpgradeButton] {message}");
-    }
-
-    [ContextMenu("Adjust Text Box Size")]
-    public void ManualAdjustTextBoxSize()
-    {
-        AdjustTextBoxSize();
-        Debug.Log("Text box size manually adjusted");
-    }
-
-    [ContextMenu("Toggle Debug Bounds")]
-    public void ToggleDebugBounds()
-    {
-        showTextBoxBounds = !showTextBoxBounds;
-        SetupTextOnlyButton();
-        Debug.Log($"Debug bounds: {(showTextBoxBounds ? "ON" : "OFF")}");
-    }
-
-    [ContextMenu("Check Text Components")]
-    public void CheckComponents()
-    {
-        Debug.Log("=== WheelUpgradeButton Text Component Check ===");
-        Debug.Log($"GameObject: {gameObject.name}");
-        Debug.Log($"Button: {(button != null ? "Y" : "N")}");
-        Debug.Log($"NameText: {(nameText != null ? "Y" : "N")}");
-        Debug.Log($"Text Box Size: {textBoxWidth} x {textBoxHeight}");
-        Debug.Log($"Auto Adjust Width: {autoAdjustWidth}");
-        Debug.Log($"Minecraft Font: {(minecraftFont != null ? minecraftFont.name : "NULL")}");
-        Debug.Log($"Current State: {currentState}");
-
-        // ★★★ 加上字體大小檢查 ★★★
-        Debug.Log($"Button fontSize field: {fontSize}");
+        Debug.Log($"[FONT] SetFontSize({newFontSize}) called but ignored, using fixed size: {FONT_SIZE}");
 
         if (nameText != null)
         {
-            var rect = nameText.GetComponent<RectTransform>();
-            Debug.Log($"Actual Text Size: {rect.sizeDelta}");
-            Debug.Log($"Actual text fontSize: {nameText.fontSize}");
-            Debug.Log($"Text content: '{nameText.text}'");
-        }
-    }
-
-    [ContextMenu("Force Apply Own Font Size")]
-    public void ForceApplyOwnFontSize()
-    {
-        if (nameText != null)
-        {
-            nameText.fontSize = fontSize;
+            nameText.fontSize = FONT_SIZE; // 永遠使用固定大小
             nameText.ForceMeshUpdate();
             AdjustTextBoxSize();
-            Debug.Log($"✅ Force applied own font size: {fontSize}");
+            Debug.Log($"[FONT] Applied fixed font size {FONT_SIZE}");
+        }
+    }
+
+    [ContextMenu("Check Font Size")]
+    public void CheckFontSize()
+    {
+        Debug.Log("=== Font Size Check ===");
+        Debug.Log($"Fixed FONT_SIZE constant: {FONT_SIZE}");
+        if (nameText != null)
+        {
+            Debug.Log($"Actual nameText.fontSize: {nameText.fontSize}");
+            Debug.Log($"Text: '{nameText.text}'");
         }
         else
         {
-            Debug.Log("❌ nameText is NULL, cannot apply font size");
+            Debug.Log("nameText is NULL");
+        }
+    }
+
+    [ContextMenu("Force Apply Font Size")]
+    public void ForceApplyFontSize()
+    {
+        if (nameText != null)
+        {
+            nameText.fontSize = FONT_SIZE;
+            nameText.ForceMeshUpdate();
+            Debug.Log($"✅ Force applied font size: {FONT_SIZE}");
         }
     }
 }
