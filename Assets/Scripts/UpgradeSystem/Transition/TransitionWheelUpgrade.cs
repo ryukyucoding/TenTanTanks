@@ -445,7 +445,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
             case "balanced":
                 return "<size=28><color=purple>Balanced Upgrade</color></size>\n\n" +
                        "<size=28>CANNON CHANGES:\n</size>" +
-                       "<size=28>- Cannon size, bullet size, firing rate stays the same\n</size>" +
+                       "<size=28>- Cannon size, bullet size, firing rate stay the same\n</size>" +
                        "<size=28>- You get a second cannon at the same direction\n</size>" +
                        "<size=28>- Both cannons fire together</size>";
 
@@ -481,7 +481,7 @@ public class TransitionWheelUpgrade : MonoBehaviour
                 return "<size=28><color=purple>Tactical Upgrade</color></size>\n\n" +
                        "<size=28>CANNON CHANGES:\n</size>" +
                        "<size=28>- A total of FOUR cannons\n</size>" +
-                       "<size=28>- 2 in front, 2 in back</size>" +
+                       "<size=28>- 2 in front, 2 in back</size\n>" +
                        "<size=28>- A mix of bullet size, speed, directions and concentration.</size>";
 
             case "versatile":
