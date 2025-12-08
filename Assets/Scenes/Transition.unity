@@ -938,8 +938,8 @@ MonoBehaviour:
   enableUpgrades: 1
   pauseForUpgrade: 1
   upgradeScenes:
-  - Level1
   - Level2
+  - Level4
   transitionUpgrade: {fileID: 0}
 --- !u!114 &610276507 stripped
 MonoBehaviour:
@@ -995,9 +995,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   enableDebugLogs: 1
-  autoCorrectPosition: 1
-  turretPositionOffset: {x: 0, y: 0, z: 0}
-  turretRotationOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &660715371
 GameObject:
   m_ObjectHideFlags: 0

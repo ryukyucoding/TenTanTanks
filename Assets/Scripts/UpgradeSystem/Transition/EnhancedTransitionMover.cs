@@ -17,13 +17,13 @@ public class EnhancedTransitionMover : MonoBehaviour
     [SerializeField] private string nextScene = "Level1";
 
     [Header("Upgrade Trigger Settings")]
-    [SerializeField] private float upgradePositionX = 0f; // X position to trigger upgrade
-    [SerializeField] private float upgradeDetectionRange = 1f; // Detection range
+    [SerializeField] private float upgradePositionX = -5f; // X position to trigger upgrade
+    [SerializeField] private float upgradeDetectionRange = 10f; // Detection range
     [SerializeField] private bool enableUpgrades = true; // Whether to enable upgrade functionality
     [SerializeField] private bool pauseForUpgrade = true; // Whether to pause for upgrade
 
     [Header("Scenes Requiring Upgrades")]
-    [SerializeField] private string[] upgradeScenes = { "Level1", "Level2" }; // Target scenes that need upgrades
+    [SerializeField] private string[] upgradeScenes = { "Level2", "Level4" }; // Target scenes that need upgrades
 
     [Header("Transition Upgrade Testing")]
     [SerializeField] private TransitionWheelUpgrade transitionUpgrade; // Optional transition upgrade component
@@ -44,9 +44,16 @@ public class EnhancedTransitionMover : MonoBehaviour
 
         Vector3 pos = transform.position;
 
+        // Debug: 每秒输出一次位置信息
+        if (Time.frameCount % 60 == 0 && enableUpgrades)
+        {
+            Debug.Log($"[EnhancedTransitionMover] Current X: {pos.x:F2}, Target X: {targetX:F2}, Upgrade X: {upgradePositionX:F2}, Distance: {Mathf.Abs(pos.x - upgradePositionX):F2}, Scene: {nextScene}, Is Upgrade Scene: {IsUpgradeScene(nextScene)}");
+        }
+
         // Check if need to trigger upgrade
         if (!hasTriggeredUpgrade && enableUpgrades && ShouldTriggerUpgrade(pos.x))
         {
+            Debug.Log($"[EnhancedTransitionMover] 🎯 TRIGGER DETECTED at X={pos.x:F2}");
             TriggerUpgrade();
             return;
         }
@@ -172,23 +179,23 @@ public class EnhancedTransitionMover : MonoBehaviour
     {
         if (transitionUpgrade != null)
         {
-            string transitionType = "MenuToLevel1"; // default
+            string transitionType = "Level 1 to Level 2"; // default
 
-            if (nextScene == "Level1")
+            if (nextScene == "Level2")
             {
                 // Tier 1 upgrade (Basic → Heavy/Rapid/Balanced)
-                transitionType = "MenuToLevel1";
-                Debug.Log("[EnhancedTransitionMover] Menu→Level1: Showing Tier 1 options (Heavy/Rapid/Balanced)");
+                transitionType = "Level 1 to Level 2";
+                Debug.Log("[EnhancedTransitionMover] Level1→Level2: Showing Tier 1 options (Heavy/Rapid/Balanced)");
                 
                 // Tier 1 wheel show
                 transitionUpgrade.ShowUpgradePanel(transitionType);
                 return true;
             }
-            else if (nextScene == "Level2")
+            else if (nextScene == "Level4")
             {
                 // Tier 2 upgrade
-                transitionType = "Level1ToLevel2";
-                Debug.Log("[EnhancedTransitionMover] Level1→Level2: Checking for Tier 2 options");
+                transitionType = "Level 3 to Level 4";
+                Debug.Log("[EnhancedTransitionMover] Level3→Level4: Checking for Tier 2 options");
 
                 // ✅ 獲取保存的 Tier 1 選擇
                 string savedTier1 = "";
