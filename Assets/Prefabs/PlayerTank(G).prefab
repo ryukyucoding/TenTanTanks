@@ -615,7 +615,7 @@ MonoBehaviour:
   baseBulletSpeed: 7
   baseFireRate: 1.2
   moveSpeedIncrement: 0.3
-  bulletSpeedIncrement: 0.5
+  bulletSpeedIncrement: 0.45
   fireRateIncrement: 0.2
   maxMoveSpeedLevel: 10
   maxBulletSpeedLevel: 10
@@ -693,9 +693,6 @@ MonoBehaviour:
   tankRenderers:
   - {fileID: 0}
   enableDebugLogs: 1
-  autoCorrectPosition: 1
-  turretPositionOffset: {x: 0, y: 0, z: 0}
-  turretRotationOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &481342379191461047
 MonoBehaviour:
   m_ObjectHideFlags: 0

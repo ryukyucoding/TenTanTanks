@@ -40,11 +40,6 @@ public class TankTransformationManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
 
-    [Header("Position Correction")]
-    [SerializeField] private bool autoCorrectPosition = true;
-    [SerializeField] private Vector3 turretPositionOffset = Vector3.zero;
-    [SerializeField] private Vector3 turretRotationOffset = Vector3.zero;
-
     // Runtime variables
     private GameObject currentTurretPrefab;
     private List<Transform> currentFirePoints = new List<Transform>();
@@ -352,36 +347,18 @@ public class TankTransformationManager : MonoBehaviour
             currentTurretPrefab = Instantiate(prefabToUse);
             currentTurretPrefab.name = "Turret";  // Name it "Turret"
 
-            // ✅ Place it at PlayerTank level
+            // ✅ Place it at PlayerTank level, same as original
             currentTurretPrefab.transform.SetParent(transform, false); // PlayerTank as parent
-            
-            // ✅ 位置校正：多种方式处理 Prefab 内部偏移
-            if (autoCorrectPosition)
-            {
-                // 方法1: 使用原始位置 + 自定义偏移
-                currentTurretPrefab.transform.localPosition = originalTurretPosition + turretPositionOffset;
-                currentTurretPrefab.transform.localRotation = originalTurretRotation * Quaternion.Euler(turretRotationOffset);
-                
-                DebugLog($"[位置校正] 使用原始位置 {originalTurretPosition} + 偏移 {turretPositionOffset}");
-            }
-            else
-            {
-                // 方法2: 直接使用 Prefab 内部设置的位置
-                currentTurretPrefab.transform.localPosition = originalTurretPosition;
-                currentTurretPrefab.transform.localRotation = originalTurretRotation;
-                
-                DebugLog($"[位置校正] 使用 Prefab 原始位置（不校正）");
-            }
-            
+            currentTurretPrefab.transform.localPosition = originalTurretPosition;
+            currentTurretPrefab.transform.localRotation = originalTurretRotation;
             currentTurretPrefab.transform.localScale = Vector3.one;
             
             // ✅ 確保新 Turret 是啟用的
             currentTurretPrefab.SetActive(true);
 
             DebugLog($"✅ New turret '{currentTurretPrefab.name}' created successfully");
-            DebugLog($"   - Local Position: {currentTurretPrefab.transform.localPosition}");
-            DebugLog($"   - Local Rotation: {currentTurretPrefab.transform.localRotation.eulerAngles}");
-            DebugLog($"   - World Position: {currentTurretPrefab.transform.position}");
+            DebugLog($"   - Position: {originalTurretPosition}");
+            DebugLog($"   - Rotation: {originalTurretRotation}");
             DebugLog($"   - Active: {currentTurretPrefab.activeSelf}");
             DebugLog($"   - Parent: {transform.name}");
 
@@ -580,6 +557,13 @@ public class TankTransformationManager : MonoBehaviour
             float newBulletSpeed = baseBulletSpeed * currentConfig.bulletSpeedMultiplier;
             tankShooting.SetBulletSpeed(newBulletSpeed);
             DebugLog($"Bullet speed updated: {baseBulletSpeed} x {currentConfig.bulletSpeedMultiplier} = {newBulletSpeed}");
+            
+            // 設置子彈大小
+            if (currentConfig.bulletScale != 1f)
+            {
+                tankShooting.SetBulletScale(currentConfig.bulletScale);
+                DebugLog($"Bullet scale set to: {currentConfig.bulletScale}");
+            }
         }
 
         MultiTurretShooting multiTurret = GetComponent<MultiTurretShooting>();
@@ -622,6 +606,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 0.7f,
                     fireRateMultiplier = 0.8f,
                     bulletSpeedMultiplier = 0.8f,
+                    bulletScale = 1.8f, // 重型坦克 - 大型子彈
                 };
 
             case "rapid":
@@ -632,6 +617,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1.2f,
                     fireRateMultiplier = 1.8f,
                     bulletSpeedMultiplier = 1.4f,
+                    bulletScale = 0.7f, // 快速坦克 - 小型子彈
                 };
 
             case "balanced":
@@ -642,6 +628,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1f,
                     fireRateMultiplier = 1.3f,
                     bulletSpeedMultiplier = 1f,
+                    bulletScale = 1.25f, // 平衡坦克 - 標準子彈
                 };
 
             // === TIER 2 HEAVY CONFIGURATIONS (from Heavy) ===
@@ -653,6 +640,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 0.6f, // Even slower than Heavy
                     fireRateMultiplier = 0.6f, // Slower fire rate
                     bulletSpeedMultiplier = 0.7f, // Slower bullets
+                    bulletScale = 1.8f, // 穿甲彈 - 超大子彈
                 };
 
             case "superheavy":
@@ -663,6 +651,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 0.5f, // Very slow
                     fireRateMultiplier = 0.4f, // Very slow fire rate
                     bulletSpeedMultiplier = 0.6f, // Very slow bullets
+                    bulletScale = 2.0f, // 超重型 - 巨大子彈
                 };
 
             // === TIER 2 RAPID CONFIGURATIONS (from Rapid) ===
@@ -674,6 +663,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1.3f, // Faster than Rapid
                     fireRateMultiplier = 2.2f, // Even faster fire rate
                     bulletSpeedMultiplier = 1.6f, // Faster bullets
+                    bulletScale = 0.65f, // 爆發 - 小型高速子彈
                 };
 
             case "machinegun":
@@ -684,6 +674,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1.4f, // Very fast
                     fireRateMultiplier = 2.5f, // Very fast fire rate
                     bulletSpeedMultiplier = 1.8f, // Very fast bullets
+                    bulletScale = 0.55f, // 機槍 - 微型高速子彈
                 };
 
             // === TIER 2 BALANCED CONFIGURATIONS (from Balanced) ===
@@ -695,6 +686,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1.1f, // Slightly faster than Balanced
                     fireRateMultiplier = 1.5f, // Better fire rate than Balanced
                     bulletSpeedMultiplier = 1.2f, // Faster bullets than Balanced
+                    bulletScale = 1.2f, // 戰術 - 略大子彈
                 };
 
             case "versatile":
@@ -705,6 +697,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1.2f, // Good speed
                     fireRateMultiplier = 1.7f, // Good fire rate
                     bulletSpeedMultiplier = 1.3f, // Good bullet speed
+                    bulletScale = 1f, // 多功能 - 標準子彈
                 };
 
             // === BASIC CONFIGURATION ===
@@ -716,6 +709,7 @@ public class TankTransformationManager : MonoBehaviour
                     moveSpeedMultiplier = 1f,
                     fireRateMultiplier = 1f,
                     bulletSpeedMultiplier = 1f,
+                    bulletScale = 1f, // 基礎 - 標準子彈
                 };
 
             default:
@@ -948,4 +942,5 @@ public class TankConfiguration
     public float moveSpeedMultiplier = 1f;
     public float fireRateMultiplier = 1f;
     public float bulletSpeedMultiplier = 1f;
+    public float bulletScale = 1f; // 子彈大小倍數
 }
