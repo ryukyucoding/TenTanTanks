@@ -111,7 +111,13 @@ public class TankStats : MonoBehaviour
         // 當物件被銷毀時保存數據（換場景時）
         if (PlayerDataManager.Instance != null)
         {
+            Debug.Log($"[TankStats OnDestroy] 保存數據前 - 可用點數: {availableUpgradePoints}, 移動Lv{moveSpeedLevel}, 子彈Lv{bulletSpeedLevel}, 射速Lv{fireRateLevel}");
             PlayerDataManager.Instance.SavePlayerStats(this);
+            Debug.Log($"[TankStats OnDestroy] 數據已保存到 PlayerDataManager");
+        }
+        else
+        {
+            Debug.LogError("[TankStats OnDestroy] ❌ PlayerDataManager 不存在，無法保存數據！");
         }
     }
 

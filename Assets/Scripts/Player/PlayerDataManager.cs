@@ -27,11 +27,14 @@ public class PlayerDataManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            // Debug.Log($"✓ PlayerDataManager 已創建並設為持久化 (GameObject: {gameObject.name})");
+            Debug.Log($"[PlayerDataManager] ✓ 已創建並設為持久化 (GameObject: {gameObject.name}, InstanceID: {GetInstanceID()})");
+            Debug.Log($"[PlayerDataManager] 当前数据: 移動Lv={moveSpeedLevel}, 子彈Lv={bulletSpeedLevel}, 射速Lv={fireRateLevel}, 點數={availableUpgradePoints}");
         }
-        else
+        else if (Instance != this)
         {
-            // Debug.LogWarning($"PlayerDataManager 已存在，銷毀重複物件 (嘗試創建的物件: {gameObject.name}, 現有實例: {Instance.gameObject.name})");
+            Debug.LogWarning($"[PlayerDataManager] ⚠️ 已存在實例，銷毀新物件");
+            Debug.LogWarning($"  保留實例: {Instance.gameObject.name} (ID:{Instance.GetInstanceID()}) - 移動Lv={Instance.moveSpeedLevel}, 點數={Instance.availableUpgradePoints}");
+            Debug.LogWarning($"  銷毀實例: {gameObject.name} (ID:{GetInstanceID()}) - 移動Lv={moveSpeedLevel}, 點數={availableUpgradePoints}");
             Destroy(gameObject);
         }
     }
@@ -115,12 +118,20 @@ public class PlayerDataManager : MonoBehaviour
     {
         if (stats == null) return;
 
+        int oldMoveLevel = moveSpeedLevel;
+        int oldBulletLevel = bulletSpeedLevel;
+        int oldFireLevel = fireRateLevel;
+        int oldPoints = availableUpgradePoints;
+
         moveSpeedLevel = stats.GetMoveSpeedLevel();
         bulletSpeedLevel = stats.GetBulletSpeedLevel();
         fireRateLevel = stats.GetFireRateLevel();
         availableUpgradePoints = stats.GetAvailableUpgradePoints();
 
-        Debug.Log($"✓ 保存玩家數據: 移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 點數 {availableUpgradePoints}");
+        Debug.Log($"[PlayerDataManager] ✓ 保存玩家數據:");
+        Debug.Log($"  之前: 移動Lv{oldMoveLevel}, 子彈Lv{oldBulletLevel}, 射速Lv{oldFireLevel}, 點數{oldPoints}");
+        Debug.Log($"  现在: 移動Lv{moveSpeedLevel}, 子彈Lv{bulletSpeedLevel}, 射速Lv{fireRateLevel}, 點數{availableUpgradePoints}");
+        Debug.Log($"[PlayerDataManager] Instance ID: {GetInstanceID()}");
     }
 
     /// <summary>
@@ -130,18 +141,22 @@ public class PlayerDataManager : MonoBehaviour
     {
         if (stats == null) return false;
 
-        // 檢查是否有任何保存的數據
+        Debug.Log($"[PlayerDataManager] 嘗試載入數據 (Instance ID: {GetInstanceID()}):");
+        Debug.Log($"  移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 可用點數 {availableUpgradePoints}");
+
+        // ✅ 修复：只要有升级点数或任何等级大于0，就算有数据
+        // 因为玩家可能有点数但还没升级任何属性
         bool hasData = (moveSpeedLevel > 0 || bulletSpeedLevel > 0 || fireRateLevel > 0 || availableUpgradePoints > 0);
 
         if (hasData)
         {
             // 直接設置等級（不消耗升級點數）
             stats.SetLevels(moveSpeedLevel, bulletSpeedLevel, fireRateLevel, availableUpgradePoints);
-            Debug.Log($"✓ 載入玩家數據: 移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 點數 {availableUpgradePoints}");
+            Debug.Log($"[PlayerDataManager] ✓ 載入玩家數據成功: 移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 可用點數 {availableUpgradePoints}");
             return true;
         }
 
-        Debug.Log("無保存的玩家數據");
+        Debug.Log("[PlayerDataManager] ⚠️ 無保存的玩家數據 (所有等級=0且點數=0)");
         return false;
     }
 

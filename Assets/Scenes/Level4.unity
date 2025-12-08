@@ -14268,57 +14268,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1377153835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1711924741
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1711924743}
-  - component: {fileID: 1711924742}
-  m_Layer: 0
-  m_Name: PlayerDataManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1711924742
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1711924741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 396219dc4f34fb54f918164eb5e27a97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
-  moveSpeedLevel: 0
-  bulletSpeedLevel: 0
-  fireRateLevel: 0
-  availableUpgradePoints: 0
-  currentHealth: 3
-  hasHealthData: 0
-  currentTankTransformation: Basic
---- !u!4 &1711924743
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1711924741}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1721000817
 GameObject:
   m_ObjectHideFlags: 0
@@ -14431,6 +14380,7 @@ MonoBehaviour:
   victoryPanel: {fileID: 0}
   gameOverMessage: {fileID: 0}
   gameOverSound: {fileID: 8300000, guid: 18dd3787f6af341ffaf33b22bec04b15, type: 3}
+  victorySound: {fileID: 0}
   autoLoadNextScene: 1
   nextSceneDelay: 2
   nextSceneName: 
@@ -19280,7 +19230,6 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 337706247}
   - {fileID: 1728018880}
-  - {fileID: 1711924743}
   - {fileID: 2143258025}
   - {fileID: 835194444}
   - {fileID: 812061481}

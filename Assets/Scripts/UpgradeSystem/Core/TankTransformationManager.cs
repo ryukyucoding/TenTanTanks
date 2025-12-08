@@ -62,6 +62,9 @@ public class TankTransformationManager : MonoBehaviour
     {
         DebugLog("=== TANK TRANSFORMATION SYSTEM INITIALIZE ===");
 
+        // ✅ 确保 PlayerDataManager 存在
+        EnsurePlayerDataManagerExists();
+
         AutoFindComponents();
         AutoLoadPrefabs();
         SubscribeToUpgradeEvents();
@@ -70,6 +73,34 @@ public class TankTransformationManager : MonoBehaviour
         StoreOriginalTurretInfo();
 
         DebugLog("Tank Transformation System Ready!");
+    }
+
+    /// <summary>
+    /// 确保 PlayerDataManager 存在，如果不存在则创建
+    /// </summary>
+    private void EnsurePlayerDataManagerExists()
+    {
+        if (PlayerDataManager.Instance == null)
+        {
+            Debug.LogWarning("[TankTransformationManager] PlayerDataManager 不存在，尝试查找或创建...");
+            
+            // 尝试在场景中查找
+            var existing = FindFirstObjectByType<PlayerDataManager>();
+            if (existing == null)
+            {
+                Debug.LogWarning("[TankTransformationManager] 场景中没有 PlayerDataManager，创建新实例");
+                GameObject pdmObject = new GameObject("PlayerDataManager");
+                pdmObject.AddComponent<PlayerDataManager>();
+            }
+            else
+            {
+                Debug.Log("[TankTransformationManager] 找到现有 PlayerDataManager");
+            }
+        }
+        else
+        {
+            Debug.Log("[TankTransformationManager] PlayerDataManager 已存在");
+        }
     }
 
     /// <summary>
@@ -258,6 +289,41 @@ public class TankTransformationManager : MonoBehaviour
     {
         DebugLog($"UPGRADE SELECTED: {upgradeName}");
 
+        // ✅ 变形前确保数据已加载，然后再保存
+        TankStats tankStats = GetComponent<TankStats>();
+        if (tankStats != null && PlayerDataManager.Instance != null)
+        {
+            // 先尝试加载保存的数据（如果还没加载的话）
+            int currentPoints = tankStats.GetAvailableUpgradePoints();
+            int currentMoveLevel = tankStats.GetMoveSpeedLevel();
+            
+            Debug.Log($"[TankTransformationManager] 变形前检查当前数据: 点数={currentPoints}, 移动Lv={currentMoveLevel}");
+            
+            // 如果当前数据为空，先加载保存的数据
+            if (currentPoints == 0 && currentMoveLevel == 0)
+            {
+                Debug.Log("[TankTransformationManager] 当前数据为空，尝试加载保存的数据");
+                bool loaded = PlayerDataManager.Instance.LoadPlayerStats(tankStats);
+                
+                if (loaded)
+                {
+                    Debug.Log($"[TankTransformationManager] 加载成功: 点数={tankStats.GetAvailableUpgradePoints()}, 移动Lv={tankStats.GetMoveSpeedLevel()}");
+                }
+            }
+            
+            // 现在保存当前数据
+            Debug.Log("[TankTransformationManager] save properties before transformation");
+            PlayerDataManager.Instance.SavePlayerStats(tankStats);
+        }
+        else if (tankStats == null)
+        {
+            Debug.LogWarning("[TankTransformationManager] ⚠️ TankStats doesn't exist");
+        }
+        else
+        {
+            Debug.LogWarning("[TankTransformationManager] ⚠️ PlayerDataManager doesn't exist, can't save data");
+        }
+
         ApplyVisualTransformation(upgradeName);
         ApplyStatChanges(upgradeName);
         UpdateShootingSystem();
@@ -268,6 +334,37 @@ public class TankTransformationManager : MonoBehaviour
         if (PlayerDataManager.Instance != null)
         {
             PlayerDataManager.Instance.SaveTankTransformation(upgradeName);
+            
+            // reload properties after transformation with delay
+            if (tankStats != null)
+            {
+                StartCoroutine(RestoreStatsAfterTransformation(tankStats));
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[TankTransformationManager] ⚠️ PlayerDataManager doesn't exist, will auto-restore data after scene load");
+        }
+    }
+
+    /// <summary>
+    /// Restore properties after transformation with delay
+    /// </summary>
+    private System.Collections.IEnumerator RestoreStatsAfterTransformation(TankStats tankStats)
+    {
+        // Wait a few frames to ensure all systems are initialized
+        yield return new WaitForSeconds(0.1f);
+        
+        if (PlayerDataManager.Instance != null && tankStats != null)
+        {
+            Debug.Log("[TankTransformationManager] reload properties after transformation");
+            PlayerDataManager.Instance.LoadPlayerStats(tankStats);
+        }
+        else
+        {
+            Debug.LogWarning("[TankTransformationManager] ⚠️ Can't restore properties: " +
+                $"PlayerDataManager={(PlayerDataManager.Instance != null)}, " +
+                $"TankStats={(tankStats != null)}");
         }
     }
 

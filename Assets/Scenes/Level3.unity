@@ -7775,57 +7775,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 2, z: 0.05}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &917216676
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 917216678}
-  - component: {fileID: 917216677}
-  m_Layer: 0
-  m_Name: PlayerDataManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &917216677
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 917216676}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 396219dc4f34fb54f918164eb5e27a97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
-  moveSpeedLevel: 0
-  bulletSpeedLevel: 0
-  fireRateLevel: 0
-  availableUpgradePoints: 0
-  currentHealth: 3
-  hasHealthData: 0
-  currentTankTransformation: Basic
---- !u!4 &917216678
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 917216676}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &918545343
 GameObject:
   m_ObjectHideFlags: 0
@@ -17065,6 +17014,7 @@ MonoBehaviour:
   victoryPanel: {fileID: 0}
   gameOverMessage: {fileID: 0}
   gameOverSound: {fileID: 8300000, guid: 18dd3787f6af341ffaf33b22bec04b15, type: 3}
+  victorySound: {fileID: 0}
   autoLoadNextScene: 1
   nextSceneDelay: 2
   nextSceneName: 
@@ -19078,7 +19028,6 @@ SceneRoots:
   - {fileID: 1849514897}
   - {fileID: 464021002}
   - {fileID: 643413881}
-  - {fileID: 917216678}
   - {fileID: 358174789}
   - {fileID: 1453230274}
   - {fileID: 1743778432}
