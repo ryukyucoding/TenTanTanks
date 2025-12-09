@@ -274,9 +274,16 @@ public class EnemyTank : MonoBehaviour, IDamageable
         }
     }
 
-    // ��{IDamageable����
+    // IDamageable 實作
     public void TakeDamage(float damage, Vector3 hitPoint, GameObject attacker)
     {
+        // 生成期間無敵
+        if (currentState == AIState.Spawning)
+        {
+            Debug.Log($"[{gameObject.name}] 生成期間無敵，忽略傷害");
+            return;
+        }
+
         // 只接受玩家造成的傷害，忽略其他敵人坦克的子彈
         if (attacker == null || !attacker.CompareTag("Player"))
         {
