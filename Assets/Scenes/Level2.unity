@@ -8563,57 +8563,6 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!1 &1152731375
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1152731377}
-  - component: {fileID: 1152731376}
-  m_Layer: 0
-  m_Name: PlayerDataManger
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1152731376
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1152731375}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 396219dc4f34fb54f918164eb5e27a97, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerDataManager
-  moveSpeedLevel: 0
-  bulletSpeedLevel: 0
-  fireRateLevel: 0
-  availableUpgradePoints: 0
-  currentHealth: 3
-  hasHealthData: 0
-  currentTankTransformation: Basic
---- !u!4 &1152731377
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1152731375}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1262.9182, y: 606.3212, z: 21.53137}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1171009531
 GameObject:
   m_ObjectHideFlags: 0
@@ -17776,7 +17725,6 @@ SceneRoots:
   - {fileID: 1542962355}
   - {fileID: 577616193}
   - {fileID: 1268801362}
-  - {fileID: 1152731377}
   - {fileID: 253763108}
   - {fileID: 1406690883}
   - {fileID: 823386258}
