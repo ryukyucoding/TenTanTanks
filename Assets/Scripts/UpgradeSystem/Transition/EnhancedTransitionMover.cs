@@ -67,7 +67,7 @@ public class EnhancedTransitionMover : MonoBehaviour
         {
             if (enableVerboseDebug && Time.frameCount % 120 == 0) // 每2秒輸出一次
             {
-                Debug.Log("⏸️ [EnhancedTransitionMover] 移動被暫停，原因: " + GetPauseReason());
+                // Debug.Log("⏸️ [EnhancedTransitionMover] 移動被暫停，原因: " + GetPauseReason());
             }
             return;
         }
@@ -78,7 +78,7 @@ public class EnhancedTransitionMover : MonoBehaviour
         float movementThisFrame = Mathf.Abs(pos.x - lastPosition.x);
         if (movementThisFrame > 0.01f && enableVerboseDebug)
         {
-            Debug.Log($"📍 [EnhancedTransitionMover] 移動中: {lastPosition.x:F2} → {pos.x:F2} (距離: {movementThisFrame:F3})");
+            // Debug.Log($"📍 [EnhancedTransitionMover] 移動中: {lastPosition.x:F2} → {pos.x:F2} (距離: {movementThisFrame:F3})");
         }
         lastPosition = pos;
 

@@ -656,6 +656,7 @@ public class SimpleLevelController : MonoBehaviour
             // 檢查當前波是否完成
             if (enemiesKilledInWave >= enemiesSpawnedInWave)
             {
+                Debug.Log($"[SimpleLevelController] 本波完成！準備檢查是否還有下一波...");
                 CompleteCurrentWave();
             }
         }
@@ -664,15 +665,8 @@ public class SimpleLevelController : MonoBehaviour
             Debug.LogWarning($"[SimpleLevelController] 波次未活躍，但敵人被消滅了（這可能是正常的）");
         }
         
-        // 在所有波次處理完後，檢查是否所有敵人都被消滅（勝利條件）
-        if (totalEnemiesKilled >= totalEnemiesInLevel)
-        {
-            Debug.Log("[SimpleLevelController] ✅ 所有敵人已被消滅，關卡完成！");
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.Victory();
-            }
-        }
+        // ✅ 移除了此處的勝利檢查，避免提早換關
+        // 勝利條件在 CompleteCurrentWave() 中檢查（所有波次完成時）
     }
     
     private void CompleteCurrentWave()
@@ -694,8 +688,21 @@ public class SimpleLevelController : MonoBehaviour
         // 如果使用時間控制波次，則不自動觸發下一波（由 CheckAndSpawnTimeDrivenWaves 控制）
         if (useTimeDrivenWaves)
         {
-            Debug.Log("[SimpleLevelController] 使用時間控制波次，等待時間觸發下一波");
-            // 勝利條件已經在 OnEnemyDestroyed 中檢查，這裡不需要再檢查
+            Debug.Log($"[SimpleLevelController] 使用時間控制波次。當前波次: {currentWaveIndex + 1}/{totalWaves}");
+            
+            // 檢查是否所有波次都已生成且完成
+            if (spawnedWaves.Count >= totalWaves && totalEnemiesKilled >= totalEnemiesInLevel)
+            {
+                Debug.Log("[SimpleLevelController] ✅ 所有波次已生成且所有敵人已被消滅，關卡完成！");
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.Victory();
+                }
+            }
+            else
+            {
+                Debug.Log($"[SimpleLevelController] 等待剩餘波次... (已生成: {spawnedWaves.Count}/{totalWaves}, 擊殺: {totalEnemiesKilled}/{totalEnemiesInLevel})");
+            }
             return;
         }
 
@@ -706,11 +713,12 @@ public class SimpleLevelController : MonoBehaviour
         if (currentWaveIndex < totalWaves)
         {
             float nextWaveDelay = GetNextWaveDelay();
+            Debug.Log($"[SimpleLevelController] 準備下一波 ({currentWaveIndex + 1}/{totalWaves})，延遲 {nextWaveDelay}s");
             StartCoroutine(WaitForNextWave(nextWaveDelay));
         }
         else
         {
-            Debug.Log("所有波數已完成！");
+            Debug.Log($"[SimpleLevelController] 所有波數已完成！擊殺進度: {totalEnemiesKilled}/{totalEnemiesInLevel}");
 
             // 通知 GameManager 關卡完成（全部波數打完）
             if (GameManager.Instance != null)

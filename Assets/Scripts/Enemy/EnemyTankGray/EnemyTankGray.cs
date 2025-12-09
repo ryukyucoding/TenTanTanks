@@ -59,6 +59,7 @@ public class EnemyTankGray : MonoBehaviour, IDamageable
 
     private Transform player;
     private Rigidbody rb;
+    private bool isDead = false;  // 防止重复死亡
     private float currentHealth;
     private float nextFireTime;
     private bool canSeePlayer = false;  // 視線檢查
@@ -366,6 +367,10 @@ public class EnemyTankGray : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        // 防止重复死亡
+        if (isDead) return;
+        isDead = true;
+
         currentState = AIState.Dead;
 
         if (rb != null)

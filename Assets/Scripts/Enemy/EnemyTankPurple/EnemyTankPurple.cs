@@ -92,6 +92,7 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
     private bool hasValidPath = false;
     
     // 健康系統
+    private bool isDead = false;  // 防止重复死亡
     private float currentHealth;
     private float nextFireTime;
     
@@ -1453,6 +1454,10 @@ public class EnemyTankAI : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        // 防止重复死亡
+        if (isDead) return;
+        isDead = true;
+
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;

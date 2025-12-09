@@ -48,6 +48,7 @@ public class EnemyTank : MonoBehaviour, IDamageable
     private AIState currentState = AIState.Idle;
     private Transform player;
     private Rigidbody rb;
+    private bool isDead = false;  // 防止重复死亡
 
     // �԰�����
     private float currentHealth;
@@ -302,6 +303,10 @@ public class EnemyTank : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        // 防止重复死亡
+        if (isDead) return;
+        isDead = true;
+
         currentState = AIState.Dead;
 
         // ����ʡ]�ץ��G�ϥ� linearVelocity ���N velocity�^
