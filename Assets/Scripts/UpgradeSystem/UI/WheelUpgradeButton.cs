@@ -31,7 +31,7 @@ public class WheelUpgradeButton : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     // ★★★ 根據層級設定不同字體大小 ★★★
     private const float TIER1_FONT_SIZE = 30f; // 第一層字體大小  
-    private const float TIER2_FONT_SIZE = 20f; // 第二層字體大小
+    private const float TIER2_FONT_SIZE = 30f; // 第二層字體大小
     private const float DEFAULT_FONT_SIZE = 25f; // 預設字體大小
 
     [Header("Font Settings")]
