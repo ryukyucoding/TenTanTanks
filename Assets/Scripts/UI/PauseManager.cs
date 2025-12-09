@@ -54,6 +54,10 @@ public class PauseManager : MonoBehaviour
     public void QuitToMenu()
     {
         Time.timeScale = 1f;          // 確保恢復流程
+
+        // 重置所有遊戲數據（升級點數、等級、生命值、坦克變形、輪盤配置）
+        GameDataResetter.ResetAllGameData();
+
         SceneManager.LoadScene("Menu-new");
     }
 }
