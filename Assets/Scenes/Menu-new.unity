@@ -164,6 +164,18 @@ MonoBehaviour:
     barrelPrefabName: 
     tankColor: {r: 1, g: 1, b: 1, a: 1}
     scaleMultiplier: {x: 1, y: 1, z: 1}
+  currentWheelStats:
+    damage: 1
+    fireRate: 1
+    bulletSpeed: 5
+    bulletSize: 1
+    moveSpeed: 5
+    rotationSpeed: 200
+    maxHealth: 5
+    armor: 0
+    hasShield: 0
+    hasDoubleShot: 0
+    hasRapidFire: 0
 --- !u!4 &129540121
 Transform:
   m_ObjectHideFlags: 0
@@ -600,6 +612,18 @@ MonoBehaviour:
     barrelPrefabName: 
     tankColor: {r: 1, g: 1, b: 1, a: 1}
     scaleMultiplier: {x: 1, y: 1, z: 1}
+  currentWheelStats:
+    damage: 1
+    fireRate: 1
+    bulletSpeed: 5
+    bulletSize: 1
+    moveSpeed: 5
+    rotationSpeed: 200
+    maxHealth: 5
+    armor: 0
+    hasShield: 0
+    hasDoubleShot: 0
+    hasRapidFire: 0
 --- !u!4 &1370743892
 Transform:
   m_ObjectHideFlags: 0
@@ -1464,6 +1488,7 @@ MonoBehaviour:
   availableUpgradePoints: 0
   currentHealth: 3
   hasHealthData: 0
+  currentTankTransformation: Basic
 --- !u!4 &1964866537
 Transform:
   m_ObjectHideFlags: 0

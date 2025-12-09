@@ -81,7 +81,9 @@ public class TankStats : MonoBehaviour
         // 等待一帧
         yield return null;
         
-        Debug.Log($"[LoadData] 檢查保存的數據...");
+        Debug.Log($"[TankStats LoadData] GameObject: {gameObject.name} (InstanceID: {gameObject.GetInstanceID()})");
+        Debug.Log($"[TankStats LoadData] 物件路徑: {GetGameObjectPath()}");
+        Debug.Log($"[TankStats LoadData] 檢查保存的數據...");
         
         // 验证组件引用仍然有效
         if (tankController == null)
@@ -100,18 +102,37 @@ public class TankStats : MonoBehaviour
         bool hasLoadedData = false;
         if (PlayerDataManager.Instance != null)
         {
+            Debug.Log($"[TankStats LoadData] PlayerDataManager InstanceID: {PlayerDataManager.Instance.GetInstanceID()}");
             hasLoadedData = PlayerDataManager.Instance.LoadPlayerStats(this);
         }
+        else
+        {
+            Debug.LogWarning("[TankStats LoadData] ⚠️ PlayerDataManager.Instance 為 null！");
+        }
         
-        Debug.Log($"[LoadData] 完成 (有保存數據: {hasLoadedData})");
+        Debug.Log($"[TankStats LoadData] 完成 (有保存數據: {hasLoadedData})");
     }
 
     void OnDestroy()
     {
         // 當物件被銷毀時保存數據（換場景時）
+        Debug.Log($"[TankStats OnDestroy] GameObject: {gameObject.name} (InstanceID: {gameObject.GetInstanceID()})");
+        Debug.Log($"[TankStats OnDestroy] 物件路徑: {GetGameObjectPath()}");
+        
+        // ✅ 防止升级轮盘中的预览模型保存数据
+        // 只有真正的玩家坦克才应该保存数据
+        string path = GetGameObjectPath();
+        if (path.Contains("UpgradeCanvas") || path.Contains("UpgradeWheel") || path.Contains("Preview"))
+        {
+            Debug.LogWarning($"[TankStats OnDestroy] ⚠️ 跳過保存 - 這是升級輪盤預覽模型，不是真正的玩家坦克");
+            Debug.LogWarning($"[TankStats OnDestroy] 路徑: {path}");
+            return;
+        }
+        
         if (PlayerDataManager.Instance != null)
         {
             Debug.Log($"[TankStats OnDestroy] 保存數據前 - 可用點數: {availableUpgradePoints}, 移動Lv{moveSpeedLevel}, 子彈Lv{bulletSpeedLevel}, 射速Lv{fireRateLevel}");
+            Debug.Log($"[TankStats OnDestroy] PlayerDataManager InstanceID: {PlayerDataManager.Instance.GetInstanceID()}");
             PlayerDataManager.Instance.SavePlayerStats(this);
             Debug.Log($"[TankStats OnDestroy] 數據已保存到 PlayerDataManager");
         }
@@ -119,6 +140,23 @@ public class TankStats : MonoBehaviour
         {
             Debug.LogError("[TankStats OnDestroy] ❌ PlayerDataManager 不存在，無法保存數據！");
         }
+    }
+
+    /// <summary>
+    /// 获取 GameObject 的完整路径
+    /// </summary>
+    private string GetGameObjectPath()
+    {
+        string path = gameObject.name;
+        Transform current = transform.parent;
+        
+        while (current != null)
+        {
+            path = current.name + "/" + path;
+            current = current.parent;
+        }
+        
+        return path;
     }
 
     /// <summary>

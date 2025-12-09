@@ -116,7 +116,11 @@ public class PlayerDataManager : MonoBehaviour
     /// </summary>
     public void SavePlayerStats(TankStats stats)
     {
-        if (stats == null) return;
+        if (stats == null)
+        {
+            Debug.LogWarning("[PlayerDataManager] SavePlayerStats: stats 為 null");
+            return;
+        }
 
         int oldMoveLevel = moveSpeedLevel;
         int oldBulletLevel = bulletSpeedLevel;
@@ -128,10 +132,17 @@ public class PlayerDataManager : MonoBehaviour
         fireRateLevel = stats.GetFireRateLevel();
         availableUpgradePoints = stats.GetAvailableUpgradePoints();
 
-        Debug.Log($"[PlayerDataManager] ✓ 保存玩家數據:");
+        Debug.Log($"[PlayerDataManager] ✓ 保存玩家數據 (PDM Instance ID: {GetInstanceID()}, GameObject: {gameObject.name}):");
+        Debug.Log($"  TankStats來源: {stats.gameObject.name} (InstanceID: {stats.gameObject.GetInstanceID()})");
         Debug.Log($"  之前: 移動Lv{oldMoveLevel}, 子彈Lv{oldBulletLevel}, 射速Lv{oldFireLevel}, 點數{oldPoints}");
         Debug.Log($"  现在: 移動Lv{moveSpeedLevel}, 子彈Lv{bulletSpeedLevel}, 射速Lv{fireRateLevel}, 點數{availableUpgradePoints}");
-        Debug.Log($"[PlayerDataManager] Instance ID: {GetInstanceID()}");
+        
+        // 验证数据是否合理
+        if (moveSpeedLevel == 0 && bulletSpeedLevel == 0 && fireRateLevel == 0 && availableUpgradePoints == 0)
+        {
+            Debug.LogWarning("[PlayerDataManager] ⚠️ 保存的數據全為 0，這可能不正確！");
+            Debug.LogWarning($"[PlayerDataManager] TankStats 物件路徑: {GetGameObjectPath(stats.gameObject)}");
+        }
     }
 
     /// <summary>
@@ -139,10 +150,17 @@ public class PlayerDataManager : MonoBehaviour
     /// </summary>
     public bool LoadPlayerStats(TankStats stats)
     {
-        if (stats == null) return false;
+        if (stats == null)
+        {
+            Debug.LogWarning("[PlayerDataManager] LoadPlayerStats: stats 為 null");
+            return false;
+        }
 
-        Debug.Log($"[PlayerDataManager] 嘗試載入數據 (Instance ID: {GetInstanceID()}):");
+        Debug.Log($"[PlayerDataManager] 嘗試載入數據 (PDM Instance ID: {GetInstanceID()}, GameObject: {gameObject.name}):");
+        Debug.Log($"  目標TankStats: {stats.gameObject.name} (InstanceID: {stats.gameObject.GetInstanceID()})");
+        Debug.Log($"  TankStats 物件路徑: {GetGameObjectPath(stats.gameObject)}");
         Debug.Log($"  移動 Lv.{moveSpeedLevel}, 子彈 Lv.{bulletSpeedLevel}, 射速 Lv.{fireRateLevel}, 可用點數 {availableUpgradePoints}");
+        Debug.Log($"  Instance == PlayerDataManager.Instance: {this == PlayerDataManager.Instance}");
 
         // ✅ 修复：只要有升级点数或任何等级大于0，就算有数据
         // 因为玩家可能有点数但还没升级任何属性
@@ -158,6 +176,23 @@ public class PlayerDataManager : MonoBehaviour
 
         Debug.Log("[PlayerDataManager] ⚠️ 無保存的玩家數據 (所有等級=0且點數=0)");
         return false;
+    }
+
+    /// <summary>
+    /// 获取 GameObject 的完整路径
+    /// </summary>
+    private string GetGameObjectPath(GameObject obj)
+    {
+        string path = obj.name;
+        Transform current = obj.transform.parent;
+        
+        while (current != null)
+        {
+            path = current.name + "/" + path;
+            current = current.parent;
+        }
+        
+        return path;
     }
 
     /// <summary>
